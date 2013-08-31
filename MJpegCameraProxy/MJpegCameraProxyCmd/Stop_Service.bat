@@ -1,0 +1,2 @@
+NET STOP MJpegCameraProxy
+pause
