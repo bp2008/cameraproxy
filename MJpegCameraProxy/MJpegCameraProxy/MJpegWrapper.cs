@@ -8,7 +8,6 @@ namespace MJpegCameraProxy
 {
 	public class MJpegWrapper
 	{
-		Thread thrHttp;
 		MJpegServer httpServer;
 		public static DateTime startTime = DateTime.MinValue;
 		int port;
@@ -25,19 +24,14 @@ namespace MJpegCameraProxy
 			startTime = DateTime.Now;
 
 			httpServer = new MJpegServer(port);
-			thrHttp = new Thread(httpServer.listen);
-			thrHttp.Name = "MJpegCameraProxy HTTP Listener";
-			thrHttp.Start();
+			httpServer.Start();
 		}
 		public void Stop()
 		{
 			if (httpServer != null)
-				httpServer.stop();
-
-			if (thrHttp != null)
 			{
-				thrHttp.Abort();
-				thrHttp.Join(1000);
+				httpServer.Stop();
+				httpServer.Join(1000);
 			}
 		}
 		#endregion
