@@ -8,13 +8,15 @@ using System.Collections.Generic;
 using System.Web;
 using System.Text;
 
+// This file has been modified continuously since Nov 10, 2012 by Brian Pearce.
+// Based on http://www.codeproject.com/Articles/137979/Simple-HTTP-Server-in-C
+
 // offered to the public domain for any use with no restriction
 // and also with no warranty of any kind, please enjoy. - David Jeske. 
 
 // simple HTTP explanation
 // http://www.jmarshall.com/easy/http/
 
-// Modified Nov 10, 2012 by Brian Pearce
 
 namespace SimpleHttp
 {
