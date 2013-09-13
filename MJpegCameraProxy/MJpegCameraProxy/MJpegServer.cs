@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
+using SimpleHttp;
 
 namespace MJpegCameraProxy
 {
@@ -82,7 +83,7 @@ namespace MJpegCameraProxy
 					p.writeSuccess("multipart/x-mixed-replace;boundary=ipcamera");
 					byte[] newImage;
 					byte[] lastImage = null;
-					while (is_active)
+					while (!this.stopRequested)
 					{
 						try
 						{

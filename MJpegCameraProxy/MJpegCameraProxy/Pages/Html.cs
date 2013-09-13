@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using SimpleHttp;
 
 namespace MJpegCameraProxy
 {
@@ -51,7 +52,7 @@ namespace MJpegCameraProxy
 			html = html.Replace("%ALLCAMS%", string.Join(",", MJpegServer.cm.GenerateAllCameraIdList()));
 			try
 			{
-				html = html.Replace("%REMOTEIP%", string.Join(",", p.socket.Client.RemoteEndPoint.ToString().Split(':')[0]));
+				html = html.Replace("%REMOTEIP%", p.RemoteIPAddress);
 			}
 			catch (Exception ex)
 			{
