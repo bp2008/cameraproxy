@@ -15,6 +15,7 @@ namespace MJpegCameraProxy
 		public MJpegWrapper(int port)
 		{
 			this.port = port;
+			SimpleHttp.Logger.RegisterLogger(Logger.httpLogger);
 		}
 		#region Start / Stop
 		public void Start()

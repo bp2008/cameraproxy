@@ -105,5 +105,19 @@ namespace MJpegCameraProxy
 				//Info(message);
 			}
 		}
+
+		public static SimpleHttp.ILogger httpLogger = new HttpLogger();
+	}
+	class HttpLogger : SimpleHttp.ILogger
+	{
+		void SimpleHttp.ILogger.Log(Exception ex, string additionalInformation)
+		{
+			Logger.Debug(ex, additionalInformation);
+		}
+
+		void SimpleHttp.ILogger.Log(string str)
+		{
+			Logger.Debug(str);
+		}
 	}
 }
