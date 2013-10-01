@@ -15,7 +15,7 @@ namespace MJpegCameraProxy
 		public Service1()
 		{
 			InitializeComponent();
-			mjpegServer = new MJpegWrapper(8077);
+			mjpegServer = new MJpegWrapper();
 		}
 
 		protected override void OnStart(string[] args)

@@ -5,6 +5,8 @@ using System.Text;
 using System.Drawing;
 using System.Threading;
 using SimpleHttp;
+using MJpegCameraProxy.Configuration;
+using System.Web;
 
 namespace MJpegCameraProxy
 {
@@ -15,50 +17,73 @@ namespace MJpegCameraProxy
 			IPCameraBase cam = MJpegServer.cm.GetCameraAndGetItRunning(camId);
 			if (cam == null)
 				return "NO";
-			for (int i = 0; i < 50; i++)
+			int width = 0;
+			int height = 0;
+			string cameraImgLink = @"<img id=""imgFrame"" class=""CamImg"" />";
+			string keepalive = "";
+			if (cam.cameraSpec.type == CameraType.h264)
 			{
-				if (cam.ImageSize.Width != 0 && cam.ImageSize.Height != 0)
-					break;
-				Thread.Sleep(100);
+				keepalive = @"
+				var keepaliveInterval;
+				$(function()
+				{
+					keepaliveInterval = setInterval(keepalive, 4000);
+				});
+				function keepalive()
+				{
+					if(refreshDisabled)
+						clearInterval(keepaliveInterval);
+					else
+						$.ajax('keepalive?id=" + camId + @"');
+				}";
+				width = 1280;
+				height = 720;
+				cameraImgLink = @"<div style=""width:" + width + @"px;height:" + height + @"px;""><embed type=""application/x-vlc-plugin"" pluginspage=""http://www.videolan.org"" width=""" + width + @""" height=""" + height + @""" toolbar=""false"" src=""" + MJpegServer.cm.GetRTSPUrl(cam.cameraSpec.id, httpProcessor) + @""" mute=""false"" /></div>";
 			}
-			if (cam.ImageSize.Width == 0 || cam.ImageSize.Height == 0)
-				return @"<!DOCTYPE HTML>
+			else
+			{
+				for (int i = 0; i < 50; i++)
+				{
+					if (cam.ImageSize.Width != 0 && cam.ImageSize.Height != 0)
+						break;
+					Thread.Sleep(100);
+				}
+				if (cam.ImageSize.Width == 0 || cam.ImageSize.Height == 0)
+					return @"<!DOCTYPE HTML>
 						<html>
 						<head>
-							<title>camId</title>
+							<title>" + HttpUtility.HtmlEncode(cam.cameraSpec.name) + @"</title>
 						</head>
 						<body>
 						This camera is starting up.<br/>
 						Please <a href=""javascript:top.location.reload();"">try again in a few moments</a>.
 						</body>
 						</html>";
+				width = cam.ImageSize.Width;
+				height = cam.ImageSize.Height;
+			}
 
 			string minutesLabel = disableRefreshAfter < 0 ? "a very long time" : (TimeSpan.FromMilliseconds(disableRefreshAfter).TotalMinutes + " minutes");
 
 			return @"<!DOCTYPE HTML>
 <html>
 <head>
-	<title>" + camId + @"</title>
+	<title>" + HttpUtility.HtmlEncode(cam.cameraSpec.name) + @"</title>
 	<script src=""Scripts/jquery.js"" type=""text/javascript""></script>
 	<script type=""text/javascript"">
 		var disableRefreshAfter = " + disableRefreshAfter + @";
 		var refreshDisabled = false;
-		var originwidth = parseInt(" + cam.ImageSize.Width + @");
-		var originheight = parseInt(" + cam.ImageSize.Height + @");
+		var originwidth = parseInt(" + width + @");
+		var originheight = parseInt(" + height + @");
 		var lastUpdate = 0;
 		var clickCausesResize = true;
-		var showPTH = " + (cam.ptzType == PTZType.None ? "false" : "true") + @";
+		var showPTH = " + (cam.cameraSpec.ptzType == PtzType.None ? "false" : "true") + @";
 		$(function()
 		{
 			if(disableRefreshAfter > -1)
 				setTimeout(""disableRefresh()"", disableRefreshAfter);
-			setInterval(""updateTimer()"", 500);
 		});
-		function updateTimer()
-		{
-			if(lastUpdate != 0)
-				$(""#lastupdate"").html(parseInt((new Date().getTime() - lastUpdate) / 1000));
-		}
+		" + keepalive + @"
 		function myOnLoad()
 		{
 			$(""#imgFrame"").load(function ()
@@ -202,8 +227,8 @@ namespace MJpegCameraProxy
 	<style type=""text/css"">
 		.CamImg
 		{
-			width: " + cam.ImageSize.Width + @"px;
-			height: " + cam.ImageSize.Height + @"px;
+			width: " + width + @"px;
+			height: " + height + @"px;
 		}
 		body
 		{
@@ -215,7 +240,7 @@ namespace MJpegCameraProxy
 			border: 1px Solid Black;
 			border-radius: 5px;
 			padding: 3px;
-			width: " + cam.ImageSize.Width + @"px;
+			width: " + width + @"px;
 		}
 		#popupFrame
 		{
@@ -318,18 +343,11 @@ namespace MJpegCameraProxy
 </head>
 <body onload=""myOnLoad();"">
 	<div id=""camFrame"">
-		<img id=""imgFrame"" class=""CamImg"" /><table>
+		" + cameraImgLink + @"
+		<table>
 			<tbody>
 				<tr>
-					" + PTZ.GetHtml(camId, cam) + @"<td>
-						<div id=""camControls"">
-							" + (refreshTime < 0 ? "" : @"Last update: <span id=""lastupdate"">-loading-</span> seconds ago.<br />") + (enableAutoResize ? @"<b>1.</b>
-							This image automatically resizes to fit inside your browser window. You may click
-							the image to switch it into and out of full-size mode." : "") + (disableRefreshAfter < 0 ? "" : @"<br /><b>2.</b> This image
-							will automatically refresh itself for " + minutesLabel + @". If you wish to continue
-							viewing live pictures, you must then reload the page. A message box will appear
-							over the image at that time.") + @"</div>
-					</td>
+					" + PTZ.GetHtml(camId, cam) + @"
 				</tr>
 			</tbody>
 		</table>

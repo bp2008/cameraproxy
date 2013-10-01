@@ -5,49 +5,43 @@ using System.Text;
 using System.Threading;
 using System.IO;
 using System.Drawing;
+using MJpegCameraProxy.Configuration;
 
 namespace MJpegCameraProxy
 {
-	public enum PTZType
-	{
-		None,
-		LoftekCheap,
-		Dahua
-	}
 	public abstract class IPCameraBase
 	{
 		public SemaphoreSlim ptzLock = new SemaphoreSlim(1, 1);
-		public static volatile bool ApplicationExiting = false;
 		public DateTime ImageLastViewed = DateTime.Now.AddSeconds(10);
 		public volatile bool isRunning = false;
-		public bool isPrivate;
 		Thread threadDownloadStream;
 		protected volatile byte[] lastFrame = new byte[0];
 
-		public PTZType ptzType = PTZType.None;
+		public CameraSpec cameraSpec;
 
 		public DahuaPTZ dahuaPtz = null;
 
 		protected int width = 0;
 
-		protected string id;
-		public string ID
-		{
-			get { return id; }
-		}
-
+		/// <summary>
+		/// If true, the download loop should return as soon as possible.
+		/// </summary>
 		protected bool Exit
 		{
 			get
 			{
 				if (!isRunning)
 					return true;
-				if (ApplicationExiting)
+				if (MJpegWrapper.ApplicationExiting)
 					return true;
 				return false;
 			}
 		}
+
 		protected Size imageSize;
+		/// <summary>
+		/// Gets the size of the image being sent by the camera.
+		/// </summary>
 		public Size ImageSize
 		{
 			get
@@ -65,6 +59,9 @@ namespace MJpegCameraProxy
 			}
 		}
 
+		/// <summary>
+		/// Returns the last frame decoded by the camera.  Only works with jpg and mjpg cameras.  For h264 cameras, this will not return a valid frame.
+		/// </summary>
 		public byte[] LastFrame
 		{
 			get
@@ -73,26 +70,36 @@ namespace MJpegCameraProxy
 				return lastFrame;
 			}
 		}
+
+		#region Start / Stop
 		public void Start()
 		{
-			Stop(true);
-			isRunning = true;
-			ImageLastViewed = DateTime.Now.AddSeconds(10);
-			threadDownloadStream = new Thread(downloadLoop);
-			threadDownloadStream.Name = "M/Jpeg Download Stream";
-			threadDownloadStream.Start();
+			lock (this)
+			{
+				Stop(true);
+				isRunning = true;
+				ImageLastViewed = DateTime.Now.AddSeconds(10);
+				threadDownloadStream = new Thread(downloadLoop);
+				threadDownloadStream.Name = "M/Jpeg Download Stream";
+				threadDownloadStream.Start();
+			}
 		}
 		public void Stop(bool isAboutToStart = false)
 		{
-			if (dahuaPtz != null)
-				dahuaPtz.Shutdown(isAboutToStart);
-			if (threadDownloadStream != null)
+			lock (this)
 			{
-				threadDownloadStream.Abort();
+				if (dahuaPtz != null)
+					dahuaPtz.Shutdown(isAboutToStart);
+				if (threadDownloadStream != null)
+				{
+					threadDownloadStream.Abort();
+				}
+				isRunning = false;
+				lastFrame = new byte[0];
 			}
-			isRunning = false;
-			lastFrame = new byte[0];
 		}
+		#endregion
+		#region Download Loop
 		private void downloadLoop()
 		{
 			try
@@ -108,58 +115,32 @@ namespace MJpegCameraProxy
 			}
 		}
 		protected abstract void DoBackgroundWork();
+		#endregion
 
-		public static IPCameraBase CreateCamera(string id)
+		public static IPCameraBase CreateCamera(CameraSpec cs)
 		{
-			string[] lines = File.ReadAllLines(Globals.CamsDirectoryBase + id);
-			if (lines.Length < 2)
-				return null;
-			string un = "", pw = "";
-			bool bPrivate = false;
-			PTZType type = PTZType.None;
-			if (lines.Length >= 4)
-			{
-				un = lines[2];
-				pw = lines[3];
-			}
-			if (lines.Length >= 5)
-			{
-				bPrivate = Util.ParseBool(lines[4]);
-			}
-			DahuaPTZ dahuaPtz = null;
-			if (lines.Length >= 6)
-			{
-				if(lines[5].ToLower() == "loftekcheap")
-					type = PTZType.LoftekCheap;
-				else if (lines[5].ToLower().StartsWith("dahua"))
-				{
-					type = PTZType.Dahua;
-					string[] parts = lines[5].Split('/');
-					if (parts.Length >= 5)
-						dahuaPtz = new DahuaPTZ(parts[1], parts[2], parts[3], int.Parse(parts[4]));
-					else if (parts.Length >= 4)
-						dahuaPtz = new DahuaPTZ(parts[1], parts[2], parts[3], 180);
-				}
-			}
 			IPCameraBase cam = null;
-			if (lines[0].ToLower() == "mjpg")
+			switch (cs.type)
 			{
-				cam = new MJpegCamera(lines[1], un, pw);
+				case CameraType.jpg:
+					cam = new JpegRefreshCamera();
+					break;
+				case CameraType.mjpg:
+					cam = new MJpegCamera();
+					break;
+				case CameraType.h264:
+					// h264 cameras currently do not support jpeg output - only stream reflection via live555ProxyServer
+					cam = new H264Camera();
+					break;
+				default:
+					break;
 			}
-			else if (lines[0].ToLower() == "jpg")
-			{
-				cam = new JpegRefreshCamera(lines[1], un, pw);
-			}
-
 			if (cam != null)
 			{
-				cam.isPrivate = bPrivate;
-				cam.ptzType = type;
-				cam.dahuaPtz = dahuaPtz;
+				cam.cameraSpec = cs;
+				if (cs.ptzType == PtzType.Dahua)
+					cam.dahuaPtz = new DahuaPTZ(cs.ptz_hostName, cs.ptz_username, cs.ptz_password, cs.ptz_absoluteXOffset);
 			}
-
-			cam.id = id;
-
 			return cam;
 		}
 	}

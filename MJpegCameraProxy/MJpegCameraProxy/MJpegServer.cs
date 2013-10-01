@@ -6,13 +6,15 @@ using System.Threading;
 using System.IO;
 using System.Diagnostics;
 using SimpleHttp;
+using System.Text.RegularExpressions;
+using System.Web;
 
 namespace MJpegCameraProxy
 {
 	public class MJpegServer : HttpServer
 	{
 		public static CameraManager cm = new CameraManager();
-		SessionManager sm = new SessionManager();
+		public static SessionManager sm = new SessionManager();
 		public MJpegServer(int port)
 			: base(port)
 		{
@@ -21,13 +23,7 @@ namespace MJpegCameraProxy
 		{
 			try
 			{
-				int idxFirstSlash = p.http_url.IndexOf('/');
-				if (idxFirstSlash == -1)
-				{
-					p.writeFailure();
-					return;
-				}
-				string requestedPage = p.http_url_before_querystring.Substring(idxFirstSlash + 1);
+				string requestedPage = p.request_url.AbsolutePath.TrimStart('/');
 
 				if (requestedPage.StartsWith("Images/"))
 				{
@@ -49,18 +45,114 @@ namespace MJpegCameraProxy
 					p.outputStream.Write(Javascript.Sha_1());
 					return;
 				}
+				else if (requestedPage == "Scripts/TableSorter.js")
+				{
+					p.writeSuccess("text/javascript");
+					p.outputStream.Write(Javascript.TableSorter());
+					return;
+				}
+				else if (requestedPage == "Scripts/jquery_ui_1_10_2_custom_min.js")
+				{
+					p.writeSuccess("text/javascript");
+					p.outputStream.Write(Pages.Resource.getStringResource("jquery_ui_1_10_2_custom_min.js"));
+					return;
+				}
+				else if (requestedPage == "Styles/jquery_ui_1_10_2_custom_min.css")
+				{
+					p.writeSuccess("text/css");
+					p.outputStream.Write(Pages.Resource.getStringResource("jquery_ui_1_10_2_custom_min.css"));
+					return;
+				}
+				else if (requestedPage == "Styles/TableSorter_Blue.css")
+				{
+					p.writeSuccess("text/css");
+					p.outputStream.Write(Css.TableSorter_Blue());
+					return;
+				}
+				else if (requestedPage == "Styles/TableSorter_Green.css")
+				{
+					p.writeSuccess("text/css");
+					p.outputStream.Write(Css.TableSorter_Green());
+					return;
+				}
+				else if (requestedPage == "Styles/Site.css")
+				{
+					p.writeSuccess("text/css");
+					p.outputStream.Write(Css.Site());
+					return;
+				}
+				else if (requestedPage.StartsWith("Styles/images/"))
+				{
+					string file = requestedPage.Substring("Styles/images/".Length);
+					if (file.EndsWith(".png"))
+						p.writeSuccess("image/png");
+					else if (file.EndsWith(".gif"))
+						p.writeSuccess("image/gif");
+					else if (file.EndsWith(".jpg") || file.EndsWith(".jpg"))
+						p.writeSuccess("image/jpeg");
+					else
+					{
+						p.writeFailure();
+						return;
+					}
+					p.outputStream.Flush();
+
+					int idxLastDot = file.LastIndexOf('.');
+					if (idxLastDot > -1)
+						file = file.Substring(0, idxLastDot);
+
+					byte[] imageData = Pages.Resource.getBinaryResource(file);
+					p.rawOutputStream.Write(imageData, 0, imageData.Length);
+					return;
+				}
+
+				if (requestedPage == "admin")
+				{
+					p.writeRedirect("admin/main");
+					return;
+				}
+
+				if (requestedPage == "login")
+				{
+					LogOutUser(p, null);
+					return;
+				}
 
 				Session s = sm.GetSession(p.requestCookies.GetValue("session"), p.requestCookies.GetValue("auth"));
 				if (s != null)
-					p.responseCookies.Add("session", s.sid, TimeSpan.FromMinutes(20));
+					p.responseCookies.Add("session", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
 
-				if (requestedPage.EndsWith(".jpg"))
+				if (requestedPage == "logout")
+				{
+					LogOutUser(p, s);
+					return;
+				}
+
+
+				if (requestedPage.StartsWith("admin/"))
+				{
+					string adminPage = requestedPage == "admin" ? "" : requestedPage.Substring("admin/".Length);
+					if (string.IsNullOrWhiteSpace(adminPage))
+						adminPage = "main";
+					int idxQueryStringStart = adminPage.IndexOf('?');
+					if (idxQueryStringStart == -1)
+						idxQueryStringStart = adminPage.Length;
+					adminPage = adminPage.Substring(0, idxQueryStringStart);
+					Pages.Admin.AdminPage.HandleRequest(adminPage, p, s);
+					return;
+				}
+				else if (requestedPage.EndsWith(".jpg"))
 				{
 					string cameraId = requestedPage.Substring(0, requestedPage.Length - 4);
-					if (cm.IsPrivate(cameraId) && s == null)
+					int minPermission = cm.GetCameraMinPermission(cameraId);
+					if (minPermission == 101)
 					{
-						p.writeSuccess("text/html");
-						p.outputStream.Write(Login.GetString(p.http_url));
+						p.writeFailure();
+						return;
+					}
+					if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
+					{
+						LogOutUser(p, s);
 						return;
 					}
 					byte[] latestImage = cm.GetLatestImage(cameraId);
@@ -69,13 +161,36 @@ namespace MJpegCameraProxy
 					p.outputStream.Flush();
 					p.rawOutputStream.Write(latestImage, 0, latestImage.Length);
 				}
+				else if (requestedPage == "keepalive")
+				{
+					string cameraId = p.GetParam("id");
+					int minPermission = cm.GetCameraMinPermission(cameraId);
+					if (minPermission == 101)
+					{
+						p.writeFailure();
+						return;
+					}
+					if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
+					{
+						p.writeFailure("403 Forbidden");
+						return;
+					}
+					cm.GetRTSPUrl(cameraId, p);
+					p.writeSuccess("text/plain");
+					p.outputStream.Write("1");
+				}
 				else if (requestedPage.EndsWith(".mjpg"))
 				{
 					string cameraId = requestedPage.Substring(0, requestedPage.Length - 5);
-					if (cm.IsPrivate(cameraId) && s == null)
+					int minPermission = cm.GetCameraMinPermission(cameraId);
+					if (minPermission == 101)
 					{
-						p.writeSuccess("text/html");
-						p.outputStream.Write(Login.GetString(p.http_url));
+						p.writeFailure();
+						return;
+					}
+					if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
+					{
+						LogOutUser(p, s);
 						return;
 					}
 					if (cm.GetLatestImage(cameraId).Length == 0)
@@ -115,14 +230,19 @@ namespace MJpegCameraProxy
 				else if (requestedPage.EndsWith(".cam"))
 				{
 					string cameraId = requestedPage.Substring(0, requestedPage.Length - 4);
-					if (cm.IsPrivate(cameraId) && s == null)
+					int minPermission = cm.GetCameraMinPermission(cameraId);
+					if (minPermission == 101)
 					{
-						p.writeSuccess("text/html");
-						p.outputStream.Write(Login.GetString(p.http_url));
+						p.writeFailure();
+						return;
+					}
+					if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
+					{
+						LogOutUser(p, s);
 						return;
 					}
 
-					string userAgent = p.httpHeaders.ContainsKey("User-Agent") ? p.httpHeaders["User-Agent"].ToString() : "";
+					string userAgent = p.GetHeaderValue("User-Agent", "");
 					bool isMobile = userAgent.Contains("iPad") || userAgent.Contains("iPhone") || userAgent.Contains("Android") || userAgent.Contains("BlackBerry");
 
 					bool isLocalConnection = p == null ? false : p.IsLocalConnection;
@@ -139,10 +259,15 @@ namespace MJpegCameraProxy
 				else if (requestedPage == "PTZ")
 				{
 					string cameraId = p.GetParam("id");
-					if (cm.IsPrivate(cameraId) && s == null)
+					int minPermission = cm.GetCameraMinPermission(cameraId);
+					if (minPermission == 101)
 					{
-						p.writeSuccess("text/html");
-						p.outputStream.Write(Login.GetString(p.http_url));
+						p.writeFailure();
+						return;
+					}
+					if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
+					{
+						LogOutUser(p, s);
 						return;
 					}
 					PTZ.RunCommand(cameraId, p.GetParam("cmd"));
@@ -157,7 +282,11 @@ namespace MJpegCameraProxy
 						if (index > -1)
 						{
 							string fileName = Globals.ThumbsDirectoryBase + cameraId + index + ".jpg";
-							if (!cm.IsPrivate(cameraId) || s != null)
+							int minPermission = cm.GetCameraMinPermission(cameraId);
+							if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission) || minPermission == 101)
+							{
+							}
+							else
 							{
 								if (File.Exists(fileName))
 								{
@@ -193,32 +322,52 @@ namespace MJpegCameraProxy
 					}
 					else if (html.errorType == Html.ErrorType.NoAuth)
 					{
-						p.writeSuccess("text/html");
-						p.outputStream.Write(Login.GetString(p.http_url));
+						LogOutUser(p, s);
 					}
 					return;
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.Debug(ex);
+				if (!p.isOrdinaryDisconnectException(ex))
+					Logger.Debug(ex);
 			}
+		}
+
+		private void LogOutUser(HttpProcessor p, Session s)
+		{
+			if (s != null)
+				sm.RemoveSession(s.sid);
+			p.responseCookies.Add("session", "", TimeSpan.Zero);
+			p.writeSuccess("text/html");
+			p.outputStream.Write(Login.GetString(p.request_url));
 		}
 
 		public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData)
 		{
 			try
 			{
-				int idxFirstSlash = p.http_url.IndexOf('/');
-				if (idxFirstSlash == -1)
+				Session s = sm.GetSession(p.requestCookies.GetValue("session"), p.requestCookies.GetValue("auth"));
+				if (s.permission == 100)
+					p.responseCookies.Add("session", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
+				else
 				{
-					p.writeFailure();
+					p.writeFailure("403 Forbidden");
 					return;
 				}
-				string requestedPage = p.http_url.Substring(idxFirstSlash + 1);
-				if (string.IsNullOrEmpty(requestedPage))
-				{
 
+				string requestedPage = p.request_url.AbsolutePath.TrimStart('/');
+				if (requestedPage == "admin/saveitem")
+				{
+					string result = MJpegWrapper.cfg.SaveItem(p);
+					p.writeSuccess("text/plain");
+					p.outputStream.Write(HttpUtility.HtmlEncode(result));
+				}
+				else if (requestedPage == "admin/deleteitems")
+				{
+					string result = MJpegWrapper.cfg.DeleteItems(p);
+					p.writeSuccess("text/plain");
+					p.outputStream.Write(HttpUtility.HtmlEncode(result));
 				}
 			}
 			catch (Exception ex)

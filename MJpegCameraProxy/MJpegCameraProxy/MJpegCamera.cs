@@ -11,17 +11,8 @@ namespace MJpegCameraProxy
 {
 	public class MJpegCamera : IPCameraBase
 	{
-		public string url, user, pass, ip;
-		public MJpegCamera(string url, string user, string pass)
+		internal MJpegCamera()
 		{
-			this.url = url;
-			this.user = user;
-			this.pass = pass;
-			Match m = Regex.Match(url, "://(.*?)/");
-			if (m.Success)
-				ip = m.Groups[1].Value;
-			else
-				ip = "";
 		}
 
 		protected override void DoBackgroundWork()
@@ -33,10 +24,10 @@ namespace MJpegCameraProxy
 			{
 				try
 				{
-					WebRequest request = HttpWebRequest.Create(url);
+					WebRequest request = HttpWebRequest.Create(cameraSpec.imageryUrl);
 					request.Proxy = null;
-					if (!string.IsNullOrEmpty(user) || !string.IsNullOrEmpty(pass))
-						request.Credentials = new NetworkCredential(user, pass);
+					if (!string.IsNullOrEmpty(cameraSpec.username) || !string.IsNullOrEmpty(cameraSpec.password))
+						request.Credentials = new NetworkCredential(cameraSpec.username, cameraSpec.password);
 					WebResponse response = request.GetResponse();
 					// BOUNDARY is implemented wrong by some cameras
 					//string boundary = response.Headers["boundary"];
@@ -96,7 +87,8 @@ namespace MJpegCameraProxy
 				{
 					Logger.Debug(ex);
 				}
-				Thread.Sleep(5000);
+				if (!Exit)
+					Thread.Sleep(5000);
 			}
 		}
 

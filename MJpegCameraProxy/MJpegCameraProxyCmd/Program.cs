@@ -11,10 +11,9 @@ namespace MJpegCameraProxyCmd
 		static MJpegWrapper mjpegServer;
 		static void Main(string[] args)
 		{
-			int port = 44456;
-			mjpegServer = new MJpegWrapper(port);
+			mjpegServer = new MJpegWrapper();
 			mjpegServer.Start();
-			Console.WriteLine("MJpegServer listening on port " + port);
+			Console.WriteLine("MJpegServer listening on port " + MJpegWrapper.cfg.webport);
 			Console.ReadLine();
 			mjpegServer.Stop();
 		}

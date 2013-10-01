@@ -252,38 +252,20 @@ $(function()
 					return; // Invalid Command
 				#endregion
 
-				string auth = "";
-				string ip = "";
-
-				if (ipCam.GetType() == typeof(JpegRefreshCamera))
-				{
-					JpegRefreshCamera jrc = (JpegRefreshCamera)ipCam;
-					auth = "&user=" + jrc.user + "&pwd=" + jrc.pass;
-					ip = jrc.ip;
-				}
-				else if (ipCam.GetType() == typeof(MJpegCamera))
-				{
-					MJpegCamera mjpegc = (MJpegCamera)ipCam;
-					auth = "&user=" + mjpegc.user + "&pwd=" + mjpegc.pass;
-					ip = mjpegc.ip;
-				}
-				else
-				{
-					return;
-				}
+				string auth = "&user=" + ipCam.cameraSpec.ptz_username + "&pwd=" + ipCam.cameraSpec.ptz_password;
 
 				if (commandType == CommandType.decoder_control)
 				{
-					SimpleProxy.GetData("http://" + ip + "/decoder_control.cgi?command=" + command + auth);
+					SimpleProxy.GetData("http://" + ipCam.cameraSpec.ptz_hostName + "/decoder_control.cgi?command=" + command + auth);
 					if (cmdEnd != "")
 					{
 						Thread.Sleep(duration);
-						SimpleProxy.GetData("http://" + ip + "/decoder_control.cgi?command=" + cmdEnd + auth);
+						SimpleProxy.GetData("http://" + ipCam.cameraSpec.ptz_hostName + "/decoder_control.cgi?command=" + cmdEnd + auth);
 					}
 				}
 				else if (commandType == CommandType.camera_control)
 				{
-					SimpleProxy.GetData("http://" + ip + "/camera_control.cgi?" + command + auth);
+					SimpleProxy.GetData("http://" + ipCam.cameraSpec.ptz_hostName + "/camera_control.cgi?" + command + auth);
 				}
 				if (preset_number > 0)
 				{

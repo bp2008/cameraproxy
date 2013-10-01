@@ -34,7 +34,10 @@ namespace MJpegCameraProxy
 				return GetResponse(webRequest);
 			}
 			catch (ThreadAbortException ex) { throw ex; }
-			catch (Exception) { }
+			catch (Exception ex)
+			{
+				Logger.Debug(ex, "SimpleProxy URL: " + url);
+			}
 			return new byte[0];
 		}
 		private static byte[] GetResponse(HttpWebRequest webRequest)
@@ -60,8 +63,10 @@ namespace MJpegCameraProxy
 						// Dump the data into the byte array
 						ms.Seek(0, SeekOrigin.Begin);
 						ms.Read(data, 0, data.Length);
+						responseStream.Close();
 					}
 				}
+				webResponse.Close();
 			}
 			return data;
 		}

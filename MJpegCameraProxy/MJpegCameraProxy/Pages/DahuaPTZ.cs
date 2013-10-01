@@ -25,7 +25,7 @@ namespace MJpegCameraProxy
 		int session = -1;
 		int absoluteXOffset;
 		LoginManager loginManager;
-		static long inner_id = 0;
+		long inner_id = 0;
 		protected long CmdID
 		{
 			get
@@ -37,6 +37,8 @@ namespace MJpegCameraProxy
 		static DahuaPTZ()
 		{
 			System.Net.ServicePointManager.Expect100Continue = false;
+			if(System.Net.ServicePointManager.DefaultConnectionLimit < 16)
+				System.Net.ServicePointManager.DefaultConnectionLimit = 16;
 		}
 		public DahuaPTZ(string host, string user, string password, int absoluteXOffset)
 		{
@@ -111,7 +113,7 @@ namespace MJpegCameraProxy
 		}
 		private void KeepAlive()
 		{
-			//string response = HttpPost("http://" + host + "/RPC2", "{\"method\":\"global.keepAlive\",\"params\":{\"timeout\": 300},\"session\":" + session + ",\"id\":" + CmdID + "}");
+			string response = HttpPost("http://" + host + "/RPC2", "{\"method\":\"global.keepAlive\",\"params\":{\"timeout\": 300},\"session\":" + session + ",\"id\":" + CmdID + "}");
 		}
 		#endregion
 
@@ -633,12 +635,12 @@ function handleTargetClick(e)
 		/// <param name="cmd"></param>
 		public static void RunCommand(IPCameraBase cam, string cmd)
 		{
+			if (cam == null || cam.dahuaPtz == null || string.IsNullOrWhiteSpace(cmd))
+				return;
 			if (cam.ptzLock != null && cam.ptzLock.Wait(0))
 			{
 				try
 				{
-					if (cam == null || cam.dahuaPtz == null || string.IsNullOrWhiteSpace(cmd))
-						return;
 
 					string[] parts = cmd.Split('/');
 					if (parts.Length < 1)
@@ -733,7 +735,7 @@ function handleTargetClick(e)
 									if (input.Length > 0)
 									{
 										input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160);
-										FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.ID.ToLower() + (i + (j * 7)) + ".jpg");
+										FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * 7)) + ".jpg");
 										Util.EnsureDirectoryExists(file.Directory.FullName);
 										File.WriteAllBytes(file.FullName, input);
 									}

@@ -64,32 +64,52 @@ namespace SimpleHttp
 		/// <summary>
 		/// The Http method used.  i.e. "POST" or "GET"
 		/// </summary>
-		public String http_method;
+		public string http_method;
 		/// <summary>
-		/// The URL requested by the client. e.g. "subfolder/page.html"
+		/// The base Uri for this server, containing its host name and port.
 		/// </summary>
-		public String http_url;
+		public Uri base_uri_this_server;
 		/// <summary>
-		/// A substring of the http_url containing everything up to but not including the first question mark character.  If no question mark character exists in the URL, the full http_url is returned.
+		/// The requested url.
 		/// </summary>
-		public String http_url_before_querystring;
+		public Uri request_url;
 		/// <summary>
 		/// The protocol version string sent by the client.  e.g. "HTTP/1.1"
 		/// </summary>
-		public String http_protocol_versionstring;
+		public string http_protocol_versionstring;
 		/// <summary>
-		/// A Dictionary mapping http header names to values.
+		/// The path to and name of the requested page, not including the first '/'
+		/// 
+		/// For example, if the URL was "/articles/science/moon.html?date=2011-10-21", requestedPage would be "articles/science/moon.html"
+		/// </summary>
+		public string requestedPage;
+		/// <summary>
+		/// A string array containing the directories and the page name.
+		/// 
+		/// For example, if the URL was "/articles/science/moon.html?date=2011-10-21", pathParts would be { "articles", "science", "moon.html" }
+		/// </summary>
+		public string[] pathParts;
+		/// <summary>
+		/// A Dictionary mapping http header names to values. Names are all converted to lower case before being added to this Dictionary.
 		/// </summary>
 		public Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
 
 		/// <summary>
-		/// A SortedList mapping keys to values of parameters.  This list is populated if and only if the request was a POST request with mimetype "application/x-www-form-urlencoded".
+		/// A SortedList mapping lower-case keys to values of parameters.  This list is populated if and only if the request was a POST request with mimetype "application/x-www-form-urlencoded".
 		/// </summary>
 		public SortedList<string, string> PostParams = new SortedList<string, string>();
 		/// <summary>
-		/// A SortedList mapping keys to values of parameters.  This list is populated parameters that were appended to the url (the query string).  e.g. if the url is "mypage.html?arg1=value1&arg2=value2", then there will be two parameters ("arg1" with value "value1" and "arg2" with value "value2"
+		/// A SortedList mapping keys to values of parameters.  No character case conversion is applied in this list.  This list is populated if and only if the request was a POST request with mimetype "application/x-www-form-urlencoded".
+		/// </summary>
+		public SortedList<string, string> RawPostParams = new SortedList<string, string>();
+		/// <summary>
+		/// A SortedList mapping lower-case keys to values of parameters.  This list is populated parameters that were appended to the url (the query string).  e.g. if the url is "mypage.html?arg1=value1&arg2=value2", then there will be two parameters ("arg1" with value "value1" and "arg2" with value "value2"
 		/// </summary>
 		public SortedList<string, string> QueryString = new SortedList<string, string>();
+		/// <summary>
+		/// A SortedList mapping keys to values of parameters.  No character case conversion is applied in this list.  This list is populated parameters that were appended to the url (the query string).  e.g. if the url is "mypage.html?arg1=value1&arg2=value2", then there will be two parameters ("arg1" with value "value1" and "arg2" with value "value2"
+		/// </summary>
+		public SortedList<string, string> RawQueryString = new SortedList<string, string>();
 
 		/// <summary>
 		/// A flag that is set when WriteSuccess(), WriteFailure(), or WriteRedirect() is called.  If the
@@ -138,7 +158,7 @@ namespace SimpleHttp
 				}
 				catch (Exception ex)
 				{
-					Logger.Log(ex);
+					SimpleHttpLogger.Log(ex);
 				}
 				return remoteIPAddress;
 			}
@@ -148,6 +168,7 @@ namespace SimpleHttp
 		public HttpProcessor(TcpClient s, HttpServer srv)
 		{
 			this.tcpClient = s;
+			this.base_uri_this_server = new Uri("http://" + s.Client.LocalEndPoint.ToString(), UriKind.Absolute);
 			this.srv = srv;
 		}
 
@@ -180,8 +201,9 @@ namespace SimpleHttp
 				{
 					parseRequest();
 					readHeaders();
-					QueryString = ParseQueryStringArguments(this.http_url);
-					requestCookies = Cookies.FromString(httpHeaders.ContainsKey("Cookie") ? httpHeaders["Cookie"].ToString() : "");
+					RawQueryString = ParseQueryStringArguments(this.request_url.Query, preserveKeyCharacterCase:true);
+					QueryString = ParseQueryStringArguments(this.request_url.Query);
+					requestCookies = Cookies.FromString(GetHeaderValue("Cookie", ""));
 					try
 					{
 						if (http_method.Equals("GET"))
@@ -191,13 +213,15 @@ namespace SimpleHttp
 					}
 					catch (Exception e)
 					{
-						Logger.Log(e);
+						if (!isOrdinaryDisconnectException(e))
+							SimpleHttpLogger.Log(e);
 						writeFailure("500 Internal Server Error");
 					}
 				}
 				catch (Exception e)
 				{
-					Logger.LogVerbose(e);
+					if (!isOrdinaryDisconnectException(e))
+						SimpleHttpLogger.LogVerbose(e);
 					this.writeFailure("400 Bad Request", "The request cannot be fulfilled due to bad syntax.");
 				}
 				outputStream.Flush();
@@ -206,16 +230,8 @@ namespace SimpleHttp
 			}
 			catch (Exception ex)
 			{
-				if (ex is IOException)
-				{
-					if (ex.InnerException != null && ex.InnerException is SocketException)
-					{
-						if (ex.InnerException.Message == "An established connection was aborted by the software in your host machine"
-							|| ex.InnerException.Message == "An existing connection was forcibly closed by the remote host")
-							return; // Connection aborted.  This happens often enough that reporting it can be excessive.
-					}
-				}
-				Logger.LogVerbose(ex);
+				if (!isOrdinaryDisconnectException(ex))
+					SimpleHttpLogger.LogVerbose(ex);
 			}
 			finally
 			{
@@ -227,6 +243,19 @@ namespace SimpleHttp
 			}
 		}
 
+		public bool isOrdinaryDisconnectException(Exception ex)
+		{
+			if (ex is IOException)
+			{
+				if (ex.InnerException != null && ex.InnerException is SocketException)
+				{
+					if (ex.InnerException.Message.Contains("An established connection was aborted by the software in your host machine")
+						|| ex.InnerException.Message.Contains("An existing connection was forcibly closed by the remote host"))
+						return true; // Connection aborted.  This happens often enough that reporting it can be excessive.
+				}
+			}
+			return false;
+		}
 		// The following function was the start of an attempt to support basic authentication, but I have since decided against it as basic authentication is very insecure.
 		//private NetworkCredential ParseAuthorizationCredentials()
 		//{
@@ -245,16 +274,18 @@ namespace SimpleHttp
 		/// </summary>
 		private void parseRequest()
 		{
-			String request = streamReadLine(inputStream);
+			string request = streamReadLine(inputStream);
 			string[] tokens = request.Split(' ');
 			if (tokens.Length != 3)
 				throw new Exception("invalid http request line: " + request);
 			http_method = tokens[0].ToUpper();
-			http_url = tokens[1];
-			http_protocol_versionstring = tokens[2];
 
-			int idxQmark = http_url.IndexOf('?');
-			http_url_before_querystring = idxQmark > -1 ? http_url.Substring(0, idxQmark) : http_url;
+			if (tokens[1].StartsWith("http://"))
+				request_url = new Uri(tokens[1]);
+			else
+				request_url = new Uri(base_uri_this_server, tokens[1]);
+
+			http_protocol_versionstring = tokens[2];
 		}
 
 		/// <summary>
@@ -274,7 +305,7 @@ namespace SimpleHttp
 					pos++; // strip any spaces
 
 				string value = line.Substring(pos, line.Length - pos);
-				httpHeaders[name] = value;
+				httpHeaders[name.ToLower()] = value;
 			}
 		}
 
@@ -308,14 +339,15 @@ namespace SimpleHttp
 			{
 				int content_len = 0;
 				MemoryStream ms = new MemoryStream();
-				if (this.httpHeaders.ContainsKey("Content-Length"))
+				string content_length_str = GetHeaderValue("Content-Length");
+				if (!string.IsNullOrWhiteSpace(content_length_str))
 				{
-					if (int.TryParse(this.httpHeaders["Content-Length"], out content_len))
+					if (int.TryParse(content_length_str, out content_len))
 					{
 						if (content_len > MAX_POST_SIZE)
 						{
 							this.writeFailure("413 Request Entity Too Large", "Request Too Large");
-							Logger.LogVerbose("POST Content-Length(" + content_len + ") too big for this simple server.  Server can handle up to " + MAX_POST_SIZE);
+							SimpleHttpLogger.LogVerbose("POST Content-Length(" + content_len + ") too big for this simple server.  Server can handle up to " + MAX_POST_SIZE);
 							return;
 						}
 						byte[] buf = new byte[BUF_SIZE];
@@ -329,7 +361,7 @@ namespace SimpleHttp
 									break;
 								else
 								{
-									Logger.LogVerbose("client disconnected during post");
+									SimpleHttpLogger.LogVerbose("client disconnected during post");
 									return;
 								}
 							}
@@ -342,17 +374,20 @@ namespace SimpleHttp
 				else
 				{
 					this.writeFailure("411 Length Required", "The request did not specify the length of its content.");
-					Logger.LogVerbose("The request did not specify the length of its content.  This server requires that all POST requests include a Content-Length header.");
+					SimpleHttpLogger.LogVerbose("The request did not specify the length of its content.  This server requires that all POST requests include a Content-Length header.");
 					return;
 				}
 
-				string contentType = httpHeaders.ContainsKey("Content-Type") ? this.httpHeaders["Content-Type"].ToString() : null;
+				string contentType = GetHeaderValue("Content-Type");
 				if (contentType != null && contentType.Contains("application/x-www-form-urlencoded"))
 				{
 					StreamReader sr = new StreamReader(ms);
 					string all = sr.ReadToEnd();
 					sr.Close();
-					PostParams = ParseQueryStringArguments(all, false);
+
+					RawPostParams = ParseQueryStringArguments(all, false, true);
+					PostParams =ParseQueryStringArguments(all, false);
+
 					srv.handlePOSTRequest(this, null);
 				}
 				else
@@ -376,10 +411,10 @@ namespace SimpleHttp
 		/// </summary>
 		/// <param name="contentType">The MIME type of your response.</param>
 		/// <param name="contentLength">(OPTIONAL) The length of your response, in bytes, if you know it.</param>
-		public void writeSuccess(string contentType = "text/html", int contentLength = -1)
+		public void writeSuccess(string contentType = "text/html", long contentLength = -1, string responseCode = "200 OK", List<KeyValuePair<string, string>> additionalHeaders = null)
 		{
 			responseWritten = true;
-			outputStream.WriteLine("HTTP/1.0 200 OK");
+			outputStream.WriteLine("HTTP/1.1 " + responseCode);
 			if (!string.IsNullOrEmpty(contentType))
 				outputStream.WriteLine("Content-Type: " + contentType);
 			if (contentLength > -1)
@@ -387,6 +422,9 @@ namespace SimpleHttp
 			string cookieStr = responseCookies.ToString();
 			if (!string.IsNullOrEmpty(cookieStr))
 				outputStream.WriteLine(cookieStr);
+			if (additionalHeaders != null)
+				foreach (KeyValuePair<string, string> header in additionalHeaders)
+					outputStream.WriteLine(header.Key + ": " + header.Value);
 			outputStream.WriteLine("Connection: close");
 			outputStream.WriteLine("");
 		}
@@ -418,7 +456,21 @@ namespace SimpleHttp
 			outputStream.WriteLine("HTTP/1.0 302 Found");
 			outputStream.WriteLine("Location: " + redirectToUrl);
 		}
-		
+
+		/// <summary>
+		/// Gets the value of the header, or null if the header does not exist.  The name is case insensitive.
+		/// </summary>
+		/// <param name="name">The case insensitive name of the header to get the value of.</param>
+		/// <returns>The value of the header, or null if the header did not exist.</returns>
+		public string GetHeaderValue(string name, string defaultValue = null)
+		{
+			name = name.ToLower();
+			string value;
+			if (!httpHeaders.TryGetValue(name, out value))
+				value = defaultValue;
+			return value;
+		}
+
 		#region Parameter parsing
 		/// <summary>
 		/// Parses the specified query string and returns a sorted list containing the arguments found in the specified query string.  Can also be used to parse the POST request body if the mimetype is "application/x-www-form-urlencoded".
@@ -426,7 +478,7 @@ namespace SimpleHttp
 		/// <param name="queryString"></param>
 		/// <param name="requireQuestionMark"></param>
 		/// <returns></returns>
-		private static SortedList<string, string> ParseQueryStringArguments(string queryString, bool requireQuestionMark = true)
+		private static SortedList<string, string> ParseQueryStringArguments(string queryString, bool requireQuestionMark = true, bool preserveKeyCharacterCase = false)
 		{
 			SortedList<string, string> arguments = new SortedList<string, string>();
 			int idx = queryString.IndexOf('?');
@@ -447,7 +499,9 @@ namespace SimpleHttp
 				string[] argument = parts[i].Split(new char[] { '=' });
 				if (argument.Length == 2)
 				{
-					string key = HttpUtility.UrlDecode(argument[0]).ToLower();
+					string key = HttpUtility.UrlDecode(argument[0]);
+					if(!preserveKeyCharacterCase)
+						key = key.ToLower();
 					string existingValue;
 					if (arguments.TryGetValue(key, out existingValue))
 						arguments[key] += "," + HttpUtility.UrlDecode(argument[1]);
@@ -684,7 +738,7 @@ namespace SimpleHttp
 							}
 							if (++errorCount > 100)
 								throw ex;
-							Logger.Log(ex, "Error count today: " + errorCount);
+							SimpleHttpLogger.Log(ex, "Error count today: " + errorCount);
 							Thread.Sleep(1);
 						}
 					}
@@ -699,7 +753,7 @@ namespace SimpleHttp
 					}
 					if (++errorCount > 100)
 						throw ex;
-					Logger.Log(ex, "Restarting listener. Error count today: " + errorCount);
+					SimpleHttpLogger.Log(ex, "Restarting listener. Error count today: " + errorCount);
 					threwExceptionOuter = true;
 				}
 				finally
@@ -742,7 +796,7 @@ namespace SimpleHttp
 			}
 			catch (Exception ex)
 			{
-				Logger.Log(ex);
+				SimpleHttpLogger.Log(ex);
 			}
 			try
 			{
@@ -750,7 +804,7 @@ namespace SimpleHttp
 			}
 			catch (Exception ex)
 			{
-				Logger.Log(ex);
+				SimpleHttpLogger.Log(ex);
 			}
 			try
 			{
@@ -758,7 +812,7 @@ namespace SimpleHttp
 			}
 			catch (Exception ex)
 			{
-				Logger.Log(ex);
+				SimpleHttpLogger.Log(ex);
 			}
 		}
 
@@ -775,7 +829,7 @@ namespace SimpleHttp
 			}
 			catch (Exception ex)
 			{
-				Logger.Log(ex);
+				SimpleHttpLogger.Log(ex);
 			}
 		}
 
@@ -866,7 +920,7 @@ namespace SimpleHttp
 		{
 			List<string> cookiesStr = new List<string>();
 			foreach (Cookie cookie in cookieCollection.Values)
-				cookiesStr.Add("Set-Cookie: " + cookie.name + "=" + cookie.value + (cookie.expire == TimeSpan.Zero ? "" : "; Expires=" + DateTime.UtcNow.Add(cookie.expire).ToCookieTime()));
+				cookiesStr.Add("Set-Cookie: " + cookie.name + "=" + cookie.value + (cookie.expire == TimeSpan.Zero ? "" : "; Max-Age=" + (long)cookie.expire.TotalSeconds) + "; Path=/");
 			return string.Join("\r\n", cookiesStr);
 		}
 		/// <summary>
@@ -908,7 +962,7 @@ namespace SimpleHttp
 	/// <summary>
 	/// A class which handles error logging by the http server.  It allows you to (optionally) register an ILogger instance to use for logging.
 	/// </summary>
-	public static class Logger
+	public static class SimpleHttpLogger
 	{
 		private static ILogger logger = null;
 		private static bool logVerbose = false;
