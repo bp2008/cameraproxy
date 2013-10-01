@@ -73,5 +73,15 @@ namespace MJpegCameraProxy
 			catch (Exception) { }
 			return null;
 		}
+		public static bool IsAlphaNumeric(string str, bool spacesAndTabsIncluded = false)
+		{
+			for (int i = 0; i < str.Length; i++)
+			{
+				char c = str[i];
+				if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (spacesAndTabsIncluded && (c == ' ' || c == '\t'))))
+					return false;
+			}
+			return true;
+		}
 	}
 }

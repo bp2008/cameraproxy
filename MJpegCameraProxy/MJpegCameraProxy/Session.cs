@@ -8,19 +8,21 @@ namespace MJpegCameraProxy
 	public class Session
 	{
 		public string sid;
-		private string user;
-		private string pass;
+		private string username;
+		public int permission;
 		public DateTime expire;
+		public int sessionLengthMinutes;
 
-		public Session(string user, string pass)
+		public Session(string username, int permission, int sessionLengthMinutes)
 		{
-			this.user = user;
-			this.pass = pass;
-			expire = DateTime.Now.AddMinutes(20);
+			this.username = username;
+			this.permission = permission;
+			this.sessionLengthMinutes = sessionLengthMinutes;
+			expire = DateTime.Now.AddMinutes(sessionLengthMinutes);
 			sid = GenerateSid();
 		}
 
-		private string GenerateSid()
+		public static string GenerateSid()
 		{
 			StringBuilder sb = new StringBuilder(16);
 			while (sb.Length < 16)

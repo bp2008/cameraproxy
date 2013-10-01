@@ -3,19 +3,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using MJpegCameraProxy.Configuration;
+using System.Diagnostics;
 
 namespace MJpegCameraProxy
 {
 	public class MJpegWrapper
 	{
+		public static volatile bool ApplicationExiting = false;
+
 		MJpegServer httpServer;
 		public static DateTime startTime = DateTime.MinValue;
-		int port;
+		public static ProxyConfig cfg;
 
-		public MJpegWrapper(int port)
+		public MJpegWrapper()
 		{
-			this.port = port;
-			SimpleHttp.Logger.RegisterLogger(Logger.httpLogger);
+			System.Net.ServicePointManager.Expect100Continue = false;
+			System.Net.ServicePointManager.DefaultConnectionLimit = 640;
+
+			cfg = new ProxyConfig();
+			cfg.Load(Globals.ConfigFilePath);
+			if (cfg.users.Count == 0)
+				cfg.users.Add(new User("admin", "admin", 100));
+			SimpleHttp.SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
+			bool killed = false;
+			try
+			{
+				foreach (var process in Process.GetProcessesByName("live555ProxyServer"))
+				{
+					try
+					{
+						process.Kill();
+						killed = true;
+					}
+					catch (Exception ex)
+					{
+						Logger.Debug(ex, "Trying to kill existing live555ProxyServer process");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Debug(ex, "Trying to iterate through existing live555ProxyServer processes");
+			}
+			if (killed)
+				Thread.Sleep(500);
 		}
 		#region Start / Stop
 		public void Start()
@@ -24,7 +56,7 @@ namespace MJpegCameraProxy
 
 			startTime = DateTime.Now;
 
-			httpServer = new MJpegServer(port);
+			httpServer = new MJpegServer(cfg.webport);
 			httpServer.Start();
 		}
 		public void Stop()

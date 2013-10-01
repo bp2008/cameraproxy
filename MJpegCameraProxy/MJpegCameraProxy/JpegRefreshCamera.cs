@@ -11,17 +11,8 @@ namespace MJpegCameraProxy
 {
 	public class JpegRefreshCamera : IPCameraBase
 	{
-		public string url, user, pass, ip;
-		public JpegRefreshCamera(string url, string user, string pass)
+		internal JpegRefreshCamera()
 		{
-			this.url = url;
-			this.user = user;
-			this.pass = pass;
-			Match m = Regex.Match(url, "://(.*?)/");
-			if (m.Success)
-				ip = m.Groups[1].Value;
-			else
-				ip = "";
 		}
 
 		protected override void DoBackgroundWork()
@@ -30,7 +21,7 @@ namespace MJpegCameraProxy
 			{
 				try
 				{
-					byte[] newFrame = SimpleProxy.GetData(url, user, pass, true);
+					byte[] newFrame = SimpleProxy.GetData(cameraSpec.imageryUrl, cameraSpec.username, cameraSpec.password, true);
 					if (!ArraysLooselyMatch(newFrame, lastFrame))
 						this.lastFrame = newFrame;
 				}
@@ -41,7 +32,8 @@ namespace MJpegCameraProxy
 				catch (Exception ex)
 				{
 					Logger.Debug(ex);
-					Thread.Sleep(5000);
+					if (!Exit)
+						Thread.Sleep(5000);
 				}
 			}
 		}

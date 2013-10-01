@@ -40,16 +40,23 @@ namespace MJpegCameraProxy
 				return new HtmlResponse(Html.ErrorType.NoExist);
 			string file = File.ReadAllText(fileName);
 
-			bool fileIsPrivate = file.StartsWith("1\r\n");
-			bool fileIsPublic = file.StartsWith("0\r\n");
-			if (!fileIsPrivate && !fileIsPublic)
+			int idxFirstLineBreak = file.IndexOfAny(new char[] { '\r', '\n' });
+			if (idxFirstLineBreak == -1)
 				return new HtmlResponse(Html.ErrorType.BadFile);
 
-			if (fileIsPrivate && s == null)
+			int permissionRequired;
+			if (!int.TryParse(file.Substring(0, idxFirstLineBreak), out permissionRequired))
+				return new HtmlResponse(Html.ErrorType.BadFile);
+
+			if (permissionRequired < 0 || permissionRequired > 100)
+				return new HtmlResponse(Html.ErrorType.BadFile);
+
+			if ((s == null && permissionRequired > 0) || (s.permission < permissionRequired))
 				return new HtmlResponse(Html.ErrorType.NoAuth);
 
 			string html = file.Substring(3);
 			html = html.Replace("%ALLCAMS%", string.Join(",", MJpegServer.cm.GenerateAllCameraIdList()));
+			html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
 			try
 			{
 				html = html.Replace("%REMOTEIP%", p.RemoteIPAddress);
