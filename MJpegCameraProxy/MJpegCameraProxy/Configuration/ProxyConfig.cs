@@ -7,7 +7,8 @@ namespace MJpegCameraProxy.Configuration
 {
 	public class ProxyConfig : SerializableObjectBase
 	{
-		public ushort webport = 44456;
+		public int webport = 44456;
+		public int webport_https = -1;
 
 		public List<User> users = new List<User>();
 		public List<CameraSpec> cameras = new List<CameraSpec>();
@@ -40,6 +41,7 @@ namespace MJpegCameraProxy.Configuration
 						for (int i = 0; i < cameras.Count; i++)
 							if (cameras[i].id == originalId)
 							{
+								cs.order = cameras[i].order;
 								foundCamera = true;
 								MJpegServer.cm.KillCamera(originalId);
 								cameras[i] = cs;
@@ -48,6 +50,7 @@ namespace MJpegCameraProxy.Configuration
 						if (!foundCamera)
 							cameras.Add(cs);
 					}
+					MJpegServer.cm.CleanUpCameraOrder();
 					Save(Globals.ConfigFilePath);
 				}
 				return result;
@@ -151,6 +154,7 @@ namespace MJpegCameraProxy.Configuration
 							MJpegServer.cm.KillCamera(cs.id);
 						return remove;
 					});
+					MJpegServer.cm.CleanUpCameraOrder();
 					Save(Globals.ConfigFilePath);
 				}
 			}
@@ -166,6 +170,45 @@ namespace MJpegCameraProxy.Configuration
 				}
 			}
 			return "1";
+		}
+
+		public string ReorderCam(SimpleHttp.HttpProcessor p)
+		{
+			lock (this)
+			{
+				string id = p.GetPostParam("id");
+				if (string.IsNullOrEmpty(id))
+					return "0Missing id parameter";
+				string dir = p.GetPostParam("dir");
+				if (string.IsNullOrEmpty(dir))
+					return "0Missing dir parameter";
+
+				int diff = (dir == "up" ? -1 : (dir == "down" ? 1 : 0));
+
+				if (diff == 0)
+					return "0Invalid dir parameter";
+
+				bool found = false;
+				foreach (CameraSpec spec in cameras)
+					if (spec.id.ToLower() == id)
+					{
+						int oldOrder = spec.order;
+						int newOrder = oldOrder + diff;
+						foreach (CameraSpec swapWith in cameras)
+							if (swapWith.order == newOrder)
+								swapWith.order = oldOrder;
+						spec.order = newOrder;
+						found = true;
+						break;
+					}
+				if (!found)
+					return "0Invalid id parameter";
+
+				MJpegServer.cm.CleanUpCameraOrder();
+
+				Save(Globals.ConfigFilePath);
+				return "1";
+			}
 		}
 	}
 }

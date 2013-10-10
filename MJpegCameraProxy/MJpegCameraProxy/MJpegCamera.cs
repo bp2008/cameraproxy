@@ -72,24 +72,31 @@ namespace MJpegCameraProxy
 								read += s.Read(jpegBuffer, read, jpegBuffer.Length - read);
 
 							lastFrame = jpegBuffer;
+							EventWaitHandle oldWaitHandle = newFrameWaitHandle;
+							newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+							oldWaitHandle.Set();
 						}
 					}
 				}
 				catch (MJpegStreamProblemException ex)
 				{
+					newFrameWaitHandle.Set();
 					Logger.Debug(ex);
 				}
 				catch (ThreadAbortException)
 				{
+					newFrameWaitHandle.Set();
 					return;
 				}
 				catch (Exception ex)
 				{
 					Logger.Debug(ex);
+					newFrameWaitHandle.Set();
 				}
 				if (!Exit)
 					Thread.Sleep(5000);
 			}
+			newFrameWaitHandle.Set();
 		}
 
 		private void ReadUntilCharFound(char c, Stream s, ref StringBuilder sb)

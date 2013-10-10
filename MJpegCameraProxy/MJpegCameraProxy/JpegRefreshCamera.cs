@@ -21,21 +21,39 @@ namespace MJpegCameraProxy
 			{
 				try
 				{
+					HiResTimer timer = new HiResTimer();
+					timer.Start();
 					byte[] newFrame = SimpleProxy.GetData(cameraSpec.imageryUrl, cameraSpec.username, cameraSpec.password, true);
 					if (!ArraysLooselyMatch(newFrame, lastFrame))
+					{
 						this.lastFrame = newFrame;
+						EventWaitHandle oldWaitHandle = newFrameWaitHandle;
+						newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+						oldWaitHandle.Set();
+					}
+					int diff = cameraSpec.delayBetweenImageGrabs - (int)timer.ElapsedMilliseconds;
+					while (diff > 0 && !Exit)
+					{
+						int timeToWait = Math.Max(250, diff);
+						Thread.Sleep(timeToWait);
+						diff = cameraSpec.delayBetweenImageGrabs - (int)timer.ElapsedMilliseconds;
+					}
+					timer.Stop();
 				}
 				catch (ThreadAbortException)
 				{
+					newFrameWaitHandle.Set();
 					return;
 				}
 				catch (Exception ex)
 				{
 					Logger.Debug(ex);
+					newFrameWaitHandle.Set();
 					if (!Exit)
 						Thread.Sleep(5000);
 				}
 			}
+			newFrameWaitHandle.Set();
 		}
 		private bool ArraysLooselyMatch(byte[] one, byte[] two)
 		{

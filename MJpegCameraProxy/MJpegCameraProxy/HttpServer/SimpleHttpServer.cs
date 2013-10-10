@@ -7,6 +7,8 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Web;
 using System.Text;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 // This file has been modified continuously since Nov 10, 2012 by Brian Pearce.
 // Based on http://www.codeproject.com/Articles/137979/Simple-HTTP-Server-in-C
@@ -163,12 +165,17 @@ namespace SimpleHttp
 				return remoteIPAddress;
 			}
 		}
+
+		public readonly bool secure_https;
+		private X509Certificate2 ssl_certificate;
 		#endregion
 
-		public HttpProcessor(TcpClient s, HttpServer srv)
+		public HttpProcessor(TcpClient s, HttpServer srv, X509Certificate2 ssl_certificate = null)
 		{
+			this.ssl_certificate = ssl_certificate;
+			this.secure_https = ssl_certificate != null;
 			this.tcpClient = s;
-			this.base_uri_this_server = new Uri("http://" + s.Client.LocalEndPoint.ToString(), UriKind.Absolute);
+			this.base_uri_this_server = new Uri("http" + (this.secure_https ? "s" : "") + "://" + s.Client.LocalEndPoint.ToString(), UriKind.Absolute);
 			this.srv = srv;
 		}
 
@@ -192,16 +199,31 @@ namespace SimpleHttp
 		/// </summary>
 		internal void process(object objParameter)
 		{
+			Stream tcpStream = null;
 			try
 			{
-				inputStream = new BufferedStream(tcpClient.GetStream());
-				rawOutputStream = new BufferedStream(tcpClient.GetStream());
+				tcpStream = tcpClient.GetStream();
+				if (this.secure_https)
+				{
+					try
+					{
+						tcpStream = new SslStream(tcpStream, false, null, null, EncryptionPolicy.RequireEncryption);
+						((SslStream)tcpStream).AuthenticateAsServer(ssl_certificate);
+					}
+					catch (Exception ex)
+					{
+						SimpleHttpLogger.LogVerbose(ex);
+						return;
+					}
+				}
+				inputStream = new BufferedStream(tcpStream);
+				rawOutputStream = new BufferedStream(tcpStream);
 				outputStream = new StreamWriter(rawOutputStream);
 				try
 				{
 					parseRequest();
 					readHeaders();
-					RawQueryString = ParseQueryStringArguments(this.request_url.Query, preserveKeyCharacterCase:true);
+					RawQueryString = ParseQueryStringArguments(this.request_url.Query, preserveKeyCharacterCase: true);
 					QueryString = ParseQueryStringArguments(this.request_url.Query);
 					requestCookies = Cookies.FromString(GetHeaderValue("Cookie", ""));
 					try
@@ -237,9 +259,16 @@ namespace SimpleHttp
 			{
 				try
 				{
-					tcpClient.Close();
+					if (tcpClient != null)
+						tcpClient.Close();
 				}
-				catch (Exception) { }
+				catch (Exception ex) { SimpleHttpLogger.LogVerbose(ex); }
+				try
+				{
+					if (tcpStream != null)
+						tcpStream.Close();
+				}
+				catch (Exception ex) { SimpleHttpLogger.LogVerbose(ex); }
 			}
 		}
 
@@ -280,7 +309,7 @@ namespace SimpleHttp
 				throw new Exception("invalid http request line: " + request);
 			http_method = tokens[0].ToUpper();
 
-			if (tokens[1].StartsWith("http://"))
+			if (tokens[1].StartsWith("http://") || tokens[1].StartsWith("https://"))
 				request_url = new Uri(tokens[1]);
 			else
 				request_url = new Uri(base_uri_this_server, tokens[1]);
@@ -386,7 +415,7 @@ namespace SimpleHttp
 					sr.Close();
 
 					RawPostParams = ParseQueryStringArguments(all, false, true);
-					PostParams =ParseQueryStringArguments(all, false);
+					PostParams = ParseQueryStringArguments(all, false);
 
 					srv.handlePOSTRequest(this, null);
 				}
@@ -437,7 +466,7 @@ namespace SimpleHttp
 		public void writeFailure(string code = "404 Not Found", string description = null)
 		{
 			responseWritten = true;
-			outputStream.WriteLine("HTTP/1.0 404 File not found");
+			outputStream.WriteLine("HTTP/1.1 " + code);
 			outputStream.WriteLine("Connection: close");
 			outputStream.WriteLine("");
 			if (description == null)
@@ -453,8 +482,10 @@ namespace SimpleHttp
 		public void writeRedirect(string redirectToUrl)
 		{
 			responseWritten = true;
-			outputStream.WriteLine("HTTP/1.0 302 Found");
+			outputStream.WriteLine("HTTP/1.1 302 Found");
 			outputStream.WriteLine("Location: " + redirectToUrl);
+			outputStream.WriteLine("Connection: close");
+			outputStream.WriteLine("");
 		}
 
 		/// <summary>
@@ -500,7 +531,7 @@ namespace SimpleHttp
 				if (argument.Length == 2)
 				{
 					string key = HttpUtility.UrlDecode(argument[0]);
-					if(!preserveKeyCharacterCase)
+					if (!preserveKeyCharacterCase)
 						key = key.ToLower();
 					string existingValue;
 					if (arguments.TryGetValue(key, out existingValue))
@@ -663,40 +694,98 @@ namespace SimpleHttp
 
 	public abstract class HttpServer
 	{
+		/// <summary>
+		/// If > -1, the server is listening for http connections on this port.
+		/// </summary>
 		protected readonly int port;
-		protected volatile bool startedListening = false;
+		/// <summary>
+		/// If > -1, the server is listening for https connections on this port.
+		/// </summary>
+		protected readonly int secure_port;
 		protected volatile bool stopRequested = false;
-		private TcpListener listener;
-		private Thread thr;
+		private X509Certificate2 ssl_certificate;
+		private Thread thrHttp;
+		private Thread thrHttps;
 
-		public HttpServer(int port)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="port">The port number on which to accept regular http connections. If -1, the server will not listen for http connections.</param>
+		/// <param name="httpsPort">(Optional) The port number on which to accept https connections. If -1, the server will not listen for https connections.</param>
+		/// <param name="cert">(Optional) Certificate to use for https connections.  If null and an httpsPort was specified, a certificate is automatically created if necessary and loaded from "SimpleHttpServer-SslCert.pfx" in the same directory that the current executable is located in.</param>
+		public HttpServer(int port, int httpsPort = -1, X509Certificate2 cert = null)
 		{
 			this.port = port;
-			thr = new Thread(listen);
-			thr.Name = "HttpServer Thread";
+			this.secure_port = httpsPort;
+			this.ssl_certificate = cert;
+
+			if (this.port > 65535 || this.port < -1) this.port = -1;
+			if (this.secure_port > 65535 || this.secure_port < -1) this.secure_port = -1;
+
+			if (this.port > -1)
+			{
+				thrHttp = new Thread(listen);
+				thrHttp.Name = "HttpServer Thread";
+			}
+
+			if (this.secure_port > -1)
+			{
+				if (ssl_certificate == null)
+				{
+					string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+					FileInfo fiExe = new FileInfo(exePath);
+					FileInfo fiCert = new FileInfo(fiExe.Directory.FullName + "\\SimpleHttpServer-SslCert.pfx");
+					if (fiCert.Exists)
+						ssl_certificate = new X509Certificate2(fiCert.FullName, "N0t_V3ry-S3cure#lol");
+					else
+					{
+						using (Pluralsight.Crypto.CryptContext ctx = new Pluralsight.Crypto.CryptContext())
+						{
+							ctx.Open();
+
+							ssl_certificate = ctx.CreateSelfSignedCertificate(
+								new Pluralsight.Crypto.SelfSignedCertProperties
+								{
+									IsPrivateKeyExportable = true,
+									KeyBitLength = 4096,
+									Name = new X500DistinguishedName("cn=localhost"),
+									ValidFrom = DateTime.Today.AddDays(-1),
+									ValidTo = DateTime.Today.AddYears(100),
+								});
+
+							byte[] certData = ssl_certificate.Export(X509ContentType.Pfx, "N0t_V3ry-S3cure#lol");
+							File.WriteAllBytes(fiCert.FullName, certData);
+						}
+					}
+				}
+				thrHttps = new Thread(listen);
+				thrHttps.Name = "HttpsServer Thread";
+			}
 		}
 
 		/// <summary>
-		/// Listens for connections, somewhat robustly.  Does not return until the server is stopped or until more than 100 errors occur in a single day.
+		/// Listens for connections, somewhat robustly.  Does not return until the server is stopped or until more than 100 listener restarts occur in a single day.
 		/// </summary>
-		private void listen()
+		private void listen(object param)
 		{
-			if (startedListening)
-				return;
-			startedListening = true;
+			bool isSecureListener = (bool)param;
 
 			int errorCount = 0;
 			DateTime lastError = DateTime.Now;
+
+			TcpListener listener = null;
 
 			while (!stopRequested)
 			{
 				bool threwExceptionOuter = false;
 				try
 				{
-					listener = new TcpListener(IPAddress.Any, port);
+					listener = new TcpListener(IPAddress.Any, isSecureListener ? secure_port : port);
 					listener.Start();
 					while (!stopRequested)
 					{
+						int innerErrorCount = 0;
+						DateTime innerLastError = DateTime.Now;
 						try
 						{
 							TcpClient s = listener.AcceptTcpClient();
@@ -706,7 +795,7 @@ namespace SimpleHttp
 							// if we wanted to ensure better performance.
 							if (workerThreads > 0)
 							{
-								HttpProcessor processor = new HttpProcessor(s, this);
+								HttpProcessor processor = new HttpProcessor(s, this, isSecureListener ? ssl_certificate : null);
 								ThreadPool.QueueUserWorkItem(processor.process);
 							}
 							else
@@ -714,7 +803,7 @@ namespace SimpleHttp
 								try
 								{
 									StreamWriter outputStream = new StreamWriter(s.GetStream());
-									outputStream.WriteLine("HTTP/1.0 503 Service Unavailable");
+									outputStream.WriteLine("HTTP/1.1 503 Service Unavailable");
 									outputStream.WriteLine("Connection: close");
 									outputStream.WriteLine("");
 									outputStream.WriteLine("Server too busy");
@@ -731,14 +820,14 @@ namespace SimpleHttp
 						}
 						catch (Exception ex)
 						{
-							if (DateTime.Now.DayOfYear != lastError.DayOfYear || DateTime.Now.Year != lastError.Year)
+							if (DateTime.Now.Hour != innerLastError.Hour || DateTime.Now.DayOfYear != innerLastError.DayOfYear)
 							{
-								lastError = DateTime.Now;
-								errorCount = 0;
+								innerLastError = DateTime.Now;
+								innerErrorCount = 0;
 							}
-							if (++errorCount > 100)
+							if (++innerErrorCount > 10)
 								throw ex;
-							SimpleHttpLogger.Log(ex, "Error count today: " + errorCount);
+							SimpleHttpLogger.Log(ex, "Inner Error count this hour: " + innerErrorCount);
 							Thread.Sleep(1);
 						}
 					}
@@ -778,7 +867,10 @@ namespace SimpleHttp
 		/// </summary>
 		public void Start()
 		{
-			thr.Start();
+			if (thrHttp != null)
+				thrHttp.Start(false);
+			if (thrHttps != null)
+				thrHttps.Start(true);
 		}
 
 		/// <summary>
@@ -789,23 +881,24 @@ namespace SimpleHttp
 			if (stopRequested)
 				return;
 			stopRequested = true;
-			try
-			{
-				if (listener != null)
-					listener.Stop();
-			}
-			catch (Exception ex)
-			{
-				SimpleHttpLogger.Log(ex);
-			}
-			try
-			{
-				thr.Abort();
-			}
-			catch (Exception ex)
-			{
-				SimpleHttpLogger.Log(ex);
-			}
+			if (thrHttp != null)
+				try
+				{
+					thrHttp.Abort();
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
+			if (thrHttps != null)
+				try
+				{
+					thrHttps.Abort();
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
 			try
 			{
 				stopServer();
@@ -817,19 +910,39 @@ namespace SimpleHttp
 		}
 
 		/// <summary>
-		/// Blocks the calling thread until the http listening thread finishes or the timeout expires.  Call this after calling Stop() if you need to wait for the listener to clean up, such as if you intend to start another instance of the server using the same port.
+		/// Blocks the calling thread until the http listening threads finish or the timeout expires.  Call this after calling Stop() if you need to wait for the listener to clean up, such as if you intend to start another instance of the server using the same port(s).
 		/// </summary>
-		/// <param name="timeout_milliseconds">Maximum number of milliseconds to wait for the HttpServer Thread to stop.</param>
+		/// <param name="timeout_milliseconds">Maximum number of milliseconds to wait for the HttpServer Threads to stop.</param>
 		public void Join(int timeout_milliseconds = 2000)
 		{
-			try
+			System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+			int timeToWait = timeout_milliseconds;
+			stopwatch.Start();
+			if (timeToWait > 0)
 			{
-				if (thr.IsAlive)
-					thr.Join(timeout_milliseconds);
+				try
+				{
+					if (thrHttp != null && thrHttp.IsAlive)
+						thrHttp.Join(timeToWait);
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
 			}
-			catch (Exception ex)
+			stopwatch.Stop();
+			timeToWait = timeout_milliseconds - (int)stopwatch.ElapsedMilliseconds;
+			if (timeToWait > 0)
 			{
-				SimpleHttpLogger.Log(ex);
+				try
+				{
+					if (thrHttps != null && thrHttps.IsAlive)
+						thrHttps.Join(timeToWait);
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
 			}
 		}
 

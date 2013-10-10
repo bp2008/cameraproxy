@@ -12,7 +12,7 @@ namespace MJpegCameraProxy
 		{
 			return GetString(LoginURI.AbsoluteUri);
 		}
-		public static string GetString(string LoginURL)
+		public static string GetString(string LoginURL = "")
 		{
 			return @"<!DOCTYPE HTML>
 <html>
@@ -76,7 +76,7 @@ namespace MJpegCameraProxy
 			var username = $(""#username"").val();
 			var password = $(""#password"").val() + ""justtomakethingsharder"";
 			setCookie('auth', escape(username) + ':' + escape(HashPW(password)), 1000);
-			top.location.href = unescape('" + HttpUtility.JavaScriptStringEncode(HttpUtility.UrlEncode(urlToLoad)) + @"');
+			top.location.href = " + (string.IsNullOrWhiteSpace(urlToLoad) ? "top.location.href" : "unescape('" + HttpUtility.JavaScriptStringEncode(HttpUtility.UrlEncode(urlToLoad)) + "')") + @";
 		}
 		function HashPW(pw)
 		{

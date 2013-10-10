@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using MJpegCameraProxy.Configuration;
 using System.Diagnostics;
+using System.IO;
 
 namespace MJpegCameraProxy
 {
@@ -22,9 +23,14 @@ namespace MJpegCameraProxy
 			System.Net.ServicePointManager.DefaultConnectionLimit = 640;
 
 			cfg = new ProxyConfig();
-			cfg.Load(Globals.ConfigFilePath);
-			if (cfg.users.Count == 0)
-				cfg.users.Add(new User("admin", "admin", 100));
+			if (File.Exists(Globals.ConfigFilePath))
+				cfg.Load(Globals.ConfigFilePath);
+			else
+			{
+				if (cfg.users.Count == 0)
+					cfg.users.Add(new User("admin", "admin", 100));
+				cfg.Save(Globals.ConfigFilePath);
+			}
 			SimpleHttp.SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
 			bool killed = false;
 			try
@@ -56,7 +62,7 @@ namespace MJpegCameraProxy
 
 			startTime = DateTime.Now;
 
-			httpServer = new MJpegServer(cfg.webport);
+			httpServer = new MJpegServer(cfg.webport, cfg.webport_https);
 			httpServer.Start();
 		}
 		public void Stop()

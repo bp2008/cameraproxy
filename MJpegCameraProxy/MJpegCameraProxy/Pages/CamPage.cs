@@ -19,15 +19,29 @@ namespace MJpegCameraProxy
 				return "NO";
 			int width = 0;
 			int height = 0;
+			int patience = (cam.cameraSpec.delayBetweenImageGrabs > 0 ? cam.cameraSpec.delayBetweenImageGrabs : 0) + 5000;
 			string cameraImgLink = @"<img id=""imgFrame"" class=""CamImg"" />";
 			string keepalive = "";
 			if (cam.cameraSpec.type == CameraType.h264)
 			{
+				bool sizeOverridden = cam.cameraSpec.h264_video_width > 0 && cam.cameraSpec.h264_video_height > 0;
+				width = sizeOverridden ? cam.cameraSpec.h264_video_width : 640;
+				height = sizeOverridden ? cam.cameraSpec.h264_video_height : 360;
+
 				keepalive = @"
 				var keepaliveInterval;
 				$(function()
 				{
+					sizeOverridden = " + (sizeOverridden ? "true" : "false") + @";
 					keepaliveInterval = setInterval(keepalive, 4000);
+					var vlc = document.getElementById('vlc');
+					registerVLCEvent('MediaPlayerPlaying', handlePlayerPlaying);
+					var url = '" + HttpUtility.HtmlEncode(HttpUtility.JavaScriptStringEncode(MJpegServer.cm.GetRTSPUrl(cam.cameraSpec.id, httpProcessor))) + @"';
+					url = url.replace('$$$HOST$$$', location.hostname);
+					vlc.playlist.add(url);
+					vlc.playlist.play();
+					if(sizeOverridden)
+						vlc.video.aspectRatio = '" + width + ":" + height + @"';
 				});
 				function keepalive()
 				{
@@ -35,10 +49,37 @@ namespace MJpegCameraProxy
 						clearInterval(keepaliveInterval);
 					else
 						$.ajax('keepalive?id=" + camId + @"');
+				}
+				function handlePlayerPlaying()
+				{
+					if(!sizeOverridden)
+					{
+						setTimeout(resize, 500);
+						setTimeout(resize, 1000);
+						setTimeout(resize, 1500);
+					}
+				}
+				function registerVLCEvent(event, handler)
+				{
+					var vlc = document.getElementById('vlc');
+					if (vlc)
+					{
+						if (vlc.attachEvent)
+						{
+							// Microsoft
+							vlc.attachEvent(event, handler);
+						} else if (vlc.addEventListener)
+						{
+							// Mozilla: DOM level 2
+							vlc.addEventListener(event, handler, false);
+						} else
+						{
+							// DOM level 0
+							vlc['on' + event] = handler;
+						}
+					}
 				}";
-				width = 1280;
-				height = 720;
-				cameraImgLink = @"<div style=""width:" + width + @"px;height:" + height + @"px;""><embed type=""application/x-vlc-plugin"" pluginspage=""http://www.videolan.org"" width=""" + width + @""" height=""" + height + @""" toolbar=""false"" src=""" + MJpegServer.cm.GetRTSPUrl(cam.cameraSpec.id, httpProcessor) + @""" mute=""false"" /></div>";
+				cameraImgLink = @"<div id=""vlcFrame"" style=""width:" + width + @"px;height:" + height + @"px;""><embed type=""application/x-vlc-plugin"" id=""vlc"" pluginspage=""http://www.videolan.org"" width=""" + width + @""" height=""" + height + @""" toolbar=""false"" src="""" mute=""false"" /></div>";
 			}
 			else
 			{
@@ -78,6 +119,7 @@ namespace MJpegCameraProxy
 		var lastUpdate = 0;
 		var clickCausesResize = true;
 		var showPTH = " + (cam.cameraSpec.ptzType == PtzType.None ? "false" : "true") + @";
+		var sizeOverridden = false;
 		$(function()
 		{
 			if(disableRefreshAfter > -1)
@@ -120,7 +162,7 @@ namespace MJpegCameraProxy
 		}
 		function GetNewImage()
 		{
-			$(""#imgFrame"").attr('src', '" + camId + "." + (refreshTime < 0 ? "m" : "") + @"jpg?" + httpProcessor.GetParam("imgargs") + @"&nocache=' + new Date().getTime());
+			$(""#imgFrame"").attr('src', '" + camId + "." + (refreshTime < 0 ? "m" : "") + @"jpg?patience=" + patience + "&" + httpProcessor.GetParam("imgargs") + @"&nocache=' + new Date().getTime());
 		}
 		function disableRefresh()
 		{
@@ -133,6 +175,21 @@ namespace MJpegCameraProxy
 			var newHeight;
 			var newWidth;
 			var currentImage = document.getElementById(""imgFrame"");
+			if (currentImage == null)
+			{
+				currentImage = document.getElementById(""vlcFrame"");
+				
+				var vlc = document.getElementById('vlc')
+				if(vlc && !sizeOverridden)
+				{
+					originwidth = parseInt(vlc.video.width);
+					originheight = parseInt(vlc.video.height);
+					if(originwidth == 0)
+						originwidth = 640;
+					if(originheight == 0)
+						originheight = 360;
+				}
+			}
 			if (currentImage == null)
 				return;
 			if (typeof (width) == 'undefined' || typeof (height) == 'undefined')
@@ -170,6 +227,11 @@ namespace MJpegCameraProxy
 			}
 			$(currentImage).height(newHeight);
 			$(currentImage).width(newWidth);
+
+			$(""#vlcFrame"").width(newWidth);
+			$(""#vlcFrame"").height(newHeight);
+			$(""#vlc"").attr('width', newWidth + 'px');
+			$(""#vlc"").attr('height', newHeight + 'px');
 			
 			$(""#camFrame"").width(newWidth);
 		}
@@ -226,6 +288,11 @@ namespace MJpegCameraProxy
 	</script>
 	<style type=""text/css"">
 		.CamImg
+		{
+			width: " + width + @"px;
+			height: " + height + @"px;
+		}
+		#vlcFrame
 		{
 			width: " + width + @"px;
 			height: " + height + @"px;

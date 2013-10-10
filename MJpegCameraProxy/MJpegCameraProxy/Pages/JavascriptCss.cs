@@ -306,6 +306,7 @@ a
 .fields td.title
 {
 	width: 150px;
+	padding-top: 8px !important;
 }
 .contentcell
 {
@@ -315,6 +316,7 @@ a
 .fields td
 {
 	padding: 2px 0;
+	vertical-align: top;
 }
 table
 {

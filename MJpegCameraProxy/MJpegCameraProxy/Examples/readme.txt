@@ -2,9 +2,7 @@
 MJpeg Camera Proxy Readme
 -------------------------
 
-The service listens on port 8077.  If this is a problem, change it in the source code and rebuild it.  Sorry!
-
-For configuration instructions, see the other xxxxx-readme.txt files.
+The service listens on port 44456 by default.  If this is a problem, run the command-line version once, and then you can change the port in "Config.cfg".
 
 -------------------------
 Installation
@@ -17,9 +15,25 @@ Uninstall_Service.bat
 Start_Service.bat
 Stop_Service.bat
 
-Install the service, configure some cameras, then start the service.
+You may need to right click and run these batch files as an administrator.
 
 You can also test the service as a command line application by running MJpegCameraProxyCmd.exe.
+
+-------------------------
+Configuration
+-------------------------
+
+The server has a web interface for camera and user configuration.
+Once the server is running, the interface can be accessed at:
+
+ http://ip_address:44456/admin
+
+Default user name: admin
+Default password: admin
+
+Default port number: 44456
+
+To change the port number, see Config.cfg which is created when the server first starts.
 
 -------------------------
 Usage
@@ -35,14 +49,24 @@ Each camera is available in 3 ways:
 
  http://ip_address:8077/camera_id.mjpg
 
-3.  With a simple interface wrapped around it:
+3.  With an HTML interface that refreshes the image automatically:
 
  http://ip_address:8077/camera_id.cam
 
+-------------------------
+Html Files
+-------------------------
 
-If you like, you can configure the included all.html with your own camera IDs and use it to view all the cameras at once:
+If you like, you can add custom html files to the "Html" 
+subdirectory.  These files are regular Html files with the 
+sole exception that the first line must be a number between 
+0 and 100 to indicate the permission level required to view 
+the file.
 
- http://ip_address:8077/all.html
+Any html file with a permission level higher than 0 will 
+require authentication before it can be loaded.
 
+Html pages are served at the application root, so to 
+access the included example "all.html", you would go to:
 
-Again, for configuration instructions, see the other xxxxx-readme.txt files.
+http://localhost:8077/all.html
