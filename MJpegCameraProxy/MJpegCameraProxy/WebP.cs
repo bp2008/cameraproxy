@@ -43,8 +43,9 @@ namespace MJpegCameraProxy
 				{
 					size = WebPEncodeBGR(data.Scan0, input.Width, input.Height, data.Stride, quality, out unmanagedData);
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
+					Logger.Debug(ex);
 					if (unmanagedData != IntPtr.Zero)
 						WebPFree(unmanagedData);
 					return new byte[0];

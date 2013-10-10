@@ -21,7 +21,7 @@ namespace MJpegCameraProxy.Configuration
 		[EditorHint("0 to 100.  A value of 0 means the user has no more rights than an anonymous user.")]
 		public int permission = 10;
 		[EditorName("Session Length in Minutes")]
-		[EditorHint("Must be greater than 0.<br/>This does not really affect functionality.  It is simply an optimization.")]
+		[EditorHint("Must be greater than -1.<br/>This does not really affect functionality.  It is simply an optimization.  A value of 0 causes the session to never be persisted beyond the current request.")]
 		public int sessionLengthMinutes = 1440;
 
 		public User()

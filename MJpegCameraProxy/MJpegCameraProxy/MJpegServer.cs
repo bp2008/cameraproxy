@@ -15,8 +15,8 @@ namespace MJpegCameraProxy
 	{
 		public static CameraManager cm = new CameraManager();
 		public static SessionManager sm = new SessionManager();
-		public MJpegServer(int port)
-			: base(port)
+		public MJpegServer(int port, int port_https)
+			: base(port, port_https)
 		{
 		}
 		public override void handleGETRequest(HttpProcessor p)
@@ -118,8 +118,8 @@ namespace MJpegCameraProxy
 					return;
 				}
 
-				Session s = sm.GetSession(p.requestCookies.GetValue("session"), p.requestCookies.GetValue("auth"));
-				if (s != null)
+				Session s = sm.GetSession(p.requestCookies.GetValue("session"), p.requestCookies.GetValue("auth"), p.GetParam("rawauth"));
+				//if (s != null)
 					p.responseCookies.Add("session", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
 
 				if (requestedPage == "logout")
@@ -155,7 +155,27 @@ namespace MJpegCameraProxy
 						LogOutUser(p, s);
 						return;
 					}
+					IPCameraBase cam = cm.GetCamera(cameraId);
 					byte[] latestImage = cm.GetLatestImage(cameraId);
+					int patience = p.GetIntParam("patience");
+					if (patience > 0)
+					{
+						if (patience > 5000)
+							patience = 5000;
+
+						int timeLeft = patience;
+						HiResTimer timer = new HiResTimer();
+						timer.Start();
+						while (s.DuplicateImageSendCheck(cameraId, latestImage) && cam != null && timeLeft > 0)
+						{
+							// The latest image was already sent to the user in a previous image request.
+							// Wait for up to 5 seconds as desired by the user to get a "new" image.
+							cam.newFrameWaitHandle.WaitOne(timeLeft);
+							// This would be more efficient if we used an EventWaitHandle or something to wait until the next frame is available instead of waiting and checking in 50 millisecond intervals.
+							latestImage = cm.GetLatestImage(cameraId);
+							timeLeft = patience - (int)timer.ElapsedMilliseconds;
+						}
+					}
 					latestImage = ImageConverter.HandleRequestedConversionIfAny(latestImage, p);
 					p.writeSuccess("image/jpeg", latestImage.Length);
 					p.outputStream.Flush();
@@ -340,7 +360,7 @@ namespace MJpegCameraProxy
 				sm.RemoveSession(s.sid);
 			p.responseCookies.Add("session", "", TimeSpan.Zero);
 			p.writeSuccess("text/html");
-			p.outputStream.Write(Login.GetString(p.request_url));
+			p.outputStream.Write(Login.GetString());
 		}
 
 		public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData)
@@ -366,6 +386,12 @@ namespace MJpegCameraProxy
 				else if (requestedPage == "admin/deleteitems")
 				{
 					string result = MJpegWrapper.cfg.DeleteItems(p);
+					p.writeSuccess("text/plain");
+					p.outputStream.Write(HttpUtility.HtmlEncode(result));
+				}
+				else if (requestedPage == "admin/reordercam")
+				{
+					string result = MJpegWrapper.cfg.ReorderCam(p);
 					p.writeSuccess("text/plain");
 					p.outputStream.Write(HttpUtility.HtmlEncode(result));
 				}

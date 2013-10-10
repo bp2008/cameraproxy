@@ -18,6 +18,21 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -84,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraManager.cs" />
+    <Compile Include="ComparisonComparer.cs" />
     <Compile Include="Configuration\CameraSpec.cs" />
     <Compile Include="Configuration\FieldSettable.cs" />
     <Compile Include="Configuration\ProxyConfig.cs" />
@@ -91,6 +107,17 @@
     <Compile Include="Configuration\User.cs" />
     <Compile Include="H264Camera.cs" />
     <Compile Include="Hash.cs" />
+    <Compile Include="HiResTimer.cs" />
+    <Compile Include="HttpServer\Crypto\CertProperties.cs" />
+    <Compile Include="HttpServer\Crypto\CryptContext.cs" />
+    <Compile Include="HttpServer\Crypto\CryptKey.cs" />
+    <Compile Include="HttpServer\Crypto\DisposableObject.cs" />
+    <Compile Include="HttpServer\Crypto\KeyExchangeKey.cs" />
+    <Compile Include="HttpServer\Crypto\KeyType.cs" />
+    <Compile Include="HttpServer\Crypto\SignatureKey.cs" />
+    <Compile Include="HttpServer\Crypto\Win32ErrorHelper.cs" />
+    <Compile Include="HttpServer\Crypto\Win32Native.cs" />
+    <Compile Include="ImageSignature.cs" />
     <Compile Include="JSON.cs" />
     <Compile Include="Pages\Admin\AdminBase.cs" />
     <Compile Include="Pages\Admin\Cameras.cs" />
@@ -139,13 +166,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Examples\Cams\dahuadomepublic" />
-    <None Include="Examples\Cams\dahuaptz" />
-    <None Include="Examples\Cams\hikvision" />
-    <None Include="Examples\Cams\loftekptz" />
-    <None Include="Examples\Cams\simpleprivate" />
-    <None Include="Examples\Cams\ubiquitiaircam" />
-    <None Include="Examples\Users\username" />
     <None Include="Install_Service.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -180,11 +200,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Examples\cams-readme.txt" />
-    <Content Include="Examples\html-readme.txt" />
     <Content Include="Examples\Html\all.html" />
     <Content Include="Examples\readme.txt" />
-    <Content Include="Examples\users-readme.txt" />
     <Content Include="libwebp_a.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -199,6 +216,28 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -69,7 +69,19 @@ namespace MJpegCameraProxy
 					if (ex != null)
 						debugMessage.Append(ex.ToString()).Append(Environment.NewLine);
 					debugMessage.Append("-------------").Append(Environment.NewLine);
-					File.AppendAllText(logFilePath, debugMessage.ToString());
+					int attempts = 0;
+					while (attempts < 5)
+					{
+						try
+						{
+							File.AppendAllText(logFilePath, debugMessage.ToString());
+							attempts = 10;
+						}
+						catch (Exception)
+						{ 
+							attempts++;
+						}
+					}
 				}
 			}
 		}
@@ -93,7 +105,19 @@ namespace MJpegCameraProxy
 				}
 				if ((logType & LoggingMode.File) > 0)
 				{
-					File.AppendAllText(logFilePath, DateTime.Now.ToString() + Environment.NewLine + message + Environment.NewLine);
+					int attempts = 0;
+					while (attempts < 5)
+					{
+						try
+						{
+							File.AppendAllText(logFilePath, DateTime.Now.ToString() + Environment.NewLine + message + Environment.NewLine);
+							attempts = 10;
+						}
+						catch (Exception)
+						{
+							attempts++;
+						}
+					}
 				}
 			}
 		}

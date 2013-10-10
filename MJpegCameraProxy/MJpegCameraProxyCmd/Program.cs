@@ -13,7 +13,15 @@ namespace MJpegCameraProxyCmd
 		{
 			mjpegServer = new MJpegWrapper();
 			mjpegServer.Start();
-			Console.WriteLine("MJpegServer listening on port " + MJpegWrapper.cfg.webport);
+			List<string> portStrings = new List<string>();
+			if (MJpegWrapper.cfg.webport > -1 && MJpegWrapper.cfg.webport < 65535)
+				portStrings.Add(MJpegWrapper.cfg.webport + " (http)");
+			if (MJpegWrapper.cfg.webport_https > -1 && MJpegWrapper.cfg.webport_https < 65535)
+				portStrings.Add(MJpegWrapper.cfg.webport_https + " (https)");
+			if (portStrings.Count == 0)
+				Console.WriteLine("MJpegServer is not configured to listen on any valid ports.");
+			else
+				Console.WriteLine("MJpegServer listening on port " + string.Join(" and ", portStrings));
 			Console.ReadLine();
 			mjpegServer.Stop();
 		}

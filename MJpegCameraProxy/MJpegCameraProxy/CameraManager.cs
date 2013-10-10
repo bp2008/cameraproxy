@@ -72,7 +72,7 @@ namespace MJpegCameraProxy
 				cam.ImageLastViewed = DateTime.Now;
 			}
 			H264Camera h264cam = (H264Camera)cam;
-			return "rtsp://" + h264cam.access_username + ":" + h264cam.access_password + "@" + p.request_url.Host + ":" + cam.cameraSpec.h264_port + "/proxyStream";
+			return "rtsp://" + h264cam.access_username + ":" + h264cam.access_password + "@$$$HOST$$$:" + cam.cameraSpec.h264_port + "/proxyStream";
 		}
 
 		/// <summary>
@@ -86,6 +86,13 @@ namespace MJpegCameraProxy
 			if (cam == null)
 				return 101;
 			return cam.cameraSpec.minPermissionLevel;
+		}
+		public int GetCameraDelayBetweenImageGrabs(string id)
+		{
+			IPCameraBase cam = GetCameraById(id);
+			if (cam == null)
+				return 0;
+			return cam.cameraSpec.delayBetweenImageGrabs;
 		}
 		private IPCameraBase GetCameraById(string id)
 		{
@@ -135,9 +142,8 @@ namespace MJpegCameraProxy
 			{
 				try
 				{
-					DateTime cutoff = DateTime.Now.AddSeconds(-10);
 					foreach (IPCameraBase cam in cameras.Values)
-						if (cam.isRunning && cam.ImageLastViewed < cutoff)
+						if (cam.isRunning && cam.ImageLastViewed.AddSeconds(cam.cameraSpec.GetMaxBufferTime()) < DateTime.Now)
 							cam.Stop();
 				}
 				catch (Exception ex)
@@ -145,7 +151,7 @@ namespace MJpegCameraProxy
 					Logger.Debug(ex);
 				}
 				counter = 0;
-				while (!stopping && counter++ < 40)
+				while (!stopping && counter++ < 4)
 					Thread.Sleep(250);
 			}
 		}
@@ -187,7 +193,21 @@ namespace MJpegCameraProxy
 				return 101;
 			return cam.cameraSpec.minPermissionLevel;
 		}
-
+		public void CleanUpCameraOrder()
+		{
+			lock (MJpegWrapper.cfg)
+			{
+				MJpegWrapper.cfg.cameras.Sort(new ComparisonComparer<CameraSpec>((c1, c2) => 
+				{
+					int diff = c1.order.CompareTo(c2.order);
+					if (diff == 0)
+						diff = c1.id.CompareTo(c2.id);
+					return diff;
+				}));
+				for (int i = 0; i < MJpegWrapper.cfg.cameras.Count; i++)
+					MJpegWrapper.cfg.cameras[i].order = i;
+			}
+		}
 		public List<string> GenerateAllCameraIdList()
 		{
 			List<string> cams = new List<string>();

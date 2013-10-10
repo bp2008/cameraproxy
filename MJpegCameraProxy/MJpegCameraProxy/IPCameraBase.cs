@@ -12,6 +12,10 @@ namespace MJpegCameraProxy
 	public abstract class IPCameraBase
 	{
 		public SemaphoreSlim ptzLock = new SemaphoreSlim(1, 1);
+		/// <summary>
+		/// Use only with jpg and mjpg cameras only.  This EventWaitHandle is signaled and then reset just after each new frame is made available.
+		/// </summary>
+		public EventWaitHandle newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 		public DateTime ImageLastViewed = DateTime.Now.AddSeconds(10);
 		public volatile bool isRunning = false;
 		Thread threadDownloadStream;

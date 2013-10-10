@@ -19,8 +19,10 @@ namespace MJpegCameraProxy.Pages.Admin
 				new ItemTableColumnDefinition<CameraSpec>("Enabled", c => { return c.enabled ? ("<span style=\"color:Green;\">Enabled</span>") : "<span style=\"color:Red;\">Disabled</span>"; }),
 				new ItemTableColumnDefinition<CameraSpec>("Type", c => { return c.type.ToString() + (c.type == CameraType.h264 ? ":" + c.h264_port : ""); }),
 				new ItemTableColumnDefinition<CameraSpec>("Ptz", c => { return c.ptzType.ToString(); }),
+				new ItemTableColumnDefinition<CameraSpec>("TTL", c => { return c.maxBufferTime.ToString(); }),
 				new ItemTableColumnDefinition<CameraSpec>("Permission", c => { return c.minPermissionLevel.ToString(); }),
-				new ItemTableColumnDefinition<CameraSpec>("Url", c => { return c.imageryUrl; })
+				new ItemTableColumnDefinition<CameraSpec>("Url", c => { return c.imageryUrl; }),
+				new ItemTableColumnDefinition<CameraSpec>("Order", c => { return "<a href=\"javascript:void(0)\" onclick=\"$.post('reordercam', { dir: 'up', id: '" + c.id + "' }).done(function(){location.href=location.href;});\">Up</a><br/><a href=\"javascript:void(0)\" onclick=\"$.post('reordercam', { dir: 'down', id: '" + c.id + "' }).done(function(){location.href=location.href;});\">Down</a>"; })
 			});
 			return tbl.GetSectionHtml();
 		}

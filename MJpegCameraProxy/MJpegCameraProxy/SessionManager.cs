@@ -9,23 +9,24 @@ namespace MJpegCameraProxy
 	public class SessionManager
 	{
 		public SortedList<string, Session> sessions = new SortedList<string, Session>();
-		public Session AddNewSession(string auth)
+		public Session AddNewSession(string auth, bool passwordIsHashed = true)
 		{
 			int idxColon = auth.IndexOf(':');
 			if (idxColon == -1)
 				return new Session("anonymous", 0, 1);
-			return AddNewSession(auth.Substring(0, idxColon), auth.Substring(idxColon + 1));
+			return AddNewSession(auth.Substring(0, idxColon), auth.Substring(idxColon + 1), passwordIsHashed);
 		}
-		public Session AddNewSession(string user, string pass)
+		public Session AddNewSession(string user, string pass, bool passwordIsHashed = true)
 		{
-			User u = GetUserIfValid(user, pass);
+			User u = passwordIsHashed ? GetUserIfValid(user, pass) : GetUserIfValid_RawPassword(user, pass);
 			if (u != null)
 			{
 				Session s = new Session(u.name, u.permission, u.sessionLengthMinutes);
-				lock (sessions)
-				{
-					sessions.Add(s.sid, s);
-				}
+				if (u.sessionLengthMinutes > 0)
+					lock (sessions)
+					{
+						sessions.Add(s.sid, s);
+					}
 				return s;
 			}
 			return new Session("anonymous", 0, 1);
@@ -47,15 +48,18 @@ namespace MJpegCameraProxy
 			return null;
 		}
 
-		public Session GetSession(string sid, string auth)
+		public Session GetSession(string sid, string auth, string rawAuth = null)
 		{
+			if (!string.IsNullOrWhiteSpace(rawAuth))
+				return AddNewSession(rawAuth, false);
 			Session s = GetSession(sid);
 			if (s == null)
 				s = AddNewSession(auth);
-			if (s != null)
-				s.expire = DateTime.Now.AddMinutes(s.sessionLengthMinutes);
+			//if (s != null)
+			s.expire = DateTime.Now.AddMinutes(s.sessionLengthMinutes);
 			return s;
 		}
+
 		private DateTime nextSessionCleanup = DateTime.Now;
 		private void SessionCleanup()
 		{
@@ -90,6 +94,13 @@ namespace MJpegCameraProxy
 		{
 			User u = MJpegWrapper.cfg.GetUser(user);
 			if (u != null && Hash.GetSHA1Hex(u.pass + "justtomakethingsharder") == pass)
+				return u;
+			return null;
+		}
+		private User GetUserIfValid_RawPassword(string user, string pass)
+		{
+			User u = MJpegWrapper.cfg.GetUser(user);
+			if (u != null && u.pass == pass)
 				return u;
 			return null;
 		}
