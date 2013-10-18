@@ -50,7 +50,21 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("PTZ Password")]
 		public string ptz_password = "";
 		[EditorName("PTZ Absolute X Position Offset (Degrees)")]
+		[EditorHint("<br/>Only affects Dahua PTZ cameras")]
 		public int ptz_absoluteXOffset = 0;
+		[EditorCategory("Dahua PTZ panorama control settings")]
+		[EditorName("PTZ Panorama Selection Rectangle Width")]
+		[EditorHint("pixels. Only affects Dahua PTZ cameras")]
+		public int ptz_panorama_selection_rectangle_width = 96;
+		[EditorName("PTZ Panorama Selection Rectangle Height")]
+		[EditorHint("pixels. Only affects Dahua PTZ cameras")]
+		public int ptz_panorama_selection_rectangle_height = 54;
+		[EditorName("Simple Panorama")]
+		[EditorHint("Only affects Dahua PTZ cameras. If checked, thumbnails 0 through 27 will be displayed in a grid.  If unchecked, thumbnail number 99999 will be loaded as a full size panorama.")]
+		public bool ptz_panorama_simple = true;
+		[EditorName("Panorama represented vertical angle")]
+		[EditorHint("degrees. Only affects Dahua PTZ cameras.  Adjust this as needed to calibrate the vertical position of the panorama rectangle.  Default: 90 degrees")]
+		public int ptz_panorama_degrees_vertical = 90;
 
 		[EditorCategory("H264-Only Configuration (requires VLC Web Plugin to view)")]
 		[EditorName("Port to serve RTSP on")]

@@ -23,7 +23,8 @@ namespace MJpegCameraProxy
 		string host, user, pass;
 		System.Threading.Timer keepAliveTimer = null;
 		int session = -1;
-		int absoluteXOffset;
+		int absoluteXOffset, thumbnailBoxWidth, thumbnailBoxHeight, panoramaVerticalDegrees;
+		bool simplePanorama;
 		LoginManager loginManager;
 		long inner_id = 0;
 		protected long CmdID
@@ -37,15 +38,19 @@ namespace MJpegCameraProxy
 		static DahuaPTZ()
 		{
 			System.Net.ServicePointManager.Expect100Continue = false;
-			if(System.Net.ServicePointManager.DefaultConnectionLimit < 16)
+			if (System.Net.ServicePointManager.DefaultConnectionLimit < 16)
 				System.Net.ServicePointManager.DefaultConnectionLimit = 16;
 		}
-		public DahuaPTZ(string host, string user, string password, int absoluteXOffset)
+		public DahuaPTZ(string host, string user, string password, int absoluteXOffset, int thumbnailBoxWidth = 96, int thumbnailBoxHeight = 54, bool simplePanorama = true, int panoramaVerticalDegrees = 90)
 		{
 			this.host = host;
 			this.user = user;
 			this.pass = password;
 			this.absoluteXOffset = absoluteXOffset;
+			this.thumbnailBoxWidth = thumbnailBoxWidth;
+			this.thumbnailBoxHeight = thumbnailBoxHeight;
+			this.simplePanorama = simplePanorama;
+			this.panoramaVerticalDegrees = panoramaVerticalDegrees;
 			baseCGIURL = "http://" + host + "/cgi-bin/ptz.cgi?";
 			loginManager = new LoginManager();
 		}
@@ -103,7 +108,7 @@ namespace MJpegCameraProxy
 		private string getJsonStringValue(string json, string key)
 		{
 			Match m = Regex.Match(json, "\"" + key + "\" *: *\"(.*?)\"");
-			if(!m.Success)
+			if (!m.Success)
 				m = Regex.Match(json, "\"" + key + "\" *: *\\d+");
 			return m.Success ? m.Groups[1].Value : null;
 		}
@@ -262,6 +267,7 @@ namespace MJpegCameraProxy
 {
 	width: 672px;
 	height: 216px;
+	line-height: 0px;
 }
 #gridTbl
 {
@@ -488,7 +494,8 @@ function ExecuteThumbnailMove()
 }
 function CreateThumbnailBox()
 {
-	$('#gridDiv').append('<div id=""thumbnailBox"" style=""width:96px;height:54px;""><div id=""thumbnailBoxInner"" style=""width:94px;height:52px;""></div></div>');
+	$('#gridDiv').append('<div id=""thumbnailBox"" style=""width:" + cam.dahuaPtz.thumbnailBoxWidth + @"px;height:" + cam.dahuaPtz.thumbnailBoxHeight + @"px;""><div id=""thumbnailBoxInner"" style=""width:" + (cam.dahuaPtz.thumbnailBoxWidth - 2) + @"px;height:" + (cam.dahuaPtz.thumbnailBoxHeight - 2) + @"px;""></div></div>');
+	$('#thumbnailBox').css('margin-top', '-' + $('#gridDiv').height() + 'px');
 	$('#thumbnailBox').mousemove(function(e)
 	{
 		UpdateThumbnailBox(e);
@@ -568,6 +575,17 @@ function handleTargetClick(e)
 		ExecuteCommand('frame/' + percentX + '/' + percentY);
 	}
 }
+function fullPanoramaImageLoaded()
+{
+	var fullPanoramaImage = document.getElementById('fullPanoramaImage');
+	var w = parseInt(fullPanoramaImage.naturalWidth / 2);
+	var h = parseInt(fullPanoramaImage.naturalHeight / 2);
+	$('#gridDiv').css('width', w + 'px');
+	$('#gridDiv').css('height', h + 'px');
+	$(fullPanoramaImage).css('width', w + 'px');
+	$(fullPanoramaImage).css('height', h + 'px');
+	$('#thumbnailBox').css('margin-top', '-' + h + 'px');
+}
 /////////////////////
 </script>");
 			#endregion
@@ -599,20 +617,25 @@ function handleTargetClick(e)
 			//sb.Append("<td class=\"joystickCell\"><div id=\"joystickDiv\"><div class=\"joystickBox50\"></div><div class=\"joystickBox50\"></div>");
 			//sb.Append("<div class=\"joystickBox50\"></div><div class=\"joystickBox50\"></div></div></td>");
 
-			// Write pseudo-panorama image grid
-			sb.Append("<td><div id=\"gridDiv\"><table id=\"gridTbl\"><tbody>");
-			for (int j = 0; j < 4; j++)
+			if (cam.dahuaPtz.simplePanorama)
 			{
-				sb.Append("<tr>");
-				for (int i = 0; i < 7; i++)
+				// Write pseudo-panorama image grid
+				sb.Append("<td><div id=\"gridDiv\"><table id=\"gridTbl\"><tbody>");
+				for (int j = 0; j < 4; j++)
 				{
-					sb.Append("<td class=\"gridcell\">");
-					sb.Append(GetPresetControl(camId, i + (j * 7)));
-					sb.Append("</td>");
+					sb.Append("<tr>");
+					for (int i = 0; i < 7; i++)
+					{
+						sb.Append("<td class=\"gridcell\">");
+						sb.Append(GetPresetControl(camId, i + (j * 7)));
+						sb.Append("</td>");
+					}
+					sb.Append("</tr>");
 				}
-				sb.Append("</tr>");
+				sb.Append("</tbody></table></div></td>");
 			}
-			sb.Append("</tbody></table></div></td>");
+			else
+				sb.Append("<td><div id=\"gridDiv\"><img id=\"fullPanoramaImage\" src=\"PTZPRESETIMG?id=" + camId + "&index=99999&nocache=" + DateTime.Now.Ticks + "\" onload=\"fullPanoramaImageLoaded(); return false;\"></div></td>");
 
 
 			sb.Append("</tr></tbody></table>");
@@ -719,23 +742,29 @@ function handleTargetClick(e)
 					{
 						cam.dahuaPtz.StopAll();
 					}
-					else if (parts[0] == "generatepseudopanorama")
+					else if (parts[0] == "generatepseudopanorama" || parts[0] == "generatepseudopanoramafull")
 					{
+						bool full = parts[0].EndsWith("full");
 						bool isFirstTime = true;
-						for (int j = 0; j < 4; j++)
+						int numImagesHigh = full ? 6 : 4;
+						int numImagesWide = full ? 14 : 7;
+						double degreesSeparationVertical = 900.0 / (numImagesHigh - 1);
+						double degreesSeparationHorizontal = 3600.0 / -numImagesWide;
+						for (int j = 0; j < numImagesHigh; j++)
 						{
-							for (int i = 0; i < 7; i++)
+							for (int i = 0; i < numImagesWide; i++)
 							{
-								cam.dahuaPtz.PositionABS((int)(i * (3600.0 / -7.0)), j * 300, 0);
-								Thread.Sleep(isFirstTime ? 5000 : 2500);
+								cam.dahuaPtz.PositionABS((int)(i * degreesSeparationHorizontal), (int)(j * degreesSeparationVertical), 0);
+								Thread.Sleep(isFirstTime ? 7000 : 4500);
 								isFirstTime = false;
 								try
 								{
 									byte[] input = cam.LastFrame;
 									if (input.Length > 0)
 									{
-										input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160);
-										FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * 7)) + ".jpg");
+										if (!full)
+											input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160);
+										FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * numImagesWide)) + ".jpg");
 										Util.EnsureDirectoryExists(file.Directory.FullName);
 										File.WriteAllBytes(file.FullName, input);
 									}
@@ -752,7 +781,7 @@ function handleTargetClick(e)
 						double x = 1 - double.Parse(parts[1]);
 						double y = double.Parse(parts[2]);
 						x *= 3600;
-						y *= 900;
+						y *= cam.dahuaPtz.panoramaVerticalDegrees * 10;
 						cam.dahuaPtz.PositionABS((int)x, (int)y, 0/*int.Parse(parts[3]) * 8*/);
 					}
 					//if (preset_number > 0)
