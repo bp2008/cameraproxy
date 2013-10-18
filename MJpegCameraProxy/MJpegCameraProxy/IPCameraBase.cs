@@ -143,7 +143,7 @@ namespace MJpegCameraProxy
 			{
 				cam.cameraSpec = cs;
 				if (cs.ptzType == PtzType.Dahua)
-					cam.dahuaPtz = new DahuaPTZ(cs.ptz_hostName, cs.ptz_username, cs.ptz_password, cs.ptz_absoluteXOffset);
+					cam.dahuaPtz = new DahuaPTZ(cs.ptz_hostName, cs.ptz_username, cs.ptz_password, cs.ptz_absoluteXOffset, cs.ptz_panorama_selection_rectangle_width, cs.ptz_panorama_selection_rectangle_height, cs.ptz_panorama_simple, cs.ptz_panorama_degrees_vertical);
 			}
 			return cam;
 		}

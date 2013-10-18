@@ -706,6 +706,8 @@ namespace SimpleHttp
 		private X509Certificate2 ssl_certificate;
 		private Thread thrHttp;
 		private Thread thrHttps;
+		private TcpListener unsecureListener = null;
+		private TcpListener secureListener = null;
 
 		/// <summary>
 		/// 
@@ -781,6 +783,10 @@ namespace SimpleHttp
 				try
 				{
 					listener = new TcpListener(IPAddress.Any, isSecureListener ? secure_port : port);
+					if (isSecureListener)
+						secureListener = listener;
+					else
+						unsecureListener = listener;
 					listener.Start();
 					while (!stopRequested)
 					{
@@ -881,6 +887,24 @@ namespace SimpleHttp
 			if (stopRequested)
 				return;
 			stopRequested = true;
+			if (unsecureListener != null)
+				try
+				{
+					unsecureListener.Stop();
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
+			if (secureListener != null)
+				try
+				{
+					secureListener.Stop();
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
 			if (thrHttp != null)
 				try
 				{
