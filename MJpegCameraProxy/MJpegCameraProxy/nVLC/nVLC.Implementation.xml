@@ -1,0 +1,332 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>nVLC.Implementation</name>
+    </assembly>
+    <members>
+        <member name="T:Implementation.MediaPlayerFactory">
+            <summary>
+            Entry point for the nVLC library.
+            </summary>
+        </member>
+        <member name="T:Implementation.DisposableBase">
+            <summary>
+            Base class for managing native resources.
+            </summary>
+        </member>
+        <member name="M:Implementation.DisposableBase.Dispose">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Implementation.DisposableBase.Dispose(System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:Implementation.DisposableBase.Finalize">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Implementation.DisposableBase.VerifyObjectNotDisposed">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.#ctor(System.Boolean,System.Boolean)">
+            <summary>
+            Initializes media library with default arguments
+            </summary>
+            <param name="findLibvlc"></param>
+            <param name="useCustomStringMarshaller"></param>
+            <remarks>Default arguments:
+            "-I",
+            "dumy",  
+            "--ignore-config", 
+            "--no-osd",
+            "--disable-screensaver",
+            "--plugin-path=./plugins"
+            </remarks>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.#ctor(System.String[],System.Boolean,System.Boolean)">
+            <summary>
+            Initializes media library with user defined arguments
+            </summary>
+            <param name="args">Collection of arguments passed to libVLC library</param>
+            <param name="findLibvlc">True to find libvlc installation path, False to use libvlc in the executable path</param>
+            <param name="useCustomStringMarshaller"></param>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreatePlayer``1">
+            <summary>
+            Creates new instance of player.
+            </summary>
+            <typeparam name="T">Type of the player to create</typeparam>
+            <returns>Newly created player</returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreateMediaListPlayer``1(Declarations.Media.IMediaList)">
+            <summary>
+            Creates new instance of media list player
+            </summary>
+            <typeparam name="T">Type of media list player</typeparam>
+            <param name="mediaList">Media list</param>
+            <returns>Newly created media list player</returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreateMedia``1(System.String,System.String[])">
+            <summary>
+            Creates new instance of media.
+            </summary>
+            <typeparam name="T">Type of media to create</typeparam>
+            <param name="input">The media input string</param>
+            <param name="options">Optional media options</param>
+            <returns>Newly created media</returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreateMediaList``1(System.Collections.Generic.IEnumerable{System.String},System.String[])">
+            <summary>
+            Creates new instance of media list.
+            </summary>
+            <typeparam name="T">Type of media list</typeparam>
+            <param name="mediaItems">Collection of media inputs</param>       
+            <param name="options"></param>
+            <returns>Newly created media list</returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreateMediaList``1">
+            <summary>
+            Creates media list instance with no media items
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreateMediaDiscoverer(System.String)">
+            <summary>
+            Creates media discovery object
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.CreateMediaLibrary">
+            <summary>
+            Creates media library
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.Dispose(System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.Delay(System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="pts"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.MediaPlayerFactory.GetAudioOutputDevices(Declarations.AudioOutputModuleInfo)">
+            <summary>
+            Gets list of available audio output devices
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.Version">
+            <summary>
+            Gets the libVLC version.
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.Clock">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.AudioFilters">
+            <summary>
+            Gets list of available audio filters
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.VideoFilters">
+            <summary>
+            Gets list of available video filters
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.VideoLanManager">
+            <summary>
+            Gets the VLM instance
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.AudioOutputModules">
+            <summary>
+            Gets list of available audio output modules
+            </summary>
+        </member>
+        <member name="P:Implementation.MediaPlayerFactory.LastErrorMsg">
+            <summary>
+            Gets error message for the last LibVLC error in the calling thread
+            </summary>
+        </member>
+        <member name="T:Implementation.Equalizer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Implementation.Equalizer.#ctor">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Implementation.Equalizer.#ctor(Implementation.Preset)">
+            <summary>
+            
+            </summary>
+            <param name="preset"></param>
+        </member>
+        <member name="P:Implementation.Equalizer.Presets">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Equalizer.Preamp">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Equalizer.Bands">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Implementation.Preset">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Preset.Index">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Preset.Name">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Implementation.Band">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Band.Index">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Band.Frequency">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Implementation.Band.Amplitude">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.Alloc(System.Int32)">
+            <summary>
+            Allocates a memory block of the given size. The allocated memory is
+            automatically initialized to zero.
+            </summary>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.Free(System.Void*)">
+            <summary>
+            Frees a memory block.
+            </summary>
+            <param name="block"></param>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.ReAlloc(System.Void*,System.Int32)">
+            <summary>
+            Re-allocates a memory block. If the reallocation request is for a
+            larger size, the additional region of memory is automatically
+            initialized to zero.
+            </summary>
+            <param name="block"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.SizeOf(System.Void*)">
+            <summary>
+            Returns the size of a memory block.
+            </summary>
+            <param name="block"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcRemovedModuleException">
+            <summary>
+            Represents error that occured due to removal of libVLC module
+            </summary>
+        </member>
+        <member name="M:Implementation.Exceptions.LibVlcRemovedModuleException.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initializes new instance of the class
+            </summary>
+            <param name="libVlcModuleName"></param>
+            <param name="nVlcModuleName"></param>
+            <param name="lastWorkingVersion"></param>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.LibVlcModuleName">
+            <summary>
+            Name of the libVLC module
+            </summary>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.LastWorkingVersion">
+            <summary>
+            Last version where module was operational
+            </summary>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.nVlcModuleName">
+            <summary>
+            Name of the nVLC object using removed module
+            </summary>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.Message">
+            <summary>
+            Gets a message that describes the current exception
+            </summary>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcException">
+            <summary>
+            Throws an exception with the latest error message.
+            </summary>
+        </member>
+        <member name="M:Implementation.Exceptions.LibVlcException.#ctor">
+            <summary>
+            Initializes a new instance of the LibVlcException class with the last error that occurred.
+            </summary>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcInitException">
+            <summary>
+            Exception thrown when libVLC initialization failed.
+            </summary>
+        </member>
+        <member name="M:Implementation.Extensions.ToCropFilterString(System.Drawing.Rectangle)">
+            <summary>
+            String format : [width]x[height]+[left offset]+[top offset]
+            </summary>
+            <param name="rect"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.PublisExtensions.SetEqualizer(Declarations.Players.IAudioPlayer,Implementation.Equalizer)">
+            <summary>
+            
+            </summary>
+            <param name="player"></param>
+            <param name="equalizer"></param>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcNotFoundException">
+            <summary>
+            Exception thrown when one of the vlc libraries are missing.
+            </summary>
+        </member>
+    </members>
+</doc>

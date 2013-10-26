@@ -40,7 +40,7 @@ namespace MJpegCameraProxy
 		public byte[] GetLatestImage(string id)
 		{
 			IPCameraBase cam = GetCameraById(id);
-			if (cam == null || cam.cameraSpec.type == CameraType.h264)
+			if (cam == null || cam.cameraSpec.type == CameraType.h264_rtsp_proxy)
 				return new byte[0];
 			lock (this)
 			{
@@ -59,7 +59,7 @@ namespace MJpegCameraProxy
 		public string GetRTSPUrl(string id, SimpleHttp.HttpProcessor p)
 		{
 			IPCameraBase cam = GetCameraById(id);
-			if (cam == null || cam.cameraSpec.type != CameraType.h264)
+			if (cam == null || cam.cameraSpec.type != CameraType.h264_rtsp_proxy)
 				return "";
 			cam.ImageLastViewed = DateTime.Now;
 			if (!cam.isRunning)
@@ -226,7 +226,7 @@ namespace MJpegCameraProxy
 			lock (MJpegWrapper.cfg)
 			{
 				foreach (CameraSpec cs in MJpegWrapper.cfg.cameras)
-					if (cs.type == CameraType.jpg || cs.type == CameraType.mjpg)
+					if (cs.type == CameraType.jpg || cs.type == CameraType.mjpg || cs.type == CameraType.vlc_transcode)
 						if (cs.enabled && cs.minPermissionLevel <= permission)
 							cams.Add("['" + cs.id + "','" + cs.name + "']");
 			}

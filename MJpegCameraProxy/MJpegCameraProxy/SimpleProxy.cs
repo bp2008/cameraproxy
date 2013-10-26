@@ -15,7 +15,7 @@ namespace MJpegCameraProxy
 		/// </summary>
 		/// <param name="url"></param>
 		/// <returns></returns>
-		public static byte[] GetData(string url, string user = "", string password = "", bool keepAlive = false)
+		public static byte[] GetData(string url, string user = "", string password = "", bool keepAlive = false, bool allowErrorLogging = true)
 		{
 			try
 			{
@@ -36,7 +36,8 @@ namespace MJpegCameraProxy
 			catch (ThreadAbortException ex) { throw ex; }
 			catch (Exception ex)
 			{
-				Logger.Debug(ex, "SimpleProxy URL: " + url);
+				if (allowErrorLogging)
+					Logger.Debug(ex, "SimpleProxy URL: " + url);
 			}
 			return new byte[0];
 		}

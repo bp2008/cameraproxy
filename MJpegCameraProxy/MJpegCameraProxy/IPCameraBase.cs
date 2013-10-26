@@ -66,7 +66,7 @@ namespace MJpegCameraProxy
 		/// <summary>
 		/// Returns the last frame decoded by the camera.  Only works with jpg and mjpg cameras.  For h264 cameras, this will not return a valid frame.
 		/// </summary>
-		public byte[] LastFrame
+		public virtual byte[] LastFrame
 		{
 			get
 			{
@@ -132,9 +132,13 @@ namespace MJpegCameraProxy
 				case CameraType.mjpg:
 					cam = new MJpegCamera();
 					break;
-				case CameraType.h264:
-					// h264 cameras currently do not support jpeg output - only stream reflection via live555ProxyServer
+				case CameraType.h264_rtsp_proxy:
+					// h264_rtsp_proxy cameras do not support jpeg output - only stream reflection via live555ProxyServer
 					cam = new H264Camera();
+					break;
+				case CameraType.vlc_transcode:
+					// h264_rtsp_proxy cameras do not support jpeg output - only stream reflection via live555ProxyServer
+					cam = new VlcCamera();
 					break;
 				default:
 					break;

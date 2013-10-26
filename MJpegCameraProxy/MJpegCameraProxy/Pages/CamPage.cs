@@ -22,7 +22,7 @@ namespace MJpegCameraProxy
 			int patience = (cam.cameraSpec.delayBetweenImageGrabs > 0 ? cam.cameraSpec.delayBetweenImageGrabs : 0) + 5000;
 			string cameraImgLink = @"<img id=""imgFrame"" class=""CamImg"" />";
 			string keepalive = "";
-			if (cam.cameraSpec.type == CameraType.h264)
+			if (cam.cameraSpec.type == CameraType.h264_rtsp_proxy)
 			{
 				bool sizeOverridden = cam.cameraSpec.h264_video_width > 0 && cam.cameraSpec.h264_video_height > 0;
 				width = sizeOverridden ? cam.cameraSpec.h264_video_width : 640;

@@ -19,6 +19,8 @@ namespace MJpegCameraProxy
 
 		public MJpegWrapper()
 		{
+			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
 			System.Net.ServicePointManager.Expect100Continue = false;
 			System.Net.ServicePointManager.DefaultConnectionLimit = 640;
 
@@ -74,5 +76,24 @@ namespace MJpegCameraProxy
 			}
 		}
 		#endregion
+
+		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			if (e.ExceptionObject == null)
+			{
+				Logger.Debug("UNHANDLED EXCEPTION - null exception");
+			}
+			else
+			{
+				try
+				{
+					Logger.Debug((Exception)e.ExceptionObject, "UNHANDLED EXCEPTION");
+				}
+				catch (Exception ex)
+				{
+					Logger.Debug(ex, "UNHANDLED EXCEPTION - Unable to report exception of type " + e.ExceptionObject.GetType().ToString());
+				}
+			}
+		}
 	}
 }
