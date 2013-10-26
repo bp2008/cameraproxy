@@ -53,6 +53,9 @@ namespace MJpegCameraProxy
 							bmp = memRender.CurrentFrame;
 							lastFrameEncoded = frameNumber;
 							latestFrame = ImageConverter.EncodeBitmap(bmp, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
+							EventWaitHandle oldWaitHandle = newFrameWaitHandle;
+							newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+							oldWaitHandle.Set();
 						}
 						catch (Exception ex)
 						{
@@ -115,7 +118,13 @@ namespace MJpegCameraProxy
 						{
 							frameNumber++;
 							if (!player.Mute)
-							    player.ToggleMute();
+								player.ToggleMute();
+							if (frameTimer.ElapsedMilliseconds >= nextFrameEncodeTime)
+							{
+								EventWaitHandle oldWaitHandle = newFrameWaitHandle;
+								newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+								oldWaitHandle.Set();
+							}
 							//long time = frameCounter.ElapsedMilliseconds;
 							//if (time >= nextFrameEncodeTime)
 							//{
@@ -145,6 +154,7 @@ namespace MJpegCameraProxy
 						frameTimer.Reset();
 						if (player != null)
 							player.Stop();
+						newFrameWaitHandle.Set();
 					}
 				}
 			}
@@ -155,6 +165,7 @@ namespace MJpegCameraProxy
 			{
 				Logger.Debug(ex);
 			}
+			newFrameWaitHandle.Set();
 		}
 	}
 }

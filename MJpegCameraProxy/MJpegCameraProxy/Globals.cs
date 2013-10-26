@@ -80,6 +80,6 @@ namespace MJpegCameraProxy
 		{
 			get { return configFilePath; }
 		}
-		public static string Version = "1.3";
+		public static string Version = "1.3.1";
 	}
 }

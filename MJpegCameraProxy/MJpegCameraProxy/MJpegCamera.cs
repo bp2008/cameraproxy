@@ -94,7 +94,10 @@ namespace MJpegCameraProxy
 					newFrameWaitHandle.Set();
 				}
 				if (!Exit)
+				{
+					Logger.Debug("MJpegCamera " + cameraSpec.id + " restarting");
 					Thread.Sleep(5000);
+				}
 			}
 			newFrameWaitHandle.Set();
 		}
