@@ -141,9 +141,12 @@ namespace MJpegCameraProxy
 					Pages.Admin.AdminPage.HandleRequest(adminPage, p, s);
 					return;
 				}
-				else if (requestedPage.EndsWith(".jpg"))
+				else if (requestedPage.EndsWith(".jpg") || requestedPage.EndsWith(".jpeg") || requestedPage.EndsWith(".png") || requestedPage.EndsWith(".webp"))
 				{
-					string cameraId = requestedPage.Substring(0, requestedPage.Length - 4);
+					int extensionLength = requestedPage[requestedPage.Length - 4] == '.' ? 4 : 5;
+					string format = requestedPage.Substring(requestedPage.Length - (extensionLength - 1));
+					string cameraId = requestedPage.Substring(0, requestedPage.Length - extensionLength);
+
 					int minPermission = cm.GetCameraMinPermission(cameraId);
 					if (minPermission == 101)
 					{
@@ -176,8 +179,9 @@ namespace MJpegCameraProxy
 							timeLeft = patience - (int)timer.ElapsedMilliseconds;
 						}
 					}
-					latestImage = ImageConverter.HandleRequestedConversionIfAny(latestImage, p);
-					p.writeSuccess("image/jpeg", latestImage.Length);
+					ImageFormat imgFormat = ImageFormat.Jpeg;
+					latestImage = ImageConverter.HandleRequestedConversionIfAny(latestImage, p, ref imgFormat, format);
+					p.writeSuccess(ImageConverter.GetMime(imgFormat), latestImage.Length);
 					p.outputStream.Flush();
 					p.rawOutputStream.Write(latestImage, 0, latestImage.Length);
 				}
@@ -229,11 +233,12 @@ namespace MJpegCameraProxy
 								newImage = cm.GetLatestImage(cameraId);
 							}
 							lastImage = newImage;
-
-							byte[] sendImage = ImageConverter.HandleRequestedConversionIfAny(newImage, p);
+							
+							ImageFormat imgFormat = ImageFormat.Jpeg;
+							byte[] sendImage = ImageConverter.HandleRequestedConversionIfAny(newImage, p, ref imgFormat);
 
 							p.outputStream.WriteLine("--ipcamera");
-							p.outputStream.WriteLine("Content-Type: image/jpeg");
+							p.outputStream.WriteLine("Content-Type: " + ImageConverter.GetMime(imgFormat));
 							p.outputStream.WriteLine("Content-Length: " + sendImage.Length);
 							p.outputStream.WriteLine();
 							p.outputStream.Flush();

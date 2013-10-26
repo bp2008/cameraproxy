@@ -32,7 +32,7 @@ namespace MJpegCameraProxy.Configuration
 		public int minPermissionLevel = 0;
 
 		[EditorCategory("Other Settings")]
-		[EditorHint("<br/>Minimum number of milliseconds between image grabs (affects <b>jpg</b> cameras only). Use this to conserve bandwidth or improve resource usage when the source is frame-rate limited.")]
+		[EditorHint("Minimum number of milliseconds between image grabs (affects <b>jpg</b> cameras only). Use this to conserve bandwidth or improve resource usage when the source is frame-rate limited.")]
 		[EditorName("Image Grab Delay")]
 		public int delayBetweenImageGrabs = 0;
 		[EditorHint("in seconds. (default: 10) (max: 86400) (min-jpg: 3) (min-mjpg: 3) (min-h264_rtsp_proxy: 10) (min-vlc_transcode: 10)<br/>The server will stop requesting imagery from the source this long after the last image request is made by a client.")]
@@ -49,21 +49,22 @@ namespace MJpegCameraProxy.Configuration
 		[IsPasswordField(true)]
 		[EditorName("PTZ Password")]
 		public string ptz_password = "";
-		[EditorName("PTZ Absolute X Position Offset (Degrees)")]
-		[EditorHint("<br/>Only affects Dahua PTZ cameras")]
+		[EditorName("PTZ Absolute X Position Offset")]
+		[EditorHint("degrees.  Only affects Dahua PTZ cameras")]
 		public int ptz_absoluteXOffset = 0;
+
 		[EditorCategory("Dahua PTZ panorama control settings")]
 		[EditorName("PTZ Panorama Selection Rectangle Width")]
-		[EditorHint("pixels. Only affects Dahua PTZ cameras")]
+		[EditorHint("pixels")]
 		public int ptz_panorama_selection_rectangle_width = 96;
 		[EditorName("PTZ Panorama Selection Rectangle Height")]
-		[EditorHint("pixels. Only affects Dahua PTZ cameras")]
+		[EditorHint("pixels")]
 		public int ptz_panorama_selection_rectangle_height = 54;
 		[EditorName("Simple Panorama")]
-		[EditorHint("Only affects Dahua PTZ cameras. If checked, thumbnails 0 through 27 will be displayed in a grid.  If unchecked, thumbnail number 99999 will be loaded as a full size panorama.")]
+		[EditorHint("If checked, thumbnails 0 through 27 will be displayed in a grid.  If unchecked, thumbnail number 99999 will be loaded as a full size panorama.")]
 		public bool ptz_panorama_simple = true;
 		[EditorName("Panorama represented vertical angle")]
-		[EditorHint("degrees. Only affects Dahua PTZ cameras.  Adjust this as needed to calibrate the vertical position of the panorama rectangle.  Default: 90 degrees")]
+		[EditorHint("degrees.  Adjust this as needed to calibrate vertical positioning in the panorama rectangle.  Default: 90 degrees")]
 		public int ptz_panorama_degrees_vertical = 90;
 
 		[EditorCategory("vlc_transcode Configuration (only affects vlc_transcode cameras)")]
@@ -71,13 +72,13 @@ namespace MJpegCameraProxy.Configuration
 		[EditorHint("Maximum frames per second for jpeg encoding of the video frames.  Strongly affects CPU usage.  Actual produced frame rate may be lower.")]
 		public int vlc_transcode_fps = 10;
 		[EditorName("Buffer Time")]
-		[EditorHint("milliseconds.  Length of time to buffer the video.  Short values (below 300?) may not work very well.  Default is 1000")]
+		[EditorHint("milliseconds.  Lower values cause the live view to be less delayed, but too-low values may be unreliable and may cause video corruption and dropped frames.  Default: 1000")]
 		public int vlc_transcode_buffer_time = 1000;
-
-		[EditorCategory("H264_rtsp_proxy Configuration (only affects h264_rtsp_proxy cameras) (requires VLC Web Plugin to view)")]
-		[EditorName("Port to serve RTSP on")]
-		[EditorHint("<br/>Only affects h264 cameras - the port specified here must be available or the camera will be inaccessible")]
-		public ushort h264_port = 554;
+		[EditorName("Jpeg Compression Quality")]
+		[EditorHint("0 to 100")]
+		public int vlc_transcode_image_quality = 80;
+		[EditorName("Rotate / Flip")]
+		public System.Drawing.RotateFlipType vlc_transcode_rotate_flip = System.Drawing.RotateFlipType.RotateNoneFlipNone;
 
 		[EditorCategory("vlc_transcode and h264_rtsp_proxy Configuration")]
 		[EditorName("Video Width")]
@@ -86,6 +87,11 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("Video Height")]
 		[EditorHint("pixels. Required for vlc_transcode cameras.  Optional for h264_rtsp_proxy cameras.")]
 		public ushort h264_video_height = 0;
+
+		[EditorCategory("H264_rtsp_proxy Configuration (only affects h264_rtsp_proxy cameras) (requires VLC Web Plugin to view)")]
+		[EditorName("Port to serve RTSP on")]
+		[EditorHint("<br/>Only affects h264 cameras - the port specified here must be available or the camera will be inaccessible")]
+		public ushort h264_port = 554;
 		
 		public int order = -1;
 
@@ -116,7 +122,9 @@ namespace MJpegCameraProxy.Configuration
 			if (type == CameraType.vlc_transcode && this.vlc_transcode_fps <= 0)
 				return "0Transcode Frame Rate must be > 0 for a " + type.ToString() + " camera.";
 			if (type == CameraType.vlc_transcode && this.vlc_transcode_buffer_time <= 0)
-				return "Buffer Time must be > 0 for a " + type.ToString() + " camera.";
+				return "0Buffer Time must be > 0 for a " + type.ToString() + " camera.";
+			if (type == CameraType.vlc_transcode && (this.vlc_transcode_image_quality < 0 || this.vlc_transcode_image_quality > 100))
+				return "0Image Quality must be between 0 and 100 (inclusive) for a " + type.ToString() + " camera.";
 			return "1";
 		}
 
