@@ -173,8 +173,7 @@ namespace MJpegCameraProxy
 						{
 							// The latest image was already sent to the user in a previous image request.
 							// Wait for up to 5 seconds as desired by the user to get a "new" image.
-							cam.newFrameWaitHandle.WaitOne(timeLeft);
-							// This would be more efficient if we used an EventWaitHandle or something to wait until the next frame is available instead of waiting and checking in 50 millisecond intervals.
+							cam.newFrameWaitHandle.WaitOne(Math.Max(50, timeLeft));  // This EventWaitHandle nonsense isn't perfect, so this should prevent excessively long delays in the event of a timing error.
 							latestImage = cm.GetLatestImage(cameraId);
 							timeLeft = patience - (int)timer.ElapsedMilliseconds;
 						}
