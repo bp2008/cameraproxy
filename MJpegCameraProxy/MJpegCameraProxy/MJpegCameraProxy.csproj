@@ -210,6 +210,7 @@
   <ItemGroup>
     <Content Include="Examples\Html\all.html" />
     <Content Include="Examples\readme.txt" />
+    <Content Include="gpl-3.0-standalone.html" />
     <Content Include="libwebp_a.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
