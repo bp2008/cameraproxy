@@ -11,53 +11,64 @@ namespace MJpegCameraProxy
 	{
 		public string access_password = "";
 		public string access_username = "";
+
 		internal H264Camera()
 		{
 		}
 		protected override void DoBackgroundWork()
 		{
-			access_password = Session.GenerateSid();
-			access_username = Session.GenerateSid();
-			while (!Exit)
+			try
 			{
-				try
+				access_password = Session.GenerateSid();
+				access_username = Session.GenerateSid();
+				while (!Exit)
 				{
-					string path = Globals.ApplicationDirectoryBase + "live555\\live555ProxyServer.exe";
-					string args = "-u " + access_username + " " + access_password + " -p " + this.cameraSpec.h264_port + " \"" + this.cameraSpec.imageryUrl + "\"";
-					//Logger.Info("Path: " + path);
-					//Logger.Info("Args: " + args);
-					Process p = null;
 					try
 					{
-						ProcessStartInfo psi = new ProcessStartInfo(path, args);
-						psi.CreateNoWindow = false;
-						psi.UseShellExecute = false;
-						psi.RedirectStandardError = true;
-						p = Process.Start(psi);
-						while (!Exit && !p.HasExited)
-							Thread.Sleep(500);
-					}
-					finally
-					{
-						if (p != null && !p.HasExited)
+						string path = Globals.ApplicationDirectoryBase + "live555\\live555ProxyServer.exe";
+						string args = "-u " + access_username + " " + access_password + " -p " + this.cameraSpec.h264_port + " \"" + this.cameraSpec.imageryUrl + "\"";
+						//Logger.Info("Path: " + path);
+						//Logger.Info("Args: " + args);
+						Process p = null;
+						try
 						{
-							p.CloseMainWindow();
-							Thread.Sleep(500);
-							if (!p.HasExited)
-								p.Kill();
+							ProcessStartInfo psi = new ProcessStartInfo(path, args);
+							psi.CreateNoWindow = false;
+							psi.UseShellExecute = false;
+							psi.RedirectStandardError = true;
+							p = Process.Start(psi);
+							while (!Exit && !p.HasExited)
+								Thread.Sleep(500);
+						}
+						finally
+						{
+							if (p != null && !p.HasExited)
+							{
+								p.CloseMainWindow();
+								Thread.Sleep(500);
+								if (!p.HasExited)
+									p.Kill();
+							}
 						}
 					}
+					catch (ThreadAbortException ex)
+					{
+						throw ex;
+					}
+					catch (Exception ex)
+					{
+						Logger.Debug(ex);
+						if (!Exit)
+							Thread.Sleep(5000);
+					}
 				}
-				catch (ThreadAbortException)
-				{
-					return;
-				}
-				catch (Exception ex)
-				{
-					Logger.Debug(ex);
-					if (!Exit)
-						Thread.Sleep(5000);
-				}
+			}
+			catch (ThreadAbortException)
+			{
+			}
+			catch (Exception ex)
+			{
+				Logger.Debug(ex);
 			}
 		}
 	}

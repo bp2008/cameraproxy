@@ -16,7 +16,7 @@ namespace MJpegCameraProxy.Pages.Admin
 				return @"<!DOCTYPE HTML>
 <html>
 <head>
-	<title>MJpegCameraProxy Administration</title>
+	<title>CameraProxy Administration</title>
 	"
 		+ GetScriptCallouts("../Scripts/jquery.js", "../Scripts/sha1.js", "../Scripts/TableSorter.js", "../Scripts/jquery_ui_1_10_2_custom_min.js")
 		+ GetStyleCallouts("../Styles/TableSorter_Green.css", "../Styles/jquery_ui_1_10_2_custom_min.css", "../Styles/Site.css")
@@ -28,7 +28,7 @@ namespace MJpegCameraProxy.Pages.Admin
 	<tbody>
 		<tr>
 			<td colspan=""2"" id=""header"">
-				<div class=""title"">MJpegCameraProxy</div>
+				<div class=""title"">CameraProxy</div>
 				<div class=""version"">Version " + Globals.Version + @"</div>
 			</td>
 		</tr>

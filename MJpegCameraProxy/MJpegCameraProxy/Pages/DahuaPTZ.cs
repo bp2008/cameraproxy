@@ -124,10 +124,10 @@ namespace MJpegCameraProxy
 
 		public void Shutdown(bool isAboutToStart)
 		{
-			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=Up&arg1=0&arg2=0&arg3=0", user, pass, true);
-			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=ZoomWide&arg1=0&arg2=0&arg3=0", user, pass, true);
-			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=FocusFar&arg1=0&arg2=0&arg3=0", user, pass, true);
-			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=IrisSmall&arg1=0&arg2=0&arg3=0", user, pass, false);
+			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=Up&arg1=0&arg2=0&arg3=0", user, pass, true, false);
+			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=ZoomWide&arg1=0&arg2=0&arg3=0", user, pass, true, false);
+			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=FocusFar&arg1=0&arg2=0&arg3=0", user, pass, true, false);
+			SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=IrisSmall&arg1=0&arg2=0&arg3=0", user, pass, false, false);
 			if (keepAliveTimer != null)
 				keepAliveTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
 			keepAliveTimer = null;

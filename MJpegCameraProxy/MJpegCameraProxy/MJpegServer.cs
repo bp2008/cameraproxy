@@ -120,7 +120,7 @@ namespace MJpegCameraProxy
 
 				Session s = sm.GetSession(p.requestCookies.GetValue("session"), p.requestCookies.GetValue("auth"), p.GetParam("rawauth"));
 				//if (s != null)
-					p.responseCookies.Add("session", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
+				p.responseCookies.Add("session", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
 
 				if (requestedPage == "logout")
 				{
@@ -241,8 +241,10 @@ namespace MJpegCameraProxy
 							p.rawOutputStream.Flush();
 							p.outputStream.WriteLine();
 						}
-						catch (Exception)
+						catch (Exception ex)
 						{
+							if (!p.isOrdinaryDisconnectException(ex))
+								Logger.Debug(ex);
 							break;
 						}
 					}
