@@ -137,7 +137,7 @@ namespace MJpegCameraProxy
 					cam = new H264Camera();
 					break;
 				case CameraType.vlc_transcode:
-					// h264_rtsp_proxy cameras do not support jpeg output - only stream reflection via live555ProxyServer
+					// VlcCamera does support jpeg output, but not stream reflection
 					cam = new VlcCamera();
 					break;
 				default:

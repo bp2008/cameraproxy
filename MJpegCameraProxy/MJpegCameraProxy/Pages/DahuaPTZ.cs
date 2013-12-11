@@ -297,7 +297,6 @@ namespace MJpegCameraProxy
 	background-color: transparent;
 	border: 1px solid Blue;
 	position: relative;
-	display: none;
 }
 </style>
 <script type=""text/javascript"">
@@ -306,20 +305,12 @@ $(function()
 	$('#imgFrame').click(handleTargetClick);
 	$('#zoomControls').mousewheel(function(e, delta, deltaX, deltaY)
 	{
-//		if(ThumbMouseDown)
-//		{
-			e.preventDefault();
-			if(deltaY < 0)
-				ThumbZoom--;
-			else if(deltaY > 0)
-				ThumbZoom++;
-//			if(ThumbZoom < 0)
-//				ThumbZoom = 0;
-//			else if(ThumbZoom > 16)
-//				ThumbZoom = 16;
-			//UpdateThumbnailBox(e);
-			UpdateZoom();
-//		}
+		e.preventDefault();
+		if(deltaY < 0)
+			WheelZoom--;
+		else if(deltaY > 0)
+			WheelZoom++;
+		UpdateZoom();
 	});
 	InitializeGrid();
 //	for(var i = 1; i <= 8; i++)
@@ -387,6 +378,7 @@ $(function()
 var ThumbX = -10000;
 var ThumbY = -10000;
 var ThumbZoom = 0;
+var WheelZoom = 0;
 var ThumbMouseDown = false;
 var lastThumbX = -10000;
 var lastThumbY = -10000;
@@ -399,6 +391,7 @@ var ThumbBoxInnerMinW = 4;
 var ThumbBoxInnerMinH = 2.25;
 var ThumbBoxInnerStepW = ((ThumbBoxInnerMaxW - ThumbBoxInnerMinW) / 16.0);
 var ThumbBoxInnerStepH = ((ThumbBoxInnerMaxH - ThumbBoxInnerMinH) / 16.0);
+var EnableThumbZoom = false;
 function InitializeGrid()
 {
 	$('#gridDiv').mousedown(function(e)
@@ -452,13 +445,15 @@ function UpdateThumbnailBox(e)
 	thumbnailBoxInner.css('height', tih + 'px');
 	thumbnailBoxInner.css('left', ((ThumbBoxInnerMaxW - tiw) / 2) + 'px');
 	thumbnailBoxInner.css('top', ((ThumbBoxInnerMaxH - tih) / 2) + 'px');
+	if(!EnableThumbZoom)
+		thumbnailBoxInner.css('display', 'none');
 
 	MoveCameraToThumbnailBoxPosition();
 }
 var nextThumbnailBoxMove = 0;
 var delayBetweenThumbnailBoxMove = 500;
 var nextZoomAdjust = 0;
-var zoomChangeDelay = 5000;
+var zoomChangeDelay = 1000;
 var moveThumbnailBoxTimeout = null;
 function MoveCameraToThumbnailBoxPosition()
 {
@@ -478,18 +473,21 @@ function MoveCameraToThumbnailBoxPosition()
 }
 function ExecuteThumbnailMove()
 {
-//	var useZoom = lastThumbZ;
-//	if(new Date().getTime() > nextZoomAdjust && ThumbZoom != lastThumbZ)
-//	{
-//		useZoom = ThumbZoom;
-//		nextZoomAdjust = new Date().getTime() + zoomChangeDelay;
-//	}
-	if(ThumbX != lastThumbX || ThumbY != lastThumbY /*|| useZoom != lastThumbZ*/)
+	var useZoom = lastThumbZ;
+	if(EnableThumbZoom)
+	{
+		if(new Date().getTime() > nextZoomAdjust && ThumbZoom != lastThumbZ)
+		{
+			useZoom = ThumbZoom;
+			nextZoomAdjust = new Date().getTime() + zoomChangeDelay;
+		}
+	}
+	if(ThumbX != lastThumbX || ThumbY != lastThumbY || useZoom != lastThumbZ)
 	{
 		lastThumbX = ThumbX;
 		lastThumbY = ThumbY;
-		//lastThumbZ = useZoom;
-		ExecuteCommand('percent/' + ThumbX + '/' + ThumbY + '/' + 0);
+		lastThumbZ = useZoom;
+		ExecuteCommand('percent/' + ThumbX + '/' + ThumbY + '/' + useZoom);
 	}
 }
 function CreateThumbnailBox()
@@ -509,17 +507,33 @@ function CreateThumbnailBox()
 			UpdateThumbnailBox(e);
 		}
 	});
+	$('#thumbnailBox').mousewheel(function(e, delta, deltaX, deltaY)
+	{
+		if(ThumbMouseDown)
+		{
+			e.preventDefault();
+			if(deltaY < 0)
+				ThumbZoom--;
+			else if(deltaY > 0)
+				ThumbZoom++;
+			if(ThumbZoom < 0)
+				ThumbZoom = 0;
+			else if(ThumbZoom > 16)
+				ThumbZoom = 16;
+			UpdateThumbnailBox(e);
+		}
+	});
 }
 var lastZoom = 0;
 var nextZoomTime = 0;
 var zoomTimeDelay = 250;
 function UpdateZoom()
 {
-	if(lastZoom != ThumbZoom && new Date().getTime() > nextZoomTime)
+	if(lastZoom != WheelZoom && new Date().getTime() > nextZoomTime)
 	{
 		nextZoomTime = new Date().getTime() + zoomTimeDelay;
-		var zoomAmount = (ThumbZoom - lastZoom) * 4;
-		lastZoom = ThumbZoom;
+		var zoomAmount = (WheelZoom - lastZoom) * 4;
+		lastZoom = WheelZoom;
 		Zoom(zoomAmount);
 	}
 }
@@ -782,7 +796,7 @@ function fullPanoramaImageLoaded()
 						double y = double.Parse(parts[2]);
 						x *= 3600;
 						y *= cam.dahuaPtz.panoramaVerticalDegrees * 10;
-						cam.dahuaPtz.PositionABS((int)x, (int)y, 0/*int.Parse(parts[3]) * 8*/);
+						cam.dahuaPtz.PositionABS((int)x, (int)y, int.Parse(parts[3]) * 8);
 					}
 					//if (preset_number > 0)
 					//{

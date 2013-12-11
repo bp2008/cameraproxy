@@ -27,6 +27,12 @@ namespace MJpegCameraProxy
 		private object frameLock = new object();
 
 		private byte[] latestFrame = new byte[0];
+
+		private bool isWatchdogTimeSurpassed(long time)
+		{
+			return cameraSpec.vlc_watchdog_time > 0 && time > nextFrameEncodeTime + (cameraSpec.vlc_watchdog_time * 1000);
+		}
+
 		public override byte[] LastFrame
 		{
 			get
@@ -34,48 +40,58 @@ namespace MJpegCameraProxy
 				if (!Exit)
 					ImageLastViewed = DateTime.Now;
 
-				if (lastFrameEncoded == frameNumber)
-					return latestFrame; // The current frame was already encoded
+				long time = frameTimer.ElapsedMilliseconds;
 
-				if (frameTimer.ElapsedMilliseconds < nextFrameEncodeTime)
+				if (!isWatchdogTimeSurpassed(time) && lastFrameEncoded == frameNumber)
+					return latestFrame; // The last encoded frame is still the best we have
+
+				if (time < nextFrameEncodeTime)
 					return latestFrame; // It is not yet time to encode a new frame.
 
-				// If we get here, we need to encode a new frame
-				lock (frameLock) // Lock and check conditions again to ensure we don't encode more than once.
+				// If we get here, it is time to encode a new frame
+				lock (frameLock) // Lock and check conditions again to ensure we don't encode the same frame more than once.
 				{
-					long time = frameTimer.ElapsedMilliseconds;
-					if (lastFrameEncoded != frameNumber && time >= nextFrameEncodeTime)
+					if (isRunning)
 					{
-						// If we get here, we still need to encode a new frame.
-						Bitmap bmp = null;
-						try
+						if (lastFrameEncoded != frameNumber && time >= nextFrameEncodeTime)
 						{
-							bmp = memRender.CurrentFrame;
-							lastFrameEncoded = frameNumber;
-							latestFrame = ImageConverter.EncodeBitmap(bmp, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
-							EventWaitHandle oldWaitHandle = newFrameWaitHandle;
-							newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-							oldWaitHandle.Set();
-						}
-						catch (Exception ex)
-						{
-							Logger.Debug(ex);
-						}
-						finally
-						{
-							if (bmp != null)
-								bmp.Dispose();
-						}
-						// Now, this is the tricky part.  We must schedule the next frame such that we can come as close as possible to the frame rate goal without ever exceeding it.
+							// If we get here, we still need to encode a new frame.  One is ready.
+							Bitmap bmp = null;
+							try
+							{
+								bmp = memRender.CurrentFrame;
+								lastFrameEncoded = frameNumber;
+								latestFrame = ImageConverter.EncodeBitmap(bmp, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
+								EventWaitHandle oldWaitHandle = newFrameWaitHandle;
+								newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+								oldWaitHandle.Set();
+							}
+							catch (Exception ex)
+							{
+								Logger.Debug(ex);
+							}
+							finally
+							{
+								if (bmp != null)
+									bmp.Dispose();
+							}
+							// Now, this is the tricky part.  We must schedule the next frame such that we can come as close as possible to the frame rate goal without ever exceeding it.
 
-						// If this camera's imagery is being requested often enough, all we need to do is add the frame encode interval to the next frame encode time.
-						nextFrameEncodeTime += frameEncodeInterval;
+							// If this camera's imagery is being requested often enough, all we need to do is add the frame encode interval to the next frame encode time.
+							nextFrameEncodeTime += frameEncodeInterval;
 
-						// The above scheduling method will fall behind very often if this camera's imagery is being requested at lower rate.
-						if (time >= nextFrameEncodeTime)
+							// The above scheduling method will fall behind very often if this camera's imagery is being requested at lower rate.
+							if (time >= nextFrameEncodeTime)
+							{
+								// Image requests are not keeping up with the frame rate goal.  Throttle the encoding schedule to ensure we don't see a CPU usage burst the next time images are requested rapidly.
+								nextFrameEncodeTime = time + frameEncodeInterval;
+							}
+						}
+						else if (isWatchdogTimeSurpassed(time))
 						{
-							// Image requests are not keeping up with the frame rate goal.  Throttle the encoding schedule to ensure we don't see a CPU usage burst the next time images are requested rapidly.
-							nextFrameEncodeTime = time + frameEncodeInterval;
+							// If we get here, the watchdog time has been surpassed and there isn't a frame available for encoding.
+							Logger.Debug("Watchdog timeout for camera \"" + cameraSpec.id + "\"");
+							Stop();
 						}
 					}
 				}
@@ -111,8 +127,11 @@ namespace MJpegCameraProxy
 						IMediaPlayerFactory factory = new MediaPlayerFactory();
 						player = factory.CreatePlayer<IVideoPlayer>();
 						int b = cameraSpec.vlc_transcode_buffer_time;
-						string[] args = new string[] { ":rtsp-caching=" + b, ":realrtsp-caching=" + b, ":network-caching=" + b, ":udp-caching=" + b, ":volume=0" };
-						IMedia media = factory.CreateMedia<IMedia>(this.cameraSpec.imageryUrl, args);
+						string[] args = new string[] { ":rtsp-caching=" + b, ":realrtsp-caching=" + b, ":network-caching=" + b, ":udp-caching=" + b, ":volume=0", cameraSpec.wanscamCompatibilityMode ? ":demux=h264" : "", cameraSpec.wanscamCompatibilityMode ? ":h264-fps=" + cameraSpec.wanscamFps : "" };
+						string url = cameraSpec.imageryUrl;
+						if (cameraSpec.wanscamCompatibilityMode)
+							url = "http://127.0.0.1:" + MJpegWrapper.cfg.webport + "/" + cameraSpec.id + ".wanscamstream";
+						IMedia media = factory.CreateMedia<IMedia>(url, args);
 						memRender = player.CustomRenderer;
 						memRender.SetCallback(delegate(Bitmap frame)
 						{
@@ -147,6 +166,9 @@ namespace MJpegCameraProxy
 					catch (Exception ex)
 					{
 						Logger.Debug(ex);
+						int waitedTimes = 0;
+						while (!Exit && waitedTimes++ < 100)
+							Thread.Sleep(50);
 					}
 					finally
 					{

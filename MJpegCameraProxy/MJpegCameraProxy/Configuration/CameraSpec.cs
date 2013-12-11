@@ -18,30 +18,25 @@ namespace MJpegCameraProxy.Configuration
 		public CameraType type = CameraType.jpg;
 		[EditorName("Imagery URL")]
 		public string imageryUrl = "";
+		[EditorHint("seconds. The server will stop requesting imagery from the source this long after the last image request is made by a client.")]
+		[EditorName("Idle Timeout")]
+		public int maxBufferTime = 10;
+		[EditorHint("0 to 100.  Anonymous users have permission 0.")]
+		[EditorName("Minimum User Permission")]
+		public int minPermissionLevel = 0;
+		[EditorName("PTZ Type")]
+		public PtzType ptzType = PtzType.None;
 
-		[EditorCategory("Camera Authentication (if required)")]
+		[EditorCategory("Camera's Http Authentication (if required)")]
+		[EditorCondition_FieldMustBe("type", CameraType.jpg, CameraType.mjpg)]
 		[EditorName("Camera User Name")]
 		public string username = "";
 		[IsPasswordField(true)]
 		[EditorName("Camera Password")]
 		public string password = "";
 
-		[EditorCategory("Minimum User Permission for Viewing")]
-		[EditorHint("0 to 100.  A value of 0 means the camera does not require authentication.")]
-		[EditorName("Minimum Permission")]
-		public int minPermissionLevel = 0;
-
-		[EditorCategory("Other Settings")]
-		[EditorHint("Minimum number of milliseconds between image grabs (affects <b>jpg</b> cameras only). Use this to conserve bandwidth or improve resource usage when the source is frame-rate limited.")]
-		[EditorName("Image Grab Delay")]
-		public int delayBetweenImageGrabs = 0;
-		[EditorHint("in seconds. (default: 10) (max: 86400) (min-jpg: 3) (min-mjpg: 3) (min-h264_rtsp_proxy: 10) (min-vlc_transcode: 10)<br/>The server will stop requesting imagery from the source this long after the last image request is made by a client.")]
-		[EditorName("Idle Timeout")]
-		public int maxBufferTime = 10;
-
 		[EditorCategory("Pan-Tilt-Zoom")]
-		[EditorName("PTZ Type")]
-		public PtzType ptzType = PtzType.None;
+		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400)]
 		[EditorName("PTZ Host Name")]
 		public string ptz_hostName = "";
 		[EditorName("PTZ User Name")]
@@ -49,11 +44,12 @@ namespace MJpegCameraProxy.Configuration
 		[IsPasswordField(true)]
 		[EditorName("PTZ Password")]
 		public string ptz_password = "";
-		[EditorName("PTZ Absolute X Position Offset")]
-		[EditorHint("degrees.  Only affects Dahua PTZ cameras")]
-		public int ptz_absoluteXOffset = 0;
 
-		[EditorCategory("Dahua PTZ panorama control settings")]
+		[EditorCategory("Dahua PTZ Settings")]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.Dahua)]
+		[EditorName("PTZ Absolute X Position Offset")]
+		[EditorHint("degrees")]
+		public int ptz_absoluteXOffset = 0;
 		[EditorName("PTZ Panorama Selection Rectangle Width")]
 		[EditorHint("pixels")]
 		public int ptz_panorama_selection_rectangle_width = 96;
@@ -67,7 +63,22 @@ namespace MJpegCameraProxy.Configuration
 		[EditorHint("degrees.  Adjust this as needed to calibrate vertical positioning in the panorama rectangle.  Default: 90 degrees")]
 		public int ptz_panorama_degrees_vertical = 90;
 
-		[EditorCategory("vlc_transcode Configuration (only affects vlc_transcode cameras)")]
+		//IO_00000000_PT_157_066
+
+		[EditorCategory("Trendnet TV-IP400 PTZ Settings")]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.TrendnetTVIP400)]
+		[EditorName("Parse Absolute Position")]
+		[EditorHint("If checked, the absolute position of the camera will be parsed from the video stream. (use mjpeg.cgi in the imagery URL)")]
+		public bool ptz_trendnet_absolute_position_parse = false;
+
+		[EditorCategory("Configuration: <b>jpg</b>")]
+		[EditorCondition_FieldMustBe("type", CameraType.jpg)]
+		[EditorHint("Minimum number of milliseconds between image grabs. Use this to conserve bandwidth or improve resource usage when the source is frame-rate limited.")]
+		[EditorName("Image Grab Delay")]
+		public int delayBetweenImageGrabs = 0;
+
+		[EditorCategory("Configuration: <b>vlc_transcode</b>")]
+		[EditorCondition_FieldMustBe("type", CameraType.vlc_transcode)]
 		[EditorName("Transcode Frame Rate Limit")]
 		[EditorHint("Maximum frames per second for jpeg encoding of the video frames.  Strongly affects CPU usage.  Actual produced frame rate may be lower.")]
 		public int vlc_transcode_fps = 10;
@@ -79,24 +90,39 @@ namespace MJpegCameraProxy.Configuration
 		public int vlc_transcode_image_quality = 80;
 		[EditorName("Rotate / Flip")]
 		public System.Drawing.RotateFlipType vlc_transcode_rotate_flip = System.Drawing.RotateFlipType.RotateNoneFlipNone;
+		[EditorName("Watchdog Time")]
+		[EditorHint("Time in seconds to wait for an unresponsive stream to recover before restarting the camera. (0 or below to disable watchdog)")]
+		public int vlc_watchdog_time = 20;
 
-		[EditorCategory("vlc_transcode and h264_rtsp_proxy Configuration")]
+		[EditorCategory("Wanscam Compatibility Mode")]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.WanscamCheap)]
+		[EditorName("Enable Compatibility Mode")]
+		[EditorHint("Check this box if using a Wanscam camera with vlc_transcode camera type and you are not getting imagery from the camera.")]
+		public bool wanscamCompatibilityMode = false;
+		[EditorName("Wanscam Frame Rate")]
+		[EditorHint("This should match the frame rate set in the Wanscam interface.  Only required if Wanscam Compatibility Mode is enabled.")]
+		public int wanscamFps = 25;
+
+		[EditorCategory("Configuration: <b>h264_rtsp_proxy</b>")]
+		[EditorCondition_FieldMustBe("type", CameraType.h264_rtsp_proxy)]
+		[EditorName("Port to serve RTSP on")]
+		[EditorHint("<br/>Only affects h264 cameras - the port specified here must be available or the camera will be inaccessible")]
+		public ushort h264_port = 554;
+
+		[EditorCategory("Configuration: <b>vlc_transcode</b> and <b>h264_rtsp_proxy</b>")]
+		[EditorCondition_FieldMustBe("type", CameraType.vlc_transcode, CameraType.h264_rtsp_proxy)]
 		[EditorName("Video Width")]
 		[EditorHint("pixels. Required for vlc_transcode cameras.  Optional for h264_rtsp_proxy cameras.")]
 		public ushort h264_video_width = 0;
 		[EditorName("Video Height")]
 		[EditorHint("pixels. Required for vlc_transcode cameras.  Optional for h264_rtsp_proxy cameras.")]
 		public ushort h264_video_height = 0;
-
-		[EditorCategory("H264_rtsp_proxy Configuration (only affects h264_rtsp_proxy cameras) (requires VLC Web Plugin to view)")]
-		[EditorName("Port to serve RTSP on")]
-		[EditorHint("<br/>Only affects h264 cameras - the port specified here must be available or the camera will be inaccessible")]
-		public ushort h264_port = 554;
 		
 		public int order = -1;
 
 		protected override string validateFieldValues()
 		{
+			id = id.ToLower();
 			if (string.IsNullOrWhiteSpace(name))
 				return "0Camera name must not contain only whitespace.";
 			if (!Util.IsAlphaNumeric(name, true))
@@ -113,8 +139,8 @@ namespace MJpegCameraProxy.Configuration
 				return "0Idle Timeout can't be above 86400.  A short value (below 30) is recommended.";
 			if (delayBetweenImageGrabs < 0)
 				return "0The Image Grab Delay can't be less than 0.";
-			if (delayBetweenImageGrabs > 10000)
-				return "0The Image Grab Delay can't be greater than 10000.";
+			if (delayBetweenImageGrabs > 600000)
+				return "0The Image Grab Delay can't be greater than 600000.";
 			if (type == CameraType.vlc_transcode && this.h264_video_width <= 0)
 				return "0Video Width must be > 0 for a " + type.ToString() + " camera.";
 			if (type == CameraType.vlc_transcode && this.h264_video_height <= 0)
@@ -146,6 +172,8 @@ namespace MJpegCameraProxy.Configuration
 	}
 	public enum PtzType
 	{
-		None, LoftekCheap, Dahua
+		None, LoftekCheap, Dahua,
+		WanscamCheap, TrendnetIP672,
+		IPS_EYE01, TrendnetTVIP400
 	}
 }
