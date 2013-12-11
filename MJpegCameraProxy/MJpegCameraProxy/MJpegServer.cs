@@ -8,6 +8,7 @@ using System.Diagnostics;
 using SimpleHttp;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Net.Sockets;
 
 namespace MJpegCameraProxy
 {
@@ -146,6 +147,7 @@ namespace MJpegCameraProxy
 					int extensionLength = requestedPage[requestedPage.Length - 4] == '.' ? 4 : 5;
 					string format = requestedPage.Substring(requestedPage.Length - (extensionLength - 1));
 					string cameraId = requestedPage.Substring(0, requestedPage.Length - extensionLength);
+					cameraId = cameraId.ToLower();
 
 					int minPermission = cm.GetCameraMinPermission(cameraId);
 					if (minPermission == 101)
@@ -187,6 +189,7 @@ namespace MJpegCameraProxy
 				else if (requestedPage == "keepalive")
 				{
 					string cameraId = p.GetParam("id");
+					cameraId = cameraId.ToLower();
 					int minPermission = cm.GetCameraMinPermission(cameraId);
 					if (minPermission == 101)
 					{
@@ -205,6 +208,7 @@ namespace MJpegCameraProxy
 				else if (requestedPage.EndsWith(".mjpg"))
 				{
 					string cameraId = requestedPage.Substring(0, requestedPage.Length - 5);
+					cameraId = cameraId.ToLower();
 					int minPermission = cm.GetCameraMinPermission(cameraId);
 					if (minPermission == 101)
 					{
@@ -256,6 +260,7 @@ namespace MJpegCameraProxy
 				else if (requestedPage.EndsWith(".cam"))
 				{
 					string cameraId = requestedPage.Substring(0, requestedPage.Length - 4);
+					cameraId = cameraId.ToLower();
 					int minPermission = cm.GetCameraMinPermission(cameraId);
 					if (minPermission == 101)
 					{
@@ -271,8 +276,8 @@ namespace MJpegCameraProxy
 					string userAgent = p.GetHeaderValue("User-Agent", "");
 					bool isMobile = userAgent.Contains("iPad") || userAgent.Contains("iPhone") || userAgent.Contains("Android") || userAgent.Contains("BlackBerry");
 
-					bool isLocalConnection = p == null ? false : p.IsLocalConnection;
-					int defaultRefresh = isLocalConnection && !isMobile ? -1 : 250;
+					bool isLanConnection = p == null ? false : p.IsLanConnection;
+					int defaultRefresh = isLanConnection && !isMobile ? -1 : 250;
 					string html = CamPage.GetHtml(cameraId, !isMobile, p.GetIntParam("refresh", defaultRefresh), p.GetBoolParam("override") ? -1 : 600000, p);
 					if (string.IsNullOrEmpty(html) || html == "NO")
 					{
@@ -285,6 +290,7 @@ namespace MJpegCameraProxy
 				else if (requestedPage == "PTZ")
 				{
 					string cameraId = p.GetParam("id");
+					cameraId = cameraId.ToLower();
 					int minPermission = cm.GetCameraMinPermission(cameraId);
 					if (minPermission == 101)
 					{
@@ -302,6 +308,7 @@ namespace MJpegCameraProxy
 				else if (requestedPage == "PTZPRESETIMG")
 				{
 					string cameraId = p.GetParam("id");
+					cameraId = cameraId.ToLower();
 					if (cm.GetCamera(cameraId) != null)
 					{
 						int index = p.GetIntParam("index", -1);
@@ -351,6 +358,49 @@ namespace MJpegCameraProxy
 						LogOutUser(p, s);
 					}
 					return;
+				}
+				else if (requestedPage.EndsWith(".wanscamstream"))
+				{
+					string cameraId = requestedPage.Substring(0, requestedPage.Length - ".wanscamstream".Length);
+					IPCameraBase cam = cm.GetCamera(cameraId);
+					if (cam == null)
+						return;
+					if (!cam.cameraSpec.wanscamCompatibilityMode)
+						return;
+					if (p.RemoteIPAddress != "127.0.0.1")
+						return;
+					Uri url = new Uri(cam.cameraSpec.imageryUrl);
+					string host = url.Host;
+					int port = url.Port;
+					string path = url.PathAndQuery;
+					//string path = "/livestream.cgi?user=admin&pwd=nooilwell&streamid=0&audio=0&filename=";
+					//string path = "/videostream.cgi?user=admin&pwd=nooilwell&resolution=8";
+					int total = 0;
+					try
+					{
+						//Console.WriteLine("opening");
+						Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+						socket.Connect(host, port);
+						byte[] buffer = new byte[4096];
+						socket.Send(UTF8Encoding.UTF8.GetBytes("GET " + path + " HTTP/1.1\r\nHost: " + host + ":" + port + "\r\nConnection: close\r\n\r\n"));
+						//Console.WriteLine("open");
+						int read = socket.Receive(buffer);
+						p.writeSuccess("video/raw");
+						p.outputStream.Flush();
+						while (read > 0 && socket.Connected && p.tcpClient.Connected)
+						{
+							p.rawOutputStream.Write(buffer, 0, read);
+							total += read;
+							//Console.WriteLine(read);
+							read = socket.Receive(buffer);
+						}
+						//Console.WriteLine("close");
+					}
+					catch (Exception ex)
+					{
+						//if (!p.isOrdinaryDisconnectException(ex))
+							Logger.Debug(ex);
+					}
 				}
 			}
 			catch (Exception ex)

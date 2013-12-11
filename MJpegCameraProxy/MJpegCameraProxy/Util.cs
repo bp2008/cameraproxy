@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Net;
 
 namespace MJpegCameraProxy
 {
@@ -82,6 +83,44 @@ namespace MJpegCameraProxy
 					return false;
 			}
 			return true;
+		}
+
+		public static string HttpPost(string URI, string data, string ContentType = "application/x-www-form-urlencoded; charset=utf-8", CookieContainer cookieContainer = null, NetworkCredential credentials = null)
+		{
+			try
+			{
+				HttpWebRequest req = (HttpWebRequest)System.Net.WebRequest.Create(URI);
+				req.Proxy = null;
+				if(credentials != null)
+					req.Credentials = credentials;
+				req.ContentType = ContentType;
+				req.Method = "POST";
+				req.UserAgent = "CameraProxy " + Globals.Version;
+				if (cookieContainer == null)
+					cookieContainer = new CookieContainer();
+				req.CookieContainer = cookieContainer;
+
+				byte[] bytes = System.Text.Encoding.ASCII.GetBytes(data);
+				req.ContentLength = bytes.Length;
+
+				using (Stream os = req.GetRequestStream())
+				{
+					os.Write(bytes, 0, bytes.Length);
+				}
+
+				WebResponse resp = req.GetResponse();
+				if (resp == null)
+					return null;
+
+				using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
+				{
+					return sr.ReadToEnd();
+				}
+			}
+			catch (Exception ex)
+			{
+				return ex.ToString();
+			}
 		}
 	}
 }

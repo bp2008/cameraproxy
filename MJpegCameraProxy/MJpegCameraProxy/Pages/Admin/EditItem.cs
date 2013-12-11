@@ -15,7 +15,7 @@ namespace MJpegCameraProxy.Pages.Admin
 		{
 			sb.Clear();
 			string itemtype = p.GetParam("itemtype");
-			string itemid = p.GetParam("itemid");
+			string itemid = p.GetParam("itemid").ToLower();
 			sb.Append("<div id=\"itemtype\" itemtype=\"").Append(itemtype).Append("\" style=\"display:none;\"></div>");
 			sb.Append("<div id=\"itemid\" itemid=\"").Append(itemid).Append("\" style=\"display:none;\"></div>");
 			sb.Append("<div id=\"itemfields\">");
@@ -71,6 +71,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			sb.Append(GetItemEditorScripts());
 			SectionTitle(sb, GetAttributeValue(obj.GetType(), typeof(Configuration.EditorNameAttribute), "Item Editor"));
 			bool inTable = false;
+
 			foreach (FieldInfo fi in obj.GetType().GetFields().OrderBy(field => field.MetadataToken))
 			{
 				string displayName = GetAttributeValue(fi, typeof(Configuration.EditorNameAttribute));
@@ -84,8 +85,9 @@ namespace MJpegCameraProxy.Pages.Admin
 
 					if (category != null)
 					{
-						if(inTable)
+						if (inTable)
 							SectionTableEnd(sb);
+						sb.Append(GetConditionString(fi));
 						SectionTitle(sb, category);
 						if (inTable)
 							SectionTableStart(sb);
@@ -125,6 +127,8 @@ namespace MJpegCameraProxy.Pages.Admin
 						sbSelect.Append("</select>" + hint);
 						SectionTableEntry(sb, displayName, ToString(sbSelect));
 					}
+					else
+						SectionTableEntry(sb, displayName, "Unsupported Field Type (" + fi.GetType() + ")");
 				}
 			}
 			if (inTable)
@@ -151,6 +155,9 @@ namespace MJpegCameraProxy.Pages.Admin
 	{
 		itemtype = $('#itemtype').attr('itemtype');
 		itemid = $('#itemid').attr('itemid');
+		ConfigureCollapsibleSections();
+		ListenForChangesToConditions();
+		EvaluateConditions();
 	});
 	function SaveItem()
 	{
@@ -198,14 +205,67 @@ namespace MJpegCameraProxy.Pages.Admin
 		$('#saveBtn, #cancelBtn').unbind('click');
 		location.href = $('#pageToLoadWhenFinished').attr('page');
 	}
+	function ConfigureCollapsibleSections()
+	{
+		$('#content .section-title').click(function(e)
+		{
+			$(this).next().slideToggle();
+		});
+	}
+	function ListenForChangesToConditions()
+	{
+		$('div.condition_FieldMustBe').each(function(idx, ele)
+		{
+			var fieldName = $(ele).attr('requiredFieldName');
+			var targetField = $('#itemfields').find('*[fieldname=""' + fieldName + '""]');
+			targetField.change(EvaluateConditions);
+		});
+	}
+	function EvaluateConditions()
+	{
+		$('div.condition_FieldMustBe').each(function(idx, ele)
+		{
+			var fieldName = $(ele).attr('requiredFieldName');
+			var acceptableValues = $(ele).attr('acceptableValues').split('|');
+			var targetField = $('#itemfields').find('*[fieldname=""' + fieldName + '""]');
+			if(targetField.length > 0)
+			{
+				if(acceptableValues.indexOf(targetField.val()) > -1)
+				{
+					$(ele).next().show();
+					$(ele).next().next().show();
+				}
+				else
+				{
+					$(ele).next().hide();
+					$(ele).next().next().hide();
+				}
+			}
+		});
+	}
 </script>";
 		}
-		private string GetAttributeValue(MemberInfo sourceObjectType, Type attributeType, string defaultValue = null)
+		private object GetAttribute(MemberInfo sourceObjectType, Type attributeType)
 		{
 			object[] attributes = sourceObjectType.GetCustomAttributes(attributeType, false);
 			if (attributes.Length > 0)
-				return attributes[0].ToString();
+				return attributes[0];
+			return null;
+		}
+		private string GetAttributeValue(MemberInfo sourceObjectType, Type attributeType, string defaultValue = null)
+		{
+			object attribute = GetAttribute(sourceObjectType, attributeType);
+			if (attribute != null)
+				return attribute.ToString();
 			return defaultValue;
+		}
+		private string GetConditionString(MemberInfo fi)
+		{
+			object attr = GetAttribute(fi, typeof(Configuration.EditorCondition_FieldMustBe));
+			if (attr == null)
+				return "";
+			EditorCondition_FieldMustBe condition = (EditorCondition_FieldMustBe)attr;
+			return "<div class=\"condition_FieldMustBe\" style=\"display: none\" requiredFieldName=\"" + condition.fieldName + "\" acceptableValues=\"" + string.Join("|", condition.acceptableValues) + "\"></div>";
 		}
 		private string ToString(object obj)
 		{

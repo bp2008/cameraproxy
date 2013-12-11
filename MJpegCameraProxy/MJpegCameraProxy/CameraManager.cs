@@ -159,6 +159,9 @@ namespace MJpegCameraProxy
 
 		public void KillCamera(string id)
 		{
+			if (id == null)
+				return;
+			id = id.ToLower();
 			IPCameraBase cam;
 			if (cameras.TryGetValue(id, out cam))
 			{

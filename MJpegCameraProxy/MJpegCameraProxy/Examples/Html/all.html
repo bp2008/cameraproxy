@@ -8,10 +8,13 @@
 	<script type="text/javascript">
 	var camDefs = %ALLCAMS_IDS_NAMES_JS_ARRAY%;
 	var remoteIp = "%REMOTEIP%";
+	var allowedCams = [];
+	var disallowedCams = [];
 	var refreshDisabled = false;
 	var refreshTime = 2500;
 	$(function()
 	{
+		FilterCamDefs();
 		var isLocal = remoteIp.indexOf("192.168.0.") > -1;
 		if(isLocal)
 			setTimeout("disableRefresh()", 300000);
@@ -36,6 +39,23 @@
 			GetNewImage(myid);
 		}
 	});
+	function FilterCamDefs()
+	{
+		var newCamDefs = new Array();
+		if(allowedCams.length > 0)
+		{
+			for(var i = 0; i < camDefs.length; i++)
+				if($.inArray(camDefs[i][0], allowedCams) >= 0)
+					newCamDefs.push(camDefs[i]);
+		}
+		else if(disallowedCams.length > 0)
+		{
+			for(var i = 0; i < camDefs.length; i++)
+				if($.inArray(camDefs[i][0], disallowedCams) < 0)
+					newCamDefs.push(camDefs[i]);
+		}
+		camDefs = newCamDefs;
+	}	
 	function GetNewImage(id)
 	{
 		$("#" + id).attr('src', id + '.jpg?maxwidth=320&maxheight=240&nocache=' + new Date().getTime());

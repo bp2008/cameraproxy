@@ -29,10 +29,23 @@ namespace MJpegCameraProxy.Configuration
 		}
 		public User(string user, string pass, int permission, int sessionLengthMinutes = 1440)
 		{
-			this.name = user;
+			this.name = user.ToLower();
 			this.pass = pass;
 			this.permission = permission;
 			this.sessionLengthMinutes = sessionLengthMinutes;
+		}
+		protected override string validateFieldValues()
+		{
+			name = name.ToLower();
+			if (!Util.IsAlphaNumeric(name, false))
+				return "0User name must be alphanumeric and not contain any spaces";
+			if (string.IsNullOrEmpty(pass))
+				return "0A password is required";
+			if (permission < 0 || permission > 100)
+				return "0Permission level must be between 0 and 100";
+			if (sessionLengthMinutes < 0)
+				return "0Session length must be greater than -1";
+			return "1";
 		}
 	}
 }

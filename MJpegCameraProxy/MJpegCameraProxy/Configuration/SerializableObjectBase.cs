@@ -112,4 +112,19 @@ namespace MJpegCameraProxy.Configuration
 			return text;
 		}
 	}
+	public class EditorCondition_FieldMustBe : Attribute
+	{
+		public readonly string fieldName;
+		public readonly object[] acceptableValues;
+		/// <summary>
+		/// This condition is met if the object has a field with the specified name, and that field's value appears in the acceptableValues array.
+		/// </summary>
+		/// <param name="fieldName">The name of the field which must appear.</param>
+		/// <param name="acceptableValues">All possible values of this field which lead to the condition being met.</param>
+		public EditorCondition_FieldMustBe(string fieldName, params object[] acceptableValues)
+		{
+			this.fieldName = fieldName;
+			this.acceptableValues = acceptableValues;
+		}
+	}
 }

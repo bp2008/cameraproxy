@@ -18,6 +18,32 @@ namespace MJpegCameraProxy
 				LoftekCheapPTZ.RunCommand(cam, cameraId, cmd);
 			else if (cam.cameraSpec.ptzType == PtzType.Dahua)
 				DahuaPTZ.RunCommand(cam, cmd);
+			else if (cam.cameraSpec.ptzType == PtzType.WanscamCheap)
+				WanscamCheapPTZ.RunCommand(cam, cameraId, cmd);
+			//else if (cam.cameraSpec.ptzType == PtzType.TrendnetIP672)
+			//	IP672SeriesPTZ.RunCommand(cam, cameraId, cmd);
+			else if (cam.cameraSpec.ptzType == PtzType.IPS_EYE01)
+			{
+				PanTiltZoom.PTZDirection dir = PanTiltZoom.PTZDirection.Up;
+				if (cmd.StartsWith("d"))
+					dir = PanTiltZoom.PTZDirection.Down;
+				else if(cmd.StartsWith("l"))
+					dir = PanTiltZoom.PTZDirection.Left;
+				else if(cmd.StartsWith("r"))
+					dir = PanTiltZoom.PTZDirection.Right;
+				new PanTiltZoom.IPS_EYE01.IPS_EYE01_PTZ(cam.cameraSpec).MoveSimple(dir);
+			}
+			else if (cam.cameraSpec.ptzType == PtzType.TrendnetTVIP400)
+			{
+				PanTiltZoom.PTZDirection dir = PanTiltZoom.PTZDirection.Up;
+				if (cmd.StartsWith("d"))
+					dir = PanTiltZoom.PTZDirection.Down;
+				else if (cmd.StartsWith("l"))
+					dir = PanTiltZoom.PTZDirection.Left;
+				else if (cmd.StartsWith("r"))
+					dir = PanTiltZoom.PTZDirection.Right;
+				new PanTiltZoom.TrendNet.TV_IP400(cam.cameraSpec).MoveSimple(dir);
+			}
 		}
 
 		public static string GetHtml(string camId, IPCameraBase cam)
@@ -29,7 +55,12 @@ namespace MJpegCameraProxy
 				return LoftekCheapPTZ.GetHtml(camId);
 			else if (cam.cameraSpec.ptzType == PtzType.Dahua)
 				return DahuaPTZ.GetHtml(camId, cam);
-			return "";
+			else if (cam.cameraSpec.ptzType == PtzType.WanscamCheap)
+				return WanscamCheapPTZ.GetHtml(camId);
+			//else if (cam.cameraSpec.ptzType == PtzType.TrendnetIP672)
+			//	return IP672SeriesPTZ.GetHtml(camId, cam);
+			else
+				return PanTiltZoom.PtzController.GetHtml(camId, cam);
 		}
 	}
 }

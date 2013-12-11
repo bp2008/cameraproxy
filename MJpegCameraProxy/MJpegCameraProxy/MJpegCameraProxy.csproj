@@ -132,6 +132,8 @@
     <Compile Include="Pages\Admin\Main.cs" />
     <Compile Include="Pages\Admin\Users.cs" />
     <Compile Include="Pages\CamPage.cs" />
+    <Compile Include="Pages\IP672SeriesPTZ.cs" />
+    <Compile Include="Pages\WanscamCheapPTZ.cs" />
     <Compile Include="Pages\DahuaPTZ.cs" />
     <Compile Include="Pages\Html.cs" />
     <Compile Include="Pages\Images.cs" />
@@ -150,11 +152,20 @@
     <Compile Include="Pages\LoftekCheapPTZ.cs" />
     <Compile Include="Pages\PTZ.cs" />
     <Compile Include="Pages\Resource.cs" />
+    <Compile Include="PanTiltZoom\HtmlOptions.cs" />
+    <Compile Include="PanTiltZoom\IPS_EYE01\IPS_EYE01_PTZ.cs" />
+    <Compile Include="PanTiltZoom\IPTZHtml.cs" />
+    <Compile Include="PanTiltZoom\PtzController.cs" />
+    <Compile Include="PanTiltZoom\PTZHtml.cs" />
+    <Compile Include="PanTiltZoom\TrendNet\TV_IP400.cs" />
+    <Compile Include="PanTiltZoom\ZoomDirection.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="PanTiltZoom\IPTZSimple.cs" />
+    <Compile Include="PanTiltZoom\PTZDirection.cs" />
     <Compile Include="Service1.cs">
       <SubType>Component</SubType>
     </Compile>

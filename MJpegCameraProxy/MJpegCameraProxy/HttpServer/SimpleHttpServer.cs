@@ -9,6 +9,7 @@ using System.Web;
 using System.Text;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Net.NetworkInformation;
 
 // This file has been modified continuously since Nov 10, 2012 by Brian Pearce.
 // Based on http://www.codeproject.com/Articles/137979/Simple-HTTP-Server-in-C
@@ -118,31 +119,69 @@ namespace SimpleHttp
 		/// </summary>
 		private bool responseWritten = false;
 
+		private int isLanConnection = -1;
 		/// <summary>
-		/// An IP address that starts with these characters is considered local.  Example value: "192.168." 
+		/// Returns true if the remote client's ipv4 address is in the same class C range as any of the server's ipv4 addresses.
 		/// </summary>
-		public string LocalAddressRangePrefix = "192.168.";
-
-		private int isLocalConnection = -1;
-		/// <summary>
-		/// Returns true if the remote client's ip address starts with the [LocalAddressRangePrefix] field.
-		/// </summary>
-		public bool IsLocalConnection
+		public bool IsLanConnection
 		{
 			get
 			{
-				if (isLocalConnection == -1)
+				if (isLanConnection == -1)
 				{
-					string remoteIp = RemoteIPAddress;
-					if (remoteIp.StartsWith(LocalAddressRangePrefix))
-						isLocalConnection = 1;
-					else if (remoteIp != "")
-						isLocalConnection = 0;
+					byte[] remoteBytes = RemoteIPAddressBytes;
+					if (remoteBytes == null || remoteBytes.Length != 4)
+						isLanConnection = 0;
+					else if (remoteBytes[0] == 127 && remoteBytes[1] == 0 && remoteBytes[2] == 0 && remoteBytes[3] == 1)
+						isLanConnection = 1;
+					else
+					{
+						// If the first 3 bytes of any local address matches the first 3 bytes of the local address, then the remote address is in the same class C range as this address.
+						foreach (byte[] localBytes in srv.localIPv4Addresses)
+						{
+							bool addressIsMatch = true;
+							for (int i = 0; i < 3; i++)
+								if (localBytes[i] != remoteBytes[i])
+								{
+									addressIsMatch = false;
+									break;
+								}
+							if (addressIsMatch)
+							{
+								isLanConnection = 1;
+								break;
+							}
+						}
+						if (isLanConnection != 1)
+							isLanConnection = 0;
+					}
 				}
-				return isLocalConnection == 1;
+				return isLanConnection == 1;
 			}
 		}
-
+		private byte[] remoteIPAddressBytes = null;
+		private byte[] RemoteIPAddressBytes
+		{
+			get
+			{
+				if (remoteIPAddressBytes != null)
+					return remoteIPAddressBytes;
+				try
+				{
+					if (tcpClient != null)
+					{
+						IPAddress remoteAddress;
+						if (IPAddress.TryParse(RemoteIPAddress, out remoteAddress) && remoteAddress.AddressFamily == AddressFamily.InterNetwork)
+							remoteIPAddressBytes = remoteAddress.GetAddressBytes();
+					}
+				}
+				catch (Exception ex)
+				{
+					SimpleHttpLogger.Log(ex);
+				}
+				return remoteIPAddressBytes;
+			}
+		}
 		private string remoteIPAddress = null;
 		/// <summary>
 		/// Returns the remote client's IP address, or an empty string if the remote IP address is somehow not available.
@@ -709,6 +748,8 @@ namespace SimpleHttp
 		private TcpListener unsecureListener = null;
 		private TcpListener secureListener = null;
 
+		internal List<byte[]> localIPv4Addresses = new List<byte[]>();
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -762,6 +803,16 @@ namespace SimpleHttp
 				}
 				thrHttps = new Thread(listen);
 				thrHttps.Name = "HttpsServer Thread";
+			}
+
+			foreach (IPAddress addr in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+			{
+				if (addr.AddressFamily == AddressFamily.InterNetwork)
+				{
+					byte[] bytes = addr.GetAddressBytes();
+					if (bytes != null && bytes.Length == 4)
+						localIPv4Addresses.Add(bytes);
+				}
 			}
 		}
 

@@ -16,7 +16,7 @@ namespace MJpegCameraProxy.Configuration
 		public string SaveItem(SimpleHttp.HttpProcessor p)
 		{
 			bool isNew = p.GetBoolParam("new");
-			string originalId = p.GetPostParam("itemid");
+			string originalId = p.GetPostParam("itemid").ToLower();
 			string itemtype = p.GetPostParam("itemtype");
 			if (itemtype == "camera")
 			{
@@ -138,7 +138,7 @@ namespace MJpegCameraProxy.Configuration
 		public string DeleteItems(SimpleHttp.HttpProcessor p)
 		{
 			string itemtype = p.GetPostParam("itemtype");
-			string ids = p.GetPostParam("ids");
+			string ids = p.GetPostParam("ids").ToLower();
 			if (ids == null || ids.Length < 1)
 				return "0No items were specified for deletion";
 			string[] parts = ids.Split(',');
@@ -176,7 +176,7 @@ namespace MJpegCameraProxy.Configuration
 		{
 			lock (this)
 			{
-				string id = p.GetPostParam("id");
+				string id = p.GetPostParam("id").ToLower();
 				if (string.IsNullOrEmpty(id))
 					return "0Missing id parameter";
 				string dir = p.GetPostParam("dir");
