@@ -44,6 +44,9 @@ namespace MJpegCameraProxy.Configuration
 		[IsPasswordField(true)]
 		[EditorName("PTZ Password")]
 		public string ptz_password = "";
+		[EditorName("Proxy Control")]
+		[EditorHint("If checked, the PTZ host is another instance of the CameraProxy service.")]
+		public bool ptz_proxy = false;
 
 		[EditorCategory("Dahua PTZ Settings")]
 		[EditorCondition_FieldMustBe("ptzType", PtzType.Dahua)]

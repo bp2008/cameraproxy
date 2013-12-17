@@ -309,25 +309,41 @@ namespace MJpegCameraProxy
 				{
 					string cameraId = p.GetParam("id");
 					cameraId = cameraId.ToLower();
-					if (cm.GetCamera(cameraId) != null)
+					IPCameraBase cam = cm.GetCamera(cameraId);
+					if (cam != null)
 					{
 						int index = p.GetIntParam("index", -1);
 						if (index > -1)
 						{
-							string fileName = Globals.ThumbsDirectoryBase + cameraId + index + ".jpg";
-							int minPermission = cm.GetCameraMinPermission(cameraId);
-							if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission) || minPermission == 101)
+							if (cam.cameraSpec.ptz_proxy)
 							{
+								string auth = (!string.IsNullOrEmpty(cam.cameraSpec.ptz_username) && !string.IsNullOrEmpty(cam.cameraSpec.ptz_password)) ? "rawauth=" + HttpUtility.UrlEncode(cam.cameraSpec.ptz_username) + ":" + HttpUtility.UrlEncode(cam.cameraSpec.ptz_password) + "&" : "";
+								byte[] data = SimpleProxy.GetData("http://" + cam.cameraSpec.ptz_hostName + "/PTZPRESETIMG?" + auth + "id=" + HttpUtility.UrlEncode(cam.cameraSpec.id) + "&index=" + index);
+								if (data.Length > 0)
+								{
+									p.writeSuccess("image/jpg", data.Length);
+									p.outputStream.Flush();
+									p.rawOutputStream.Write(data, 0, data.Length);
+									return;
+								}
 							}
 							else
 							{
-								if (File.Exists(fileName))
+								string fileName = Globals.ThumbsDirectoryBase + cameraId + index + ".jpg";
+								int minPermission = cm.GetCameraMinPermission(cameraId);
+								if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission) || minPermission == 101)
 								{
-									byte[] bytes = File.ReadAllBytes(fileName);
-									p.writeSuccess("image/jpg", bytes.Length);
-									p.outputStream.Flush();
-									p.rawOutputStream.Write(bytes, 0, bytes.Length);
-									return;
+								}
+								else
+								{
+									if (File.Exists(fileName))
+									{
+										byte[] bytes = File.ReadAllBytes(fileName);
+										p.writeSuccess("image/jpg", bytes.Length);
+										p.outputStream.Flush();
+										p.rawOutputStream.Write(bytes, 0, bytes.Length);
+										return;
+									}
 								}
 							}
 						}
@@ -398,7 +414,7 @@ namespace MJpegCameraProxy
 					}
 					catch (Exception ex)
 					{
-						//if (!p.isOrdinaryDisconnectException(ex))
+						if (!p.isOrdinaryDisconnectException(ex))
 							Logger.Debug(ex);
 					}
 				}

@@ -39,8 +39,8 @@ namespace MJpegCameraProxy.Configuration
 			name = name.ToLower();
 			if (!Util.IsAlphaNumeric(name, false))
 				return "0User name must be alphanumeric and not contain any spaces";
-			if (string.IsNullOrEmpty(pass))
-				return "0A password is required";
+			//if (string.IsNullOrEmpty(pass))
+			//	return "0A password is required";
 			if (permission < 0 || permission > 100)
 				return "0Permission level must be between 0 and 100";
 			if (sessionLengthMinutes < 0)
