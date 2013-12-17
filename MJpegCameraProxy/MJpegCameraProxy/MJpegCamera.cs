@@ -48,11 +48,11 @@ namespace MJpegCameraProxy
 
 							// Read up to the content length header
 							ReadUntilCompleteStringFound("Content-Length: ", s, ref sb);
-							Console.Write(sb.ToString());
+							//Console.Write(sb.ToString());
 
 							sb = new StringBuilder();
 							ReadUntilCharFound('\r', s, ref sb);
-							Console.Write(sb.ToString());
+							//Console.Write(sb.ToString());
 
 							string contentLengthStr = sb.ToString().Trim();
 							int jpegLength;
@@ -66,7 +66,7 @@ namespace MJpegCameraProxy
 							sb = new StringBuilder();
 							sb.Append('\r'); // We already consumed a \r character after reading the length of the image.
 							ReadUntilCompleteStringFound("\r\n\r\n", s, ref sb);
-							Console.Write(sb.ToString());
+							//Console.Write(sb.ToString());
 
 							// Now the jpeg data begins, and it has length jpegLength
 							byte[] jpegBuffer = new byte[jpegLength];
