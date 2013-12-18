@@ -230,7 +230,11 @@ namespace MJpegCameraProxy.Pages.Admin
 			var targetField = $('#itemfields').find('*[fieldname=""' + fieldName + '""]');
 			if(targetField.length > 0)
 			{
-				if(acceptableValues.indexOf(targetField.val()) > -1)
+				var valueToCompareAgainst = targetField.val();
+				var targetFieldType = targetField.attr('type');
+				if(targetFieldType && targetFieldType.toLowerCase() == 'checkbox')
+					valueToCompareAgainst = targetField.is(':checked') ? 'true' : 'false';
+				if(acceptableValues.indexOf(valueToCompareAgainst) > -1)
 				{
 					$(ele).next().show();
 					$(ele).next().next().show();

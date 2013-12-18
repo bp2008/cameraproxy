@@ -48,6 +48,12 @@ namespace MJpegCameraProxy.Configuration
 		[EditorHint("If checked, the PTZ host is another instance of the CameraProxy service.")]
 		public bool ptz_proxy = false;
 
+		[EditorCategory("PTZ Proxy Settings")]
+		[EditorCondition_FieldMustBe("ptz_proxy", "true")]
+		[EditorName("Remote Camera ID")]
+		[EditorHint("<br/>ID of the remote camera.  This may be different from the local camera ID.")]
+		public string ptz_proxy_cameraId = "";
+
 		[EditorCategory("Dahua PTZ Settings")]
 		[EditorCondition_FieldMustBe("ptzType", PtzType.Dahua)]
 		[EditorName("PTZ Absolute X Position Offset")]
