@@ -18,7 +18,7 @@ namespace MJpegCameraProxy
 			if (cam.cameraSpec.ptz_proxy)
 			{
 				string auth = (!string.IsNullOrEmpty(cam.cameraSpec.ptz_username) && !string.IsNullOrEmpty(cam.cameraSpec.ptz_password)) ? "rawauth=" + HttpUtility.UrlEncode(cam.cameraSpec.ptz_username) + ":" + HttpUtility.UrlEncode(cam.cameraSpec.ptz_password) + "&" : "";
-				SimpleProxy.GetData("http://" + cam.cameraSpec.ptz_hostName + "/PTZ?" + auth + "id=" + HttpUtility.UrlEncode(cameraId) + "&cmd=" + HttpUtility.UrlEncode(cmd));
+				SimpleProxy.GetData("http://" + cam.cameraSpec.ptz_hostName + "/PTZ?" + auth + "id=" + HttpUtility.UrlEncode(cam.cameraSpec.ptz_proxy_cameraId) + "&cmd=" + HttpUtility.UrlEncode(cmd));
 			}
 			else if (cam.cameraSpec.ptzType == PtzType.LoftekCheap)
 				LoftekCheapPTZ.RunCommand(cam, cameraId, cmd);
