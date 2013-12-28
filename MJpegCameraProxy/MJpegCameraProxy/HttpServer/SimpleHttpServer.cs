@@ -7,7 +7,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Web;
 using System.Text;
-using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.NetworkInformation;
 
@@ -246,8 +245,8 @@ namespace SimpleHttp
 				{
 					try
 					{
-						tcpStream = new SslStream(tcpStream, false, null, null, EncryptionPolicy.RequireEncryption);
-						((SslStream)tcpStream).AuthenticateAsServer(ssl_certificate);
+						tcpStream = new System.Net.Security.SslStream(tcpStream, false, null, null);
+						((System.Net.Security.SslStream)tcpStream).AuthenticateAsServer(ssl_certificate);
 					}
 					catch (Exception ex)
 					{
@@ -318,7 +317,8 @@ namespace SimpleHttp
 				if (ex.InnerException != null && ex.InnerException is SocketException)
 				{
 					if (ex.InnerException.Message.Contains("An established connection was aborted by the software in your host machine")
-						|| ex.InnerException.Message.Contains("An existing connection was forcibly closed by the remote host"))
+						|| ex.InnerException.Message.Contains("An existing connection was forcibly closed by the remote host")
+						|| ex.InnerException.Message.Contains("The socket has been shut down") /* Mono/Linux */)
 						return true; // Connection aborted.  This happens often enough that reporting it can be excessive.
 				}
 			}

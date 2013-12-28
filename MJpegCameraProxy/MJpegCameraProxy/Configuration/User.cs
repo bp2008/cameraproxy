@@ -16,7 +16,7 @@ namespace MJpegCameraProxy.Configuration
 		public string name = "newuser";
 		[IsPasswordField(true)]
 		[EditorName("Password")]
-		public string pass = "";
+		public string pass = "1234";
 		[EditorName("Permission Level")]
 		[EditorHint("0 to 100.  A value of 0 means the user has no more rights than an anonymous user.")]
 		public int permission = 10;
@@ -39,8 +39,8 @@ namespace MJpegCameraProxy.Configuration
 			name = name.ToLower();
 			if (!Util.IsAlphaNumeric(name, false))
 				return "0User name must be alphanumeric and not contain any spaces";
-			//if (string.IsNullOrEmpty(pass))
-			//	return "0A password is required";
+			if (string.IsNullOrEmpty(pass))
+				return "0A password is required";
 			if (permission < 0 || permission > 100)
 				return "0Permission level must be between 0 and 100";
 			if (sessionLengthMinutes < 0)

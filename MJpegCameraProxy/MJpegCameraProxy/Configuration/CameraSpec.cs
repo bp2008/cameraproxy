@@ -132,6 +132,8 @@ namespace MJpegCameraProxy.Configuration
 		protected override string validateFieldValues()
 		{
 			id = id.ToLower();
+			if ((type == CameraType.h264_rtsp_proxy || type == CameraType.vlc_transcode) && Environment.OSVersion.Platform != PlatformID.Win32NT)
+				return "The " + type.ToString() + " camera type is incompatible with the current server environment, which is " + Environment.OSVersion.Platform.ToString();
 			if (string.IsNullOrWhiteSpace(name))
 				return "0Camera name must not contain only whitespace.";
 			if (!Util.IsAlphaNumeric(name, true))

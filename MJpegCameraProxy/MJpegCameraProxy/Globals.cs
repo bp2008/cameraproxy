@@ -16,7 +16,7 @@ namespace MJpegCameraProxy
 		{
 			get { return executablePath; }
 		}
-		private static string applicationRoot = new FileInfo(executablePath).Directory.FullName;
+		private static string applicationRoot = new FileInfo(executablePath).Directory.FullName.TrimEnd('\\', '/');
 		/// <summary>
 		/// Gets the full path to the root directory where the current executable is located.  Does not have trailing '\\'.
 		/// </summary>
@@ -24,17 +24,17 @@ namespace MJpegCameraProxy
 		{
 			get { return applicationRoot; }
 		}
-		private static char applicationRootDriveLetter = string.IsNullOrEmpty(applicationRoot) ? 'c' : applicationRoot[0];
+		//private static char applicationRootDriveLetter = string.IsNullOrEmpty(applicationRoot) ? 'c' : applicationRoot[0];
+		///// <summary>
+		///// Gets the full path to the root directory where the current executable is located.
+		///// </summary>
+		//public static char ApplicationRootDriveLetter
+		//{
+		//    get { return applicationRootDriveLetter; }
+		//}
+		private static string applicationDirectoryBase = applicationRoot + "/";
 		/// <summary>
-		/// Gets the full path to the root directory where the current executable is located.
-		/// </summary>
-		public static char ApplicationRootDriveLetter
-		{
-			get { return applicationRootDriveLetter; }
-		}
-		private static string applicationDirectoryBase = applicationRoot + "\\";
-		/// <summary>
-		/// Gets the full path to the root directory where the current executable is located.  Includes trailing '\\'.
+		/// Gets the full path to the root directory where the current executable is located.  Includes trailing '/'.
 		/// </summary>
 		public static string ApplicationDirectoryBase
 		{
@@ -56,7 +56,7 @@ namespace MJpegCameraProxy
 		//{
 		//    get { return usersDirectoryBase; }
 		//}
-		private static string htmlDirectoryBase = applicationRoot + "\\Html\\";
+		private static string htmlDirectoryBase = applicationRoot + "/Html/";
 		/// <summary>
 		/// Gets the full path to the Html directory including the trailing '\\'.  Just add page name!
 		/// </summary>
@@ -64,7 +64,7 @@ namespace MJpegCameraProxy
 		{
 			get { return htmlDirectoryBase; }
 		}
-		private static string thumbsDirectoryBase = applicationRoot + "\\Thumbs\\";
+		private static string thumbsDirectoryBase = applicationRoot + "/Thumbs/";
 		/// <summary>
 		/// Gets the full path to the Thumbs directory including the trailing '\\'.  Just add file name!
 		/// </summary>
