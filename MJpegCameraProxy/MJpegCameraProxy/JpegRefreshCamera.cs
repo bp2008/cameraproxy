@@ -21,7 +21,7 @@ namespace MJpegCameraProxy
 			{
 				try
 				{
-					HiResTimer timer = new HiResTimer();
+					System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 					timer.Start();
 					byte[] newFrame = SimpleProxy.GetData(cameraSpec.imageryUrl, cameraSpec.username, cameraSpec.password, true);
 					if (!ArraysLooselyMatch(newFrame, lastFrame))

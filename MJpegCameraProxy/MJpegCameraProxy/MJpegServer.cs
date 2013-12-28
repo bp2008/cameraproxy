@@ -169,7 +169,7 @@ namespace MJpegCameraProxy
 							patience = 5000;
 
 						int timeLeft = patience;
-						HiResTimer timer = new HiResTimer();
+						System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 						timer.Start();
 						while (s.DuplicateImageSendCheck(cameraId, latestImage) && cam != null && timeLeft > 0)
 						{

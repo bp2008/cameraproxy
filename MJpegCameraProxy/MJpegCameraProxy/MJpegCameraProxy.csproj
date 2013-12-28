@@ -113,7 +113,6 @@
     <Compile Include="Configuration\User.cs" />
     <Compile Include="H264Camera.cs" />
     <Compile Include="Hash.cs" />
-    <Compile Include="HiResTimer.cs" />
     <Compile Include="HttpServer\Crypto\CertProperties.cs" />
     <Compile Include="HttpServer\Crypto\CryptContext.cs" />
     <Compile Include="HttpServer\Crypto\CryptKey.cs" />
