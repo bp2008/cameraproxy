@@ -21,6 +21,8 @@ namespace MJpegCameraProxy
 		private Stopwatch frameTimer = new Stopwatch();
 		private long nextFrameEncodeTime = 0;
 		private long frameEncodeInterval = 0;
+		private long lastTimestampUpdateTime = -1;
+		private int w, h;
 
 		private uint frameNumber = 0;
 		private uint lastFrameEncoded = 0;
@@ -30,7 +32,12 @@ namespace MJpegCameraProxy
 
 		private bool isWatchdogTimeSurpassed(long time)
 		{
-			return cameraSpec.vlc_watchdog_time > 0 && time > nextFrameEncodeTime + (cameraSpec.vlc_watchdog_time * 1000);
+			return cameraSpec.vlc_watchdog_time > 0 && 
+				(
+					(time > nextFrameEncodeTime + (cameraSpec.vlc_watchdog_time * 1000))
+				||
+					(lastTimestampUpdateTime > -1 && time > lastTimestampUpdateTime + (cameraSpec.vlc_watchdog_time * 1000))
+				);
 		}
 
 		public override byte[] LastFrame
@@ -57,23 +64,28 @@ namespace MJpegCameraProxy
 						{
 							// If we get here, we still need to encode a new frame.  One is ready.
 							Bitmap bmp = null;
+							WrappedImage wi = null;
 							try
 							{
 								bmp = memRender.CurrentFrame;
 								lastFrameEncoded = frameNumber;
-								latestFrame = ImageConverter.EncodeBitmap(bmp, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
+								wi = new WrappedImage(bmp);
+								latestFrame = ImageConverter.EncodeImage(wi, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
 								EventWaitHandle oldWaitHandle = newFrameWaitHandle;
 								newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 								oldWaitHandle.Set();
 							}
 							catch (Exception ex)
 							{
-								Logger.Debug(ex);
+								string frameSize = bmp == null ? "bmp is null" : "bmp size: " + bmp.Width + "x" + bmp.Height;
+								Logger.Debug(ex, "vlc_transcode Camera ID: " + this.cameraSpec.id + ", " + frameSize);
 							}
 							finally
 							{
 								if (bmp != null)
 									bmp.Dispose();
+								if (wi != null)
+									wi.Dispose();
 							}
 							// Now, this is the tricky part.  We must schedule the next frame such that we can come as close as possible to the frame rate goal without ever exceeding it.
 
@@ -106,13 +118,10 @@ namespace MJpegCameraProxy
 			try
 			{
 				frameEncodeInterval = 1000 / this.cameraSpec.vlc_transcode_fps;
-				int w = this.cameraSpec.h264_video_width;
-				int h = this.cameraSpec.h264_video_height;
+				w = this.cameraSpec.h264_video_width;
+				h = this.cameraSpec.h264_video_height;
 				if (w <= 0 || h <= 0)
-				{
-					w = 640;
-					h = 480;
-				}
+					w = h = 0;
 
 				IVideoPlayer player = null;
 
@@ -123,9 +132,11 @@ namespace MJpegCameraProxy
 						frameNumber = 0;
 						lastFrameEncoded = 0;
 						nextFrameEncodeTime = 0;
+						lastTimestampUpdateTime = -1;
 						frameTimer.Start();
 						IMediaPlayerFactory factory = new MediaPlayerFactory();
 						player = factory.CreatePlayer<IVideoPlayer>();
+						player.Events.TimeChanged += new EventHandler<Declarations.Events.MediaPlayerTimeChanged>(Events_TimeChanged);
 						int b = cameraSpec.vlc_transcode_buffer_time;
 						string[] args = new string[] { ":rtsp-caching=" + b, ":realrtsp-caching=" + b, ":network-caching=" + b, ":udp-caching=" + b, ":volume=0", cameraSpec.wanscamCompatibilityMode ? ":demux=h264" : "", cameraSpec.wanscamCompatibilityMode ? ":h264-fps=" + cameraSpec.wanscamFps : "" };
 						string url = cameraSpec.imageryUrl;
@@ -133,8 +144,10 @@ namespace MJpegCameraProxy
 							url = "http://127.0.0.1:" + MJpegWrapper.cfg.webport + "/" + cameraSpec.id + ".wanscamstream";
 						IMedia media = factory.CreateMedia<IMedia>(url, args);
 						memRender = player.CustomRenderer;
+						//memRender.SetExceptionHandler(ExHandler);
 						memRender.SetCallback(delegate(Bitmap frame)
 						{
+							// We won't consume the bitmap here.  For efficiency's sake under light load, we will only encode the bitmap as jpeg when it is requested by a client.
 							frameNumber++;
 							if (!player.Mute)
 								player.ToggleMute();
@@ -152,12 +165,32 @@ namespace MJpegCameraProxy
 							//}
 							//latestBitmap = new Bitmap(frame);  // frame.Clone() actually doesn't copy the data and exceptions get thrown
 						});
-
 						memRender.SetFormat(new BitmapFormat(w, h, ChromaType.RV24));
+						//memRender.SetFormatSetupCallback(formatSetupCallback);
 						player.Open(media);
 						player.Play();
-						while (!Exit)
-							Thread.Sleep(50);
+						if (w == 0)
+						{
+							// Need to auto-detect video size.
+							while (!Exit)
+							{
+								Thread.Sleep(50);
+								Size s = player.GetVideoSize(0);
+								if (s.Width > 0 && s.Height > 0)
+								{
+									lock (MJpegWrapper.cfg)
+									{
+										w = this.cameraSpec.h264_video_width = (ushort)s.Width;
+										h = this.cameraSpec.h264_video_height = (ushort)s.Height;
+										MJpegWrapper.cfg.Save(Globals.ConfigFilePath);
+									}
+									throw new Exception("Restart");
+								}
+							}
+						}
+						else
+							while (!Exit)
+								Thread.Sleep(50);
 					}
 					catch (ThreadAbortException ex)
 					{
@@ -165,10 +198,13 @@ namespace MJpegCameraProxy
 					}
 					catch (Exception ex)
 					{
-						Logger.Debug(ex);
-						int waitedTimes = 0;
-						while (!Exit && waitedTimes++ < 100)
-							Thread.Sleep(50);
+						if (ex.Message != "Restart")
+						{
+							Logger.Debug(ex);
+							int waitedTimes = 0;
+							while (!Exit && waitedTimes++ < 100)
+								Thread.Sleep(50);
+						}
 					}
 					finally
 					{
@@ -188,6 +224,15 @@ namespace MJpegCameraProxy
 				Logger.Debug(ex);
 			}
 			newFrameWaitHandle.Set();
+		}
+
+		void Events_TimeChanged(object sender, Declarations.Events.MediaPlayerTimeChanged e)
+		{
+			lastTimestampUpdateTime = frameTimer.ElapsedMilliseconds;
+		}
+		private void ExHandler(Exception ex)
+		{
+			Logger.Debug(ex);
 		}
 	}
 }

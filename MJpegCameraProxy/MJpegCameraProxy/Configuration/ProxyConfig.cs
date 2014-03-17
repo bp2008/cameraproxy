@@ -10,6 +10,8 @@ namespace MJpegCameraProxy.Configuration
 		public int webport = 44456;
 		public int webport_https = -1;
 
+		public bool UseImageMagick = false;
+
 		public List<User> users = new List<User>();
 		public List<CameraSpec> cameras = new List<CameraSpec>();
 

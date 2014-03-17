@@ -18,6 +18,7 @@ namespace MJpegCameraProxy
 		/// <returns></returns>
 		public static byte[] ToWebP(Bitmap input, int quality = 80)
 		{
+			bool inputGotReplaced = false;
 			if (quality < -1)
 				quality = -1;
 			if (quality > 100)
@@ -30,6 +31,7 @@ namespace MJpegCameraProxy
 					using (var gr = Graphics.FromImage(bmp))
 						gr.DrawImage(input, new Rectangle(0, 0, input.Width, input.Height));
 					input = bmp;
+					inputGotReplaced = true;
 				}
 
 				BitmapData data = input.LockBits(
@@ -69,6 +71,11 @@ namespace MJpegCameraProxy
 			catch (Exception)
 			{
 				return new byte[0];
+			}
+			finally
+			{
+				if(inputGotReplaced && input != null)
+					input.Dispose();
 			}
 		}
 

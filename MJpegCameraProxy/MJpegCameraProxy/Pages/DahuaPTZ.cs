@@ -777,7 +777,7 @@ function fullPanoramaImageLoaded()
 									if (input.Length > 0)
 									{
 										if (!full)
-											input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160);
+											input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160, useImageMagick: MJpegWrapper.cfg.UseImageMagick);
 										FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * numImagesWide)) + ".jpg");
 										Util.EnsureDirectoryExists(file.Directory.FullName);
 										File.WriteAllBytes(file.FullName, input);

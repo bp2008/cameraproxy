@@ -36,7 +36,7 @@ namespace MJpegCameraProxy.Configuration
 		public string password = "";
 
 		[EditorCategory("Pan-Tilt-Zoom")]
-		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400)]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.Dev)]
 		[EditorName("PTZ Host Name")]
 		public string ptz_hostName = "";
 		[EditorName("PTZ User Name")]
@@ -121,10 +121,10 @@ namespace MJpegCameraProxy.Configuration
 		[EditorCategory("Configuration: <b>vlc_transcode</b> and <b>h264_rtsp_proxy</b>")]
 		[EditorCondition_FieldMustBe("type", CameraType.vlc_transcode, CameraType.h264_rtsp_proxy)]
 		[EditorName("Video Width")]
-		[EditorHint("pixels. Required for vlc_transcode cameras.  Optional for h264_rtsp_proxy cameras.")]
+		[EditorHint("pixels. If 0, this value is autodetected.")]
 		public ushort h264_video_width = 0;
 		[EditorName("Video Height")]
-		[EditorHint("pixels. Required for vlc_transcode cameras.  Optional for h264_rtsp_proxy cameras.")]
+		[EditorHint("pixels. If 0, this value is autodetected.")]
 		public ushort h264_video_height = 0;
 		
 		public int order = -1;
@@ -152,10 +152,10 @@ namespace MJpegCameraProxy.Configuration
 				return "0The Image Grab Delay can't be less than 0.";
 			if (delayBetweenImageGrabs > 600000)
 				return "0The Image Grab Delay can't be greater than 600000.";
-			if (type == CameraType.vlc_transcode && this.h264_video_width <= 0)
-				return "0Video Width must be > 0 for a " + type.ToString() + " camera.";
-			if (type == CameraType.vlc_transcode && this.h264_video_height <= 0)
-				return "0Video Height must be > 0 for a " + type.ToString() + " camera.";
+			if (this.h264_video_width < 0)
+				return "0Video Width must be >= 0.";
+			if (this.h264_video_height < 0)
+				return "0Video Height must be >= 0.";
 			if (type == CameraType.vlc_transcode && this.vlc_transcode_fps <= 0)
 				return "0Transcode Frame Rate must be > 0 for a " + type.ToString() + " camera.";
 			if (type == CameraType.vlc_transcode && this.vlc_transcode_buffer_time <= 0)
@@ -185,6 +185,7 @@ namespace MJpegCameraProxy.Configuration
 	{
 		None, LoftekCheap, Dahua,
 		WanscamCheap, TrendnetIP672,
-		IPS_EYE01, TrendnetTVIP400
+		IPS_EYE01, TrendnetTVIP400,
+		Dev
 	}
 }
