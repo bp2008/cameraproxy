@@ -10,6 +10,7 @@
 	var remoteIp = "%REMOTEIP%";
 	var allowedCams = [];
 	var disallowedCams = [];
+	var noRefreshCams = [];
 	var refreshDisabled = false;
 	var refreshTime = 2500;
 	$(function()
@@ -24,14 +25,17 @@
 			$("#maindiv").append('<div class="outer"><a href="' + myid + '.cam"><table><tbody><tr><td class="imgbox"><img id="' + myid + '" alt="' + camDefs[i][1] + '"></td></tr></tbody></table><div class="caption">' + camDefs[i][1] + '</div></a></div>');
 			if(isLocal)
 				refreshTime = 250;
-			$("#" + myid).load(function ()
+			if($.inArray(myid, noRefreshCams) < 0)
 			{
-				if(!refreshDisabled)
+				$("#" + myid).load(function ()
 				{
-					lastUpdate = new Date().getTime();
-					setTimeout("GetNewImage('" + this.id + "');", refreshTime);
-				}
-			});
+					if(!refreshDisabled)
+					{
+						lastUpdate = new Date().getTime();
+						setTimeout("GetNewImage('" + this.id + "');", refreshTime);
+					}
+				});
+			}
 			$("#" + myid).error(function ()
 			{
 				setTimeout("GetNewImage('" + this.id + "');", refreshTime);
@@ -47,14 +51,15 @@
 			for(var i = 0; i < camDefs.length; i++)
 				if($.inArray(camDefs[i][0], allowedCams) >= 0)
 					newCamDefs.push(camDefs[i]);
+			camDefs = newCamDefs;
 		}
 		else if(disallowedCams.length > 0)
 		{
 			for(var i = 0; i < camDefs.length; i++)
 				if($.inArray(camDefs[i][0], disallowedCams) < 0)
 					newCamDefs.push(camDefs[i]);
+			camDefs = newCamDefs;
 		}
-		camDefs = newCamDefs;
 	}	
 	function GetNewImage(id)
 	{

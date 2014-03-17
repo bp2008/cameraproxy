@@ -191,7 +191,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Install_Service.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="live555\COPYING">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -214,19 +214,23 @@
     <None Include="Resources\ui-icons_888888_256x240" />
     <None Include="Resources\ui-icons_cd0a0a_256x240" />
     <None Include="Start_Service.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Stop_Service.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Uninstall_Service.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="VLC\plugins\plugins.dat" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Examples\Html\all.html" />
-    <Content Include="Examples\readme.txt" />
+    <Content Include="Html\all.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="readme.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="gpl-3.0-standalone.html" />
     <Content Include="libwebp_a.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -580,6 +584,9 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Examples\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
