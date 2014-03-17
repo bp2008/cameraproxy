@@ -31,6 +31,37 @@ namespace MJpegCameraProxy.PanTiltZoom
 				sbCell.Append("</td><td></td></tr></tbody></table>");
 				cells.Add(sbCell.ToString());
 			}
+			if (options.showZoomButtons)
+			{
+				StringBuilder sbCell = new StringBuilder();
+				sbCell.Append("<table id=\"zTable\"><tbody><tr><td></td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, img("plus.png", arrowSize, arrowSize, true), "i", keyboardKey: 73, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, img("minus.png", arrowSize, arrowSize, true), "o", keyboardKey: 79, keyboardDelay: 500));
+				sbCell.Append("</td><td></td></tr></tbody></table>");
+				cells.Add(sbCell.ToString());
+			}
+			if (options.showZoomLevels)
+			{
+				StringBuilder sbCell = new StringBuilder();
+				sbCell.Append("<style type=\"text/css\">#zTable { font-size: 2em; } #zTable td { padding: 6px; }</style>");
+				sbCell.Append("<table id=\"zTable\"><tbody><tr><td></td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "0", "z0", keyboardKey: 49, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "1", "z1", keyboardKey: 49, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "2", "z2", keyboardKey: 50, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "3", "z3", keyboardKey: 51, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "4", "z4", keyboardKey: 52, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "5", "z5", keyboardKey: 53, keyboardDelay: 500));
+				sbCell.Append("</td><td>");
+				sbCell.Append(GetLinkToPTControl(camId, "6", "z6", keyboardKey: 54, keyboardDelay: 500));
+				sbCell.Append("</td><td></td></tr></tbody></table>");
+				cells.Add(sbCell.ToString());
+			}
 
 			sb.Append(string.Join("</td><td>", cells));
 			sb.Append("</td></tr></tbody></table>");

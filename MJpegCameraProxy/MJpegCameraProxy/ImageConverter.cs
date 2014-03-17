@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Drawing;
-using System.Drawing.Imaging;
 using SimpleHttp;
 
 namespace MJpegCameraProxy
@@ -24,6 +23,7 @@ namespace MJpegCameraProxy
 			int rotateDegrees = p.GetIntParam("rotate", 0);
 			int maxWidth = p.GetIntParam("maxwidth", 0);
 			int maxHeight = p.GetIntParam("maxheight", 0);
+			string special = p.GetParam("special");
 
 			RotateFlipType rotateFlipType;
 			if (rotateDegrees == -270 || rotateDegrees == 90)
@@ -36,11 +36,11 @@ namespace MJpegCameraProxy
 				rotateFlipType = RotateFlipType.RotateNoneFlipNone;
 
 			ImageFormat desiredFormat = GetImageFormatEnumValue(format);
-			if (size != 100 || (maxWidth > 0 && maxHeight > 0) || quality != -2 || rotateFlipType != RotateFlipType.RotateNoneFlipNone || desiredFormat != imgFormat)
+			if (size != 100 || (maxWidth > 0 && maxHeight > 0) || quality != -2 || rotateFlipType != RotateFlipType.RotateNoneFlipNone || desiredFormat != imgFormat || special == "red")
 			{
 				if (quality == -2)
 					quality = 80;
-				byte[] output = ConvertImage(input, size, quality, desiredFormat, rotateFlipType, maxWidth, maxHeight, imgFormat);
+				byte[] output = ConvertImage(input, size, quality, desiredFormat, rotateFlipType, maxWidth, maxHeight, imgFormat, special, MJpegWrapper.cfg.UseImageMagick, p.request_url.OriginalString);
 				if (input != output)
 					imgFormat = desiredFormat;
 				return output;
@@ -59,7 +59,7 @@ namespace MJpegCameraProxy
 		/// <summary>
 		/// Converts the image to the specified format.
 		/// </summary>
-		/// <param name="input">byte array containing the source image data</param>
+		/// <param name="img">Source image</param>
 		/// <param name="size">Percentage size.  100 does not affect image size and is the most efficient option.  This parameter is overridden if maxWidth and maxHeight are both specified.</param>
 		/// <param name="quality">Compression quality.  Acceptable range depends on image format:
 		/// JPG: 0 to 100
@@ -69,69 +69,52 @@ namespace MJpegCameraProxy
 		/// <param name="rotateFlipType">Image rotation and flipping options.</param>
 		/// <param name="maxWidth">Maximum width of the output image.  Original image aspect ratio will be preserved.  Requires maxHeight to be specified also.  Overrides the "size" parameter.</param>
 		/// <param name="maxHeight">Maximum height of the output image.  Original image aspect ratio will be preserved.  Requires maxWidth to be specified also.  Overrides the "size" parameter.</param>
+		/// <param name="special">A string indicating a special image transformation, if any.</param>
 		/// <returns>A byte array containing image data in the specified format.</returns>
 		/// <remarks>This is called internally by ConvertImage(...)</remarks>
-		public static byte[] EncodeBitmap(Bitmap bmp, int size = 100, int quality = 80, ImageFormat format = ImageFormat.Jpeg, RotateFlipType rotateFlipType = RotateFlipType.RotateNoneFlipNone, int maxWidth = 0, int maxHeight = 0)
+		public static byte[] EncodeImage(WrappedImage img, int size = 100, int quality = 80, ImageFormat format = ImageFormat.Jpeg, RotateFlipType rotateFlipType = RotateFlipType.RotateNoneFlipNone, int maxWidth = 0, int maxHeight = 0, string special = "")
 		{
 			byte[] output = new byte[0];
-			try
+			if (size < 1)
+				size = 1;
+			if (size > 100)
+				size = 100;
+
+			// Calculate new size
+			int w = img.Width;
+			int h = img.Height;
+			if (size < 100)
 			{
-				if (size < 1)
-					size = 1;
-				if (size > 100)
-					size = 100;
-
-				// Calculate new size
-				int w = bmp.Width;
-				int h = bmp.Height;
-				if (size < 100)
+				w = Math.Max(1, (int)(img.Width * (size / 100.0)));
+				h = Math.Max(1, (int)(img.Height * (size / 100.0)));
+			}
+			if (maxWidth > 0 && maxHeight > 0)
+			{
+				if (w > maxWidth)
 				{
-					w = Math.Max(1, (int)(bmp.Width * (size / 100.0)));
-					h = Math.Max(1, (int)(bmp.Height * (size / 100.0)));
+					double diff = w / maxWidth;
+					w = maxWidth;
+					h = (int)(h / diff);
 				}
-				if (maxWidth > 0 && maxHeight > 0)
+				if (h > maxHeight)
 				{
-					if (w > maxWidth)
-					{
-						double diff = w / maxWidth;
-						w = maxWidth;
-						h = (int)(h / diff);
-					}
-					if (h > maxHeight)
-					{
-						double diff = h / maxHeight;
-						h = maxHeight;
-						w = (int)(w / diff);
-					}
-				}
-				if (w != bmp.Width || h != bmp.Height)
-					bmp = (Bitmap)bmp.GetThumbnailImage(w, h, null, System.IntPtr.Zero);
-				if (rotateFlipType != RotateFlipType.RotateNoneFlipNone)
-					bmp.RotateFlip(rotateFlipType);
-
-				if (format == ImageFormat.Jpeg)
-				{
-					output = GetJpegBytes(bmp, quality);
-				}
-				else if (format == ImageFormat.Webp)
-				{
-					output = WebP.ToWebP(bmp, quality);
-				}
-				else if (format == ImageFormat.Png)
-				{
-					using (MemoryStream ms2 = new MemoryStream())
-					{
-						bmp.Save(ms2, System.Drawing.Imaging.ImageFormat.Png);
-						output = ms2.ToArray();
-					}
+					double diff = h / maxHeight;
+					h = maxHeight;
+					w = (int)(w / diff);
 				}
 			}
-			catch (Exception ex)
-			{
-				Logger.Debug(ex);
-			}
+			if (w != img.Width || h != img.Height)
+				img.Resize(w, h);
+			if (rotateFlipType != RotateFlipType.RotateNoneFlipNone)
+				img.RotateFlip(rotateFlipType);
+
+			if (special == "red")
+				img.TurnRed();
+
+			output = img.ToByteArray(format, quality);
 			return output;
 		}
+
 		/// <summary>
 		/// Converts the image to the specified format.
 		/// </summary>
@@ -146,9 +129,10 @@ namespace MJpegCameraProxy
 		/// <param name="maxWidth">Maximum width of the output image.  Original image aspect ratio will be preserved.  Requires maxHeight to be specified also.  Overrides the "size" parameter.</param>
 		/// <param name="maxHeight">Maximum height of the output image.  Original image aspect ratio will be preserved.  Requires maxWidth to be specified also.  Overrides the "size" parameter.</param>
 		/// <param name="srcImageFormat">The image format of the source data.  If this format matches the "format" parameter and no other operations are requested, the image may not be re-encoded at all.</param>
+		/// <param name="special">A string indicating a special image transformation, if any.</param>
 		/// <returns>A byte array containing image data in the specified format.</returns>
 		/// <remarks>Calls EncodeBitmap(...) internally.</remarks>
-		public static byte[] ConvertImage(byte[] input, int size = 100, int quality = 80, ImageFormat format = ImageFormat.Jpeg, RotateFlipType rotateFlipType = RotateFlipType.RotateNoneFlipNone, int maxWidth = 0, int maxHeight = 0, ImageFormat srcImageFormat = ImageFormat.Jpeg)
+		public static byte[] ConvertImage(byte[] input, int size = 100, int quality = 80, ImageFormat format = ImageFormat.Jpeg, RotateFlipType rotateFlipType = RotateFlipType.RotateNoneFlipNone, int maxWidth = 0, int maxHeight = 0, ImageFormat srcImageFormat = ImageFormat.Jpeg, string special = "", bool useImageMagick = false, string errorHelp = "")
 		{
 			if (srcImageFormat == ImageFormat.Webp)
 				return input; // Cannot currently read WebP images
@@ -157,69 +141,30 @@ namespace MJpegCameraProxy
 			if (input.Length == 0)
 				return input;
 
+			WrappedImage wi = null;
 			try
 			{
-				using (MemoryStream ms = new MemoryStream(input))
-				{
-					Bitmap bmp = new Bitmap(ms);
-					byte[] encoded = EncodeBitmap(bmp, size, quality, format, rotateFlipType, maxWidth, maxHeight);
-					if (encoded.Length > 0)
-						output = encoded;
-				}
+				wi = new WrappedImage(input, useImageMagick);
+				byte[] encoded = EncodeImage(wi, size, quality, format, rotateFlipType, maxWidth, maxHeight, special);
+				if (encoded.Length > 0)
+					output = encoded;
 			}
 			catch (Exception ex)
 			{
-				Logger.Debug(ex);
+				StringBuilder inputstart = new StringBuilder();
+				for (int i = 0; i < input.Length && i < 50; i++)
+					inputstart.Append(input[i]).Append(',');
+				StringBuilder inputend = new StringBuilder();
+				for (int i = input.Length - 50; i < input.Length && i > 0; i++) // If i <= 0, inputend would just be the same as inputstart anyway.  This would happen if input.Length was <= 50.
+					inputend.Append(input[i]).Append(',');
+				Logger.Debug(ex, errorHelp + " - input length: " + input.Length + ", " + inputstart.ToString() + "  " + inputend.ToString());
+			}
+			finally
+			{
+				if (wi != null)
+					wi.Dispose();
 			}
 			return output;
-		}
-		public static byte[] GetJpegBytes(System.Drawing.Image img, long quality = 80)
-		{
-			using (MemoryStream ms = new MemoryStream())
-			{
-				SaveJpeg(ms, img, quality);
-				return ms.ToArray();
-			}
-		}
-		/// <summary>
-		/// Saves the image into the specified stream using the specified jpeg quality level.
-		/// </summary>
-		/// <param name="stream">The stream to save the image in.</param>
-		/// <param name="img">The image to save.</param>
-		/// <param name="quality">(Optional) Jpeg compression quality, from 0 (low quality) to 100 (very high quality).</param>
-		public static void SaveJpeg(System.IO.Stream stream, System.Drawing.Image img, long quality = 80)
-		{
-			if (quality < 0)
-				quality = 0;
-			if (quality > 100)
-				quality = 100;
-			EncoderParameters encoderParams = new EncoderParameters(1);
-			EncoderParameter qualityParam = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-			ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
-			if (jpegCodec == null)
-				return;
-
-			encoderParams.Param[0] = qualityParam;
-			img.Save(stream, jpegCodec, encoderParams);
-		}
-		private static ImageCodecInfo GetEncoderInfo(string mimeType)
-		{
-			ImageCodecInfo[] encoders = ImageCodecInfo.GetImageEncoders();
-
-			for (int i = 0; i < encoders.Length; i++)
-				if (encoders[i].MimeType == mimeType)
-					return encoders[i];
-			return null;
-		}
-
-		public static string GetMime(ImageFormat imgFormat)
-		{
-			if (imgFormat == ImageFormat.Png)
-				return "image/png";
-			else if (imgFormat == ImageFormat.Webp)
-				return "image/webp";
-			else
-				return "image/jpeg";
 		}
 	}
 }

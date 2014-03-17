@@ -8,5 +8,7 @@ namespace MJpegCameraProxy.PanTiltZoom
 	internal class HtmlOptions
 	{
 		public bool showPtzArrows = true;
+		public bool showZoomButtons = false;
+		public bool showZoomLevels = false;
 	}
 }

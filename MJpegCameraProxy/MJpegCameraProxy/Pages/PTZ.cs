@@ -50,6 +50,22 @@ namespace MJpegCameraProxy
 					dir = PanTiltZoom.PTZDirection.Right;
 				new PanTiltZoom.TrendNet.TV_IP400(cam.cameraSpec).MoveSimple(dir);
 			}
+			else if (cam.cameraSpec.ptzType == PtzType.Dev)
+			{
+				PanTiltZoom.ZoomDirection zdir = PanTiltZoom.ZoomDirection.Out;
+				if (cmd == "i")
+					zdir = PanTiltZoom.ZoomDirection.In;
+				else if (cmd == "o")
+					zdir = PanTiltZoom.ZoomDirection.Out;
+				else if (cmd.StartsWith("z") && cmd.Length > 1)
+				{
+					int zoomAmount;
+					if(int.TryParse(cmd.Substring(1), out zoomAmount))
+						new PanTiltZoom.Dev.Dev(cam.cameraSpec).ZoomAbs(zoomAmount);
+					return;
+				}
+				new PanTiltZoom.Dev.Dev(cam.cameraSpec).Zoom(zdir);
+			}
 		}
 
 		public static string GetHtml(string camId, IPCameraBase cam)

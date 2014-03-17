@@ -85,11 +85,15 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Magick.NET-x86, Version=6.0.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=x86" />
     <Reference Include="nVLC.Declarations">
       <HintPath>..\..\..\Projects\LibVlcWrapper\Implementation\bin\Debug\nVLC.Declarations.dll</HintPath>
     </Reference>
     <Reference Include="nVLC.Implementation">
       <HintPath>..\..\..\Projects\LibVlcWrapper\Implementation\bin\Debug\nVLC.Implementation.dll</HintPath>
+    </Reference>
+    <Reference Include="Renci.SshNet">
+      <HintPath>SshNet\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -123,6 +127,7 @@
     <Compile Include="HttpServer\Crypto\Win32ErrorHelper.cs" />
     <Compile Include="HttpServer\Crypto\Win32Native.cs" />
     <Compile Include="ImageSignature.cs" />
+    <Compile Include="PanTiltZoom\IZoomAbs.cs" />
     <Compile Include="JSON.cs" />
     <Compile Include="Pages\Admin\AdminBase.cs" />
     <Compile Include="Pages\Admin\Cameras.cs" />
@@ -151,6 +156,7 @@
     <Compile Include="Pages\LoftekCheapPTZ.cs" />
     <Compile Include="Pages\PTZ.cs" />
     <Compile Include="Pages\Resource.cs" />
+    <Compile Include="PanTiltZoom\Dev\Dev.cs" />
     <Compile Include="PanTiltZoom\HtmlOptions.cs" />
     <Compile Include="PanTiltZoom\IPS_EYE01\IPS_EYE01_PTZ.cs" />
     <Compile Include="PanTiltZoom\IPTZHtml.cs" />
@@ -180,6 +186,7 @@
     <Compile Include="Util.cs" />
     <Compile Include="VlcCamera.cs" />
     <Compile Include="WebP.cs" />
+    <Compile Include="WrappedImage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -227,6 +234,9 @@
     <Content Include="live555\live555ProxyServer.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Magick\license.txt" />
+    <Content Include="Magick\Magick.NET-x86.dll" />
+    <Content Include="Magick\Magick.NET-x86.xml" />
     <Content Include="nVLC\NLog.dll" />
     <Content Include="nVLC\nVLC.Declarations.dll" />
     <Content Include="nVLC\nVLC.Declarations.pdb" />
@@ -239,6 +249,9 @@
     <Content Include="nVLC\nVLC.LibVlcWrapper.xml" />
     <Content Include="Resources\jquery-ui-1.10.2.custom.min.css" />
     <Content Include="Resources\jquery-ui-1.10.2.custom.min.js" />
+    <Content Include="SshNet\license.txt" />
+    <Content Include="SshNet\Renci.SshNet.dll" />
+    <Content Include="SshNet\Renci.SshNet.xml" />
     <Content Include="VLC\libvlc.dll" />
     <Content Include="VLC\libvlccore.dll" />
     <Content Include="VLC\plugins\access\libaccess_attachment_plugin.dll" />

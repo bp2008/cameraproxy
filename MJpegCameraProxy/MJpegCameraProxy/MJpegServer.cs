@@ -182,7 +182,7 @@ namespace MJpegCameraProxy
 					}
 					ImageFormat imgFormat = ImageFormat.Jpeg;
 					latestImage = ImageConverter.HandleRequestedConversionIfAny(latestImage, p, ref imgFormat, format);
-					p.writeSuccess(ImageConverter.GetMime(imgFormat), latestImage.Length);
+					p.writeSuccess(Util.GetMime(imgFormat), latestImage.Length);
 					p.outputStream.Flush();
 					p.rawOutputStream.Write(latestImage, 0, latestImage.Length);
 				}
@@ -241,7 +241,7 @@ namespace MJpegCameraProxy
 							byte[] sendImage = ImageConverter.HandleRequestedConversionIfAny(newImage, p, ref imgFormat);
 
 							p.outputStream.WriteLine("--ipcamera");
-							p.outputStream.WriteLine("Content-Type: " + ImageConverter.GetMime(imgFormat));
+							p.outputStream.WriteLine("Content-Type: " + Util.GetMime(imgFormat));
 							p.outputStream.WriteLine("Content-Length: " + sendImage.Length);
 							p.outputStream.WriteLine();
 							p.outputStream.Flush();

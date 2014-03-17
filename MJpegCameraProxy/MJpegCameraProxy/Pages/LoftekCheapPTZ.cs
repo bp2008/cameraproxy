@@ -274,7 +274,7 @@ $(function()
 						byte[] image = MJpegServer.cm.GetLatestImage(cam);
 						if (image.Length > 0)
 						{
-							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.ToLower() + preset_number + ".jpg");
+							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.ToLower() + preset_number + ".jpg", useImageMagick: MJpegWrapper.cfg.UseImageMagick);
 						}
 					}
 					catch (Exception ex)

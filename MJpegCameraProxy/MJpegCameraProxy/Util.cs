@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Net;
+using System.Drawing.Imaging;
 
 namespace MJpegCameraProxy
 {
@@ -45,21 +46,27 @@ namespace MJpegCameraProxy
 				return Directory.CreateDirectory(path).Exists;
 			return true;
 		}
-		public static void WriteImageThumbnailToFile(byte[] imageData, string path, int width = 128, int height = 96)
+		public static void WriteImageThumbnailToFile(byte[] imageData, string path, int width = 128, int height = 96, bool useImageMagick = false)
 		{
+			WrappedImage wi = null;
 			try
 			{
-				Image img = ImageFromBytes(imageData);
-				if (img == null)
+				if (imageData == null || imageData.Length == 0)
 					return;
 				FileInfo file = new FileInfo(path);
 				Util.EnsureDirectoryExists(file.Directory.FullName);
-				img = img.GetThumbnailImage(width, height, null, System.IntPtr.Zero);
-				File.WriteAllBytes(file.FullName, ImageConverter.GetJpegBytes(img));
+				wi = new WrappedImage(imageData, useImageMagick);
+				File.WriteAllBytes(file.FullName, wi.ToByteArray(ImageFormat.Jpeg));
+
 			}
 			catch (Exception ex)
 			{
 				Logger.Debug(ex);
+			}
+			finally
+			{
+				if (wi != null)
+					wi.Dispose();
 			}
 		}
 		public static Image ImageFromBytes(byte[] imageData)
@@ -72,6 +79,44 @@ namespace MJpegCameraProxy
 				}
 			}
 			catch (Exception) { }
+			return null;
+		}
+		public static byte[] GetJpegBytes(System.Drawing.Image img, long quality = 80)
+		{
+			using (MemoryStream ms = new MemoryStream())
+			{
+				SaveJpeg(ms, img, quality);
+				return ms.ToArray();
+			}
+		}
+		/// <summary>
+		/// Saves the image into the specified stream using the specified jpeg quality level.
+		/// </summary>
+		/// <param name="stream">The stream to save the image in.</param>
+		/// <param name="img">The image to save.</param>
+		/// <param name="quality">(Optional) Jpeg compression quality, from 0 (low quality) to 100 (very high quality).</param>
+		public static void SaveJpeg(System.IO.Stream stream, System.Drawing.Image img, long quality = 80)
+		{
+			if (quality < 0)
+				quality = 0;
+			if (quality > 100)
+				quality = 100;
+			EncoderParameters encoderParams = new EncoderParameters(1);
+			EncoderParameter qualityParam = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+			ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
+			if (jpegCodec == null)
+				return;
+
+			encoderParams.Param[0] = qualityParam;
+			img.Save(stream, jpegCodec, encoderParams);
+		}
+		private static ImageCodecInfo GetEncoderInfo(string mimeType)
+		{
+			ImageCodecInfo[] encoders = ImageCodecInfo.GetImageEncoders();
+
+			for (int i = 0; i < encoders.Length; i++)
+				if (encoders[i].MimeType == mimeType)
+					return encoders[i];
 			return null;
 		}
 		public static bool IsAlphaNumeric(string str, bool spacesAndTabsIncluded = false)
@@ -91,7 +136,7 @@ namespace MJpegCameraProxy
 			{
 				HttpWebRequest req = (HttpWebRequest)System.Net.WebRequest.Create(URI);
 				req.Proxy = null;
-				if(credentials != null)
+				if (credentials != null)
 					req.Credentials = credentials;
 				req.ContentType = ContentType;
 				req.Method = "POST";
@@ -121,6 +166,16 @@ namespace MJpegCameraProxy
 			{
 				return ex.ToString();
 			}
+		}
+
+		public static string GetMime(ImageFormat imgFormat)
+		{
+			if (imgFormat == ImageFormat.Png)
+				return "image/png";
+			else if (imgFormat == ImageFormat.Webp)
+				return "image/webp";
+			else
+				return "image/jpeg";
 		}
 	}
 }
