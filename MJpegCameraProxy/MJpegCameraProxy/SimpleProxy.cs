@@ -34,6 +34,12 @@ namespace MJpegCameraProxy
 				return GetResponse(webRequest);
 			}
 			catch (ThreadAbortException ex) { throw ex; }
+			catch (WebException ex)
+			{
+				if(ex.Status != WebExceptionStatus.Timeout)
+					if (allowErrorLogging)
+						Logger.Debug(ex, "SimpleProxy URL: " + url);
+			}
 			catch (Exception ex)
 			{
 				if (allowErrorLogging)

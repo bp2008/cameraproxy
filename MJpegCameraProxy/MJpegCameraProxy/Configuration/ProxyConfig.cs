@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace MJpegCameraProxy.Configuration
 {
@@ -18,7 +19,8 @@ namespace MJpegCameraProxy.Configuration
 		public string SaveItem(SimpleHttp.HttpProcessor p)
 		{
 			bool isNew = p.GetBoolParam("new");
-			string originalId = p.GetPostParam("itemid").ToLower();
+			string originalIdNotLowerCase = p.GetPostParam("itemid");
+			string originalId = originalIdNotLowerCase.ToLower();
 			string itemtype = p.GetPostParam("itemtype");
 			if (itemtype == "camera")
 			{
@@ -91,7 +93,41 @@ namespace MJpegCameraProxy.Configuration
 				}
 				return result;
 			}
+			else if (itemtype == "ptzprofile")
+			{
+				PTZProfile f = new PTZProfile();
+				int version = p.GetPostIntParam("version", 1);
+				if (version == 1)
+					f.spec = new PTZSpecV1();
+				string result = f.spec.setFieldValues(p.RawPostParams);
+
+				if (result.StartsWith("0"))
+					return result;
+				lock (this)
+				{
+					if (isNew)
+					{
+						f.name = originalIdNotLowerCase;
+						if (ProfileNameIsUsed(f.name))
+							return "0A PTZ Profile with this name already exists.";
+						f.Save(Globals.PTZProfilesDirectoryBase + f.name + ".xml");
+					}
+					else
+					{
+						if (originalId != f.name.ToLower() && ProfileNameIsUsed(f.name))
+							return "0A PTZ Profile with this name already exists.";
+						File.Delete(Globals.PTZProfilesDirectoryBase + originalId + ".xml");
+						f.Save(Globals.PTZProfilesDirectoryBase + f.name + ".xml");
+					}
+				}
+				return result;
+			}
 			return "0Invalid item type: " + itemtype;
+		}
+
+		private bool ProfileNameIsUsed(string profileName)
+		{
+			return File.Exists(Globals.PTZProfilesDirectoryBase + profileName + ".xml");
 		}
 
 		private bool CameraIdIsUsed(string cameraId)
@@ -169,6 +205,15 @@ namespace MJpegCameraProxy.Configuration
 						return hsParts.Contains(u.name);
 					});
 					Save(Globals.ConfigFilePath);
+				}
+			}
+			else if (itemtype == "ptzprofile")
+			{
+				lock (this)
+				{
+					foreach(string s in parts)
+						if (ProfileNameIsUsed(s))
+							File.Delete(Globals.PTZProfilesDirectoryBase + s + ".xml");
 				}
 			}
 			return "1";

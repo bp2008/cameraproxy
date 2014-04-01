@@ -309,7 +309,7 @@ namespace MJpegCameraProxy.Pages.Admin
 				{
 					T obj = myList[i];
 					string[] values = new string[cols.Length + 1];
-					values[0] = "<input type=\"checkbox\" class=\"listItemSelectionCheckbox_" + tableKey + "\" itemid=\"" + obj.GetType().GetField(idField).GetValue(obj) + "\" />";
+					values[0] = "<input type=\"checkbox\" class=\"listItemSelectionCheckbox_" + tableKey + "\" itemid=\"" + GetItemId(obj) + "\" />";
 					for (int j = 0; j < cols.Length; j++)
 					{
 						ItemTableColumnDefinition<T> cd = cols[j];
@@ -322,6 +322,18 @@ namespace MJpegCameraProxy.Pages.Admin
 
 			AdminBase.AddAndDeleteButtons(sb, tableKey);
 			return sb.ToString();
+		}
+
+		private object GetItemId(T obj)
+		{
+			Type t = obj.GetType();
+			FieldInfo fi = t.GetField(idField);
+			if (fi != null)
+				return fi.GetValue(obj);
+			PropertyInfo pi = t.GetProperty(idField);
+			if (pi != null)
+				return pi.GetValue(obj, null);
+			return "";
 		}
 	}
 	class ItemTableColumnDefinition<T>
@@ -396,6 +408,7 @@ namespace MJpegCameraProxy.Pages.Admin
 		{
 			RegisterPage("Main", typeof(Main));
 			RegisterPage("Cameras", typeof(Cameras));
+			RegisterPage("PTZProfiles", typeof(PTZProfileList));
 			RegisterPage("Users", typeof(Users));
 			RegisterPage("edititem", typeof(EditItem), false);
 			RegisterPage("Logout", typeof(Login));

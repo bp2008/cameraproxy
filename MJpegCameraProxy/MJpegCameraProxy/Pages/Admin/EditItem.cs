@@ -55,6 +55,26 @@ namespace MJpegCameraProxy.Pages.Admin
 					sb.Append("Could not find user");
 				return sb.ToString();
 			}
+			else if (itemtype == "ptzprofile")
+			{
+				sb.AppendLine("<div style=\"display:none;\" id=\"pageToLoadWhenFinished\" page=\"ptzprofiles\"></div>");
+				bool foundProfile = false;
+				lock (MJpegWrapper.cfg)
+				{
+					foreach (Configuration.PTZProfile f in PTZProfile.GetPtzProfiles())
+					{
+						if (f.spec.name.ToLower() == itemid)
+						{
+							foundProfile = true;
+							CreateItemEditor(f.spec);
+							break;
+						}
+					}
+				}
+				if (!foundProfile)
+					sb.Append("Could not find PTZ Profile");
+				return sb.ToString();
+			}
 			else
 			{
 				sb.AppendLine("<div style=\"display:none;\" id=\"pageToLoadWhenFinished\" page=\"main\"></div>");

@@ -72,6 +72,14 @@ namespace MJpegCameraProxy
 		{
 			get { return thumbsDirectoryBase; }
 		}
+		private static string ptzProfilesDirectoryBase = applicationRoot + "/PTZProfiles/";
+		/// <summary>
+		/// Gets the full path to the PTZProfiles directory including the trailing '/'.  Just add file name!
+		/// </summary>
+		public static string PTZProfilesDirectoryBase
+		{
+			get { return ptzProfilesDirectoryBase; }
+		}
 		private static string configFilePath = applicationDirectoryBase + "Config.cfg";
 		/// <summary>
 		/// Gets the full path to the config file.
@@ -80,6 +88,6 @@ namespace MJpegCameraProxy
 		{
 			get { return configFilePath; }
 		}
-		public static string Version = "1.3.7";
+		public static string Version = "1.3.8";
 	}
 }

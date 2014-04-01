@@ -38,6 +38,13 @@ namespace MJpegCameraProxy
 						Thread.Sleep(timeToWait);
 						diff = cameraSpec.delayBetweenImageGrabs - (int)timer.ElapsedMilliseconds;
 					}
+					if (newFrame.Length == 0 && cameraSpec.delayBetweenImageGrabs < 1000)
+					{
+						// Prevent rapid attempts if image failed to load
+						int ctr = 0;
+						while (ctr++ < 10)
+							Thread.Sleep(100);
+					}
 					timer.Stop();
 				}
 				catch (ThreadAbortException)

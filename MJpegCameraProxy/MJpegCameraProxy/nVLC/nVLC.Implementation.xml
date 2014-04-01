@@ -4,9 +4,9 @@
         <name>nVLC.Implementation</name>
     </assembly>
     <members>
-        <member name="T:Implementation.MediaPlayerFactory">
+        <member name="T:Implementation.Exceptions.LibVlcNotFoundException">
             <summary>
-            Entry point for the nVLC library.
+            Exception thrown when one of the vlc libraries are missing.
             </summary>
         </member>
         <member name="T:Implementation.DisposableBase">
@@ -33,6 +33,57 @@
         <member name="M:Implementation.DisposableBase.VerifyObjectNotDisposed">
             <summary>
             
+            </summary>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcInitException">
+            <summary>
+            Exception thrown when libVLC initialization failed.
+            </summary>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcException">
+            <summary>
+            Throws an exception with the latest error message.
+            </summary>
+        </member>
+        <member name="M:Implementation.Exceptions.LibVlcException.#ctor">
+            <summary>
+            Initializes a new instance of the LibVlcException class with the last error that occurred.
+            </summary>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.Alloc(System.Int32)">
+            <summary>
+            Allocates a memory block of the given size. The allocated memory is
+            automatically initialized to zero.
+            </summary>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.Free(System.Void*)">
+            <summary>
+            Frees a memory block.
+            </summary>
+            <param name="block"></param>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.ReAlloc(System.Void*,System.Int32)">
+            <summary>
+            Re-allocates a memory block. If the reallocation request is for a
+            larger size, the additional region of memory is automatically
+            initialized to zero.
+            </summary>
+            <param name="block"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.Utils.MemoryHeap.SizeOf(System.Void*)">
+            <summary>
+            Returns the size of a memory block.
+            </summary>
+            <param name="block"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Implementation.MediaPlayerFactory">
+            <summary>
+            Entry point for the nVLC library.
             </summary>
         </member>
         <member name="M:Implementation.MediaPlayerFactory.#ctor(System.Boolean,System.Boolean)">
@@ -164,6 +215,53 @@
             Gets error message for the last LibVLC error in the calling thread
             </summary>
         </member>
+        <member name="M:Implementation.Extensions.ToCropFilterString(System.Drawing.Rectangle)">
+            <summary>
+            String format : [width]x[height]+[left offset]+[top offset]
+            </summary>
+            <param name="rect"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Implementation.PublisExtensions.SetEqualizer(Declarations.Players.IAudioPlayer,Implementation.Equalizer)">
+            <summary>
+            
+            </summary>
+            <param name="player"></param>
+            <param name="equalizer"></param>
+        </member>
+        <member name="T:Implementation.Exceptions.LibVlcRemovedModuleException">
+            <summary>
+            Represents error that occured due to removal of libVLC module
+            </summary>
+        </member>
+        <member name="M:Implementation.Exceptions.LibVlcRemovedModuleException.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initializes new instance of the class
+            </summary>
+            <param name="libVlcModuleName"></param>
+            <param name="nVlcModuleName"></param>
+            <param name="lastWorkingVersion"></param>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.LibVlcModuleName">
+            <summary>
+            Name of the libVLC module
+            </summary>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.LastWorkingVersion">
+            <summary>
+            Last version where module was operational
+            </summary>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.nVlcModuleName">
+            <summary>
+            Name of the nVLC object using removed module
+            </summary>
+        </member>
+        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.Message">
+            <summary>
+            Gets a message that describes the current exception
+            </summary>
+        </member>
         <member name="T:Implementation.Equalizer">
             <summary>
             
@@ -228,104 +326,6 @@
         <member name="P:Implementation.Band.Amplitude">
             <summary>
             
-            </summary>
-        </member>
-        <member name="M:Implementation.Utils.MemoryHeap.Alloc(System.Int32)">
-            <summary>
-            Allocates a memory block of the given size. The allocated memory is
-            automatically initialized to zero.
-            </summary>
-            <param name="size"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Implementation.Utils.MemoryHeap.Free(System.Void*)">
-            <summary>
-            Frees a memory block.
-            </summary>
-            <param name="block"></param>
-        </member>
-        <member name="M:Implementation.Utils.MemoryHeap.ReAlloc(System.Void*,System.Int32)">
-            <summary>
-            Re-allocates a memory block. If the reallocation request is for a
-            larger size, the additional region of memory is automatically
-            initialized to zero.
-            </summary>
-            <param name="block"></param>
-            <param name="size"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Implementation.Utils.MemoryHeap.SizeOf(System.Void*)">
-            <summary>
-            Returns the size of a memory block.
-            </summary>
-            <param name="block"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Implementation.Exceptions.LibVlcRemovedModuleException">
-            <summary>
-            Represents error that occured due to removal of libVLC module
-            </summary>
-        </member>
-        <member name="M:Implementation.Exceptions.LibVlcRemovedModuleException.#ctor(System.String,System.String,System.String)">
-            <summary>
-            Initializes new instance of the class
-            </summary>
-            <param name="libVlcModuleName"></param>
-            <param name="nVlcModuleName"></param>
-            <param name="lastWorkingVersion"></param>
-        </member>
-        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.LibVlcModuleName">
-            <summary>
-            Name of the libVLC module
-            </summary>
-        </member>
-        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.LastWorkingVersion">
-            <summary>
-            Last version where module was operational
-            </summary>
-        </member>
-        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.nVlcModuleName">
-            <summary>
-            Name of the nVLC object using removed module
-            </summary>
-        </member>
-        <member name="P:Implementation.Exceptions.LibVlcRemovedModuleException.Message">
-            <summary>
-            Gets a message that describes the current exception
-            </summary>
-        </member>
-        <member name="T:Implementation.Exceptions.LibVlcException">
-            <summary>
-            Throws an exception with the latest error message.
-            </summary>
-        </member>
-        <member name="M:Implementation.Exceptions.LibVlcException.#ctor">
-            <summary>
-            Initializes a new instance of the LibVlcException class with the last error that occurred.
-            </summary>
-        </member>
-        <member name="T:Implementation.Exceptions.LibVlcInitException">
-            <summary>
-            Exception thrown when libVLC initialization failed.
-            </summary>
-        </member>
-        <member name="M:Implementation.Extensions.ToCropFilterString(System.Drawing.Rectangle)">
-            <summary>
-            String format : [width]x[height]+[left offset]+[top offset]
-            </summary>
-            <param name="rect"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Implementation.PublisExtensions.SetEqualizer(Declarations.Players.IAudioPlayer,Implementation.Equalizer)">
-            <summary>
-            
-            </summary>
-            <param name="player"></param>
-            <param name="equalizer"></param>
-        </member>
-        <member name="T:Implementation.Exceptions.LibVlcNotFoundException">
-            <summary>
-            Exception thrown when one of the vlc libraries are missing.
             </summary>
         </member>
     </members>

@@ -114,7 +114,7 @@ namespace MJpegCameraProxy
 				if (mi.ColorSpace == ColorSpace.sRGB && mi.ColorType == ColorType.TrueColor)
 				{
 					WritablePixelCollection data = mi.GetWritablePixels();
-					float[] vals = data.GetValues();
+					byte[] vals = data.GetValues();
 					int stride = data.Width * 4;
 					for (int y = 0; y < data.Height; y++)
 					{
@@ -122,7 +122,7 @@ namespace MJpegCameraProxy
 						int end = start + stride;
 						for (int i = start; i < end; i += 4)
 						{
-							vals[i] = (vals[i] + vals[i + 1] + vals[i + 2]) / 3;
+							vals[i] = ByteAverage(vals[i], vals[i + 1], vals[i + 2]);
 							vals[i + 1] = vals[i + 2] = 0;
 						}
 					}
@@ -134,6 +134,14 @@ namespace MJpegCameraProxy
 					Console.WriteLine(mi.ColorSpace + " " + mi.ColorType);
 				}
 			}
+		}
+
+		private byte ByteAverage(params byte[] bytes)
+		{
+			int total = 0;
+			foreach (byte b in bytes)
+				total += b;
+			return (byte)(total / bytes.Length);
 		}
 
 		public byte[] ToByteArray(ImageFormat format, int quality = 80)

@@ -113,6 +113,9 @@
     <Compile Include="Configuration\CameraSpec.cs" />
     <Compile Include="Configuration\FieldSettable.cs" />
     <Compile Include="Configuration\ProxyConfig.cs" />
+    <Compile Include="Configuration\PTZProfile.cs" />
+    <Compile Include="Configuration\PTZSpecV1.cs" />
+    <Compile Include="Configuration\PTZSpec.cs" />
     <Compile Include="Configuration\SerializableObjectBase.cs" />
     <Compile Include="Configuration\User.cs" />
     <Compile Include="H264Camera.cs" />
@@ -127,6 +130,9 @@
     <Compile Include="HttpServer\Crypto\Win32ErrorHelper.cs" />
     <Compile Include="HttpServer\Crypto\Win32Native.cs" />
     <Compile Include="ImageSignature.cs" />
+    <Compile Include="Pages\Admin\PTZProfileList.cs" />
+    <Compile Include="PanTiltZoom\IPTZPresets.cs" />
+    <Compile Include="PanTiltZoom\Custom\CustomPTZProfile.cs" />
     <Compile Include="PanTiltZoom\IZoomAbs.cs" />
     <Compile Include="JSON.cs" />
     <Compile Include="Pages\Admin\AdminBase.cs" />
@@ -163,6 +169,7 @@
     <Compile Include="PanTiltZoom\PtzController.cs" />
     <Compile Include="PanTiltZoom\PTZHtml.cs" />
     <Compile Include="PanTiltZoom\TrendNet\TV_IP400.cs" />
+    <Compile Include="PanTiltZoom\ZoomAmount.cs" />
     <Compile Include="PanTiltZoom\ZoomDirection.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

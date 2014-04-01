@@ -30,7 +30,7 @@ namespace MJpegCameraProxy.PanTiltZoom.Dev
 			return true;
 		}
 
-		public void Zoom(ZoomDirection direction)
+		public void Zoom(ZoomDirection direction, ZoomAmount amount)
 		{
 			MaintainConnection();
 			int[] range = GetZoomRange();

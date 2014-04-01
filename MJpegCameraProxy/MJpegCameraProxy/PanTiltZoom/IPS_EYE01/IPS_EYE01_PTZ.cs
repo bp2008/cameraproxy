@@ -44,7 +44,7 @@ namespace MJpegCameraProxy.PanTiltZoom.IPS_EYE01
 			return false;
 		}
 
-		public void Zoom(ZoomDirection direction)
+		public void Zoom(ZoomDirection direction, ZoomAmount amount)
 		{
 			return;
 		}
