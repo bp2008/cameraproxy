@@ -411,7 +411,7 @@ namespace MJpegCameraProxy
 <body onload=""myOnLoad();"">
 	<div id=""camFrame"">
 		" + cameraImgLink + @"
-		<table>
+		<table style=""width: 100%"">
 			<tbody>
 				<tr>
 					" + PTZ.GetHtml(camId, cam) + @"

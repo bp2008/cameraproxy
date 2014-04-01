@@ -36,7 +36,7 @@ namespace MJpegCameraProxy.Configuration
 		public string password = "";
 
 		[EditorCategory("Pan-Tilt-Zoom")]
-		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.Dev)]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.Dev, PtzType.CustomPTZProfile)]
 		[EditorName("PTZ Host Name")]
 		public string ptz_hostName = "";
 		[EditorName("PTZ User Name")]
@@ -53,6 +53,12 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("Remote Camera ID")]
 		[EditorHint("<br/>ID of the remote camera.  This may be different from the local camera ID.")]
 		public string ptz_proxy_cameraId = "";
+
+		[EditorCategory("Custom PTZ Profile")]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.CustomPTZProfile)]
+		[EditorName("Profile Name")]
+		[EditorHint(" Check the PTZProfiles page for a list of valid profile names.")]
+		public string ptz_customPTZProfile = "";
 
 		[EditorCategory("Dahua PTZ Settings")]
 		[EditorCondition_FieldMustBe("ptzType", PtzType.Dahua)]
@@ -133,7 +139,7 @@ namespace MJpegCameraProxy.Configuration
 		{
 			id = id.ToLower();
 			if ((type == CameraType.h264_rtsp_proxy || type == CameraType.vlc_transcode) && Environment.OSVersion.Platform != PlatformID.Win32NT)
-				return "The " + type.ToString() + " camera type is incompatible with the current server environment, which is " + Environment.OSVersion.Platform.ToString();
+				return "0The " + type.ToString() + " camera type is incompatible with the current server environment, which is " + Environment.OSVersion.Platform.ToString();
 			if (string.IsNullOrWhiteSpace(name))
 				return "0Camera name must not contain only whitespace.";
 			if (!Util.IsAlphaNumeric(name, true))
@@ -186,6 +192,6 @@ namespace MJpegCameraProxy.Configuration
 		None, LoftekCheap, Dahua,
 		WanscamCheap, TrendnetIP672,
 		IPS_EYE01, TrendnetTVIP400,
-		Dev
+		Dev, CustomPTZProfile
 	}
 }

@@ -17,6 +17,12 @@ namespace MJpegCameraProxy.Configuration
 				{
 					if (filePath == null)
 						filePath = this.GetType().Name + ".cfg";
+					FileInfo fi = new FileInfo(filePath);
+					if (!fi.Exists)
+					{
+						if (!fi.Directory.Exists)
+							Directory.CreateDirectory(fi.Directory.FullName);
+					}
 					System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(this.GetType());
 					using (FileStream fs = new FileStream(filePath, FileMode.Create))
 						x.Serialize(fs, this);

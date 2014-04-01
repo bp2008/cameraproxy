@@ -4,9 +4,41 @@
         <name>nVLC.Declarations</name>
     </assembly>
     <members>
-        <member name="T:Declarations.Media.IMediaFromFile">
+        <member name="T:Declarations.VLM.VlmEvent">
             <summary>
-            Represents audio/visual media file.
+            Represents VLM events 
+            </summary>
+        </member>
+        <member name="M:Declarations.VLM.VlmEvent.#ctor(System.String,System.String)">
+            <summary>
+            Initializes new intance of VlmEvent
+            </summary>
+            <param name="instanceName"></param>
+            <param name="mediaName"></param>
+        </member>
+        <member name="P:Declarations.VLM.VlmEvent.MediaName">
+            <summary>
+            Gets the VLM media name
+            </summary>
+        </member>
+        <member name="P:Declarations.VLM.VlmEvent.InstanceName">
+            <summary>
+            Gets the VLM media instance name
+            </summary>
+        </member>
+        <member name="T:Declarations.AudioOutputDeviceInfo">
+            <summary>
+            Represents hardware audio output device such as sound card.
+            </summary>
+        </member>
+        <member name="T:Declarations.AudioOutputModuleInfo">
+            <summary>
+            Represents software audio output module such as Waveout.
+            </summary>
+        </member>
+        <member name="T:Declarations.Media.ICompositeMemoryInputMedia">
+            <summary>
+            
             </summary>
         </member>
         <member name="T:Declarations.Media.IMedia">
@@ -85,392 +117,92 @@
             Gets or sets additional media which will play synchronously.
             </summary>
         </member>
-        <member name="M:Declarations.Media.IMediaFromFile.GetMetaData(Declarations.MetaDataType)">
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddStream(Declarations.StreamInfo,System.Int32)">
             <summary>
-            Gets meta data of the media.
+            
             </summary>
-            <param name="dataType"></param>
+            <param name="streamInfo"></param>
+            <param name="maxItemsInQueue"></param>
+        </member>
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,Declarations.FrameData)">
+            <summary>
+            
+            </summary>
+            <param name="streamId"></param>
+            <param name="frame"></param>
+        </member>
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,System.Byte[],System.Int64,System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="streamId"></param>
+            <param name="data"></param>
+            <param name="pts"></param>
+            <param name="dts"></param>
+        </member>
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,System.Drawing.Bitmap,System.Int64,System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="streamId"></param>
+            <param name="bitmap"></param>
+            <param name="pts"></param>
+            <param name="dts"></param>
+        </member>
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,Declarations.Sound,System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="streamId"></param>
+            <param name="sound"></param>
+            <param name="dts"></param>
+        </member>
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.SetExceptionHandler(System.Action{System.Exception})">
+            <summary>
+            
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.GetPendingFramesCount(System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="streamId"></param>
             <returns></returns>
         </member>
-        <member name="M:Declarations.Media.IMediaFromFile.SetMetaData(Declarations.MetaDataType,System.String)">
-            <summary>
-            Sets meta data of the media.
-            </summary>
-            <param name="dataType">Meta data type</param>
-            <param name="argument">New meta data value</param>
-        </member>
-        <member name="M:Declarations.Media.IMediaFromFile.SaveMetaData">
-            <summary>
-            Saves changes to media meta data.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IMediaFromFile.Duration">
-            <summary>
-            Gets the duration of media in milliseconds.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IMediaFromFile.TracksInfo">
-            <summary>
-            Gets information describing media elementary streams.
-            </summary>
-            <remarks>Returns array of media tracks info in case of success, or null in case of failure</remarks>
-        </member>
-        <member name="T:Declarations.Enums.VideoCodecs">
-            <summary>
-            Video codecs supported by imem module (IMemoryInputMedia)
-            </summary>
-        </member>
-        <member name="F:Declarations.Enums.VideoCodecs.BGR24">
-            <summary>
-            24 bits per pixel blue, green and red
-            </summary>
-        </member>
-        <member name="F:Declarations.Enums.VideoCodecs.BGR32">
-            <summary>
-            32 bits per pixel blue, green, red and empty (or alpha)
-            </summary>
-        </member>
-        <member name="F:Declarations.Enums.VideoCodecs.MJPEG">
-            <summary>
-            Motion JPEG stream - each video frame encoded as jpeg image
-            </summary>
-        </member>
-        <member name="F:Declarations.Enums.VideoCodecs.I420">
-            <summary>
-            YUV420 12 bits per pixel Y, Cb and Cr
-            </summary>
-        </member>
-        <member name="T:Declarations.NewFrameEventHandler">
-            <summary>
-            Represents a callback method that will handle each frame in video sequence as System.Drawing.Bitmap object.
-            </summary>
-            <param name="frame">New frame to display</param>
-        </member>
-        <member name="T:Declarations.NewFrameDataEventHandler">
-            <summary>
-            Represents the method that will handle each frame in video sequence as array of raw pixel planes.
-            </summary>
-            <param name="frame"></param>
-        </member>
-        <member name="T:Declarations.NewSoundEventHandler">
-            <summary>
-            Represents a callback method which handles audio samples
-            </summary>
-            <param name="newSound"></param>
-        </member>
-        <member name="T:Declarations.VolumeChangedEventHandler">
-            <summary>
-            Represents a callback method which handles change in volume or mute values
-            </summary>
-            <param name="volume"></param>
-            <param name="mute"></param>
-        </member>
-        <member name="T:Declarations.AudioCallbacks">
-            <summary>
-            Container for custom audio processing callbacks
-            </summary>
-        </member>
-        <member name="F:Declarations.AudioCallbacks.VolumeCallback">
-            <summary>
-            Callback method for handling voulume and mute proerties change
-            </summary>
-        </member>
-        <member name="F:Declarations.AudioCallbacks.SoundCallback">
-            <summary>
-            Callback method for handling PCM samples
-            </summary>
-        </member>
-        <member name="F:Declarations.AudioCallbacks.PauseCallback">
-            <summary>
-            Callback method called when media player switches to Pause state
-            </summary>
-        </member>
-        <member name="F:Declarations.AudioCallbacks.ResumeCallback">
-            <summary>
-            Callback method called when media player switches to Playback state
-            </summary>
-        </member>
-        <member name="F:Declarations.AudioCallbacks.FlushCallback">
-            <summary>
-            Callback method called when all pending buffers should be discarded
-            </summary>
-        </member>
-        <member name="F:Declarations.AudioCallbacks.DrainCallback">
-            <summary>
-            Callback method called when all pending buffers must be played
-            </summary>
-        </member>
-        <member name="T:Declarations.Filters.IDeinterlaceFilter">
-            <summary>
-            Manages deinterlacing functionality.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IDeinterlaceFilter.Enabled">
-            <summary>
-            Enables or disables deinterlacing
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IDeinterlaceFilter.Mode">
-            <summary>
-            Gets or sets deinterlace algorithm
-            </summary>
-        </member>
-        <member name="T:Declarations.Filters.ICropFilter">
-            <summary>
-            Represents video crop filter
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.ICropFilter.Enabled">
-            <summary>
-            Enables or disables croping filter
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.ICropFilter.CropArea">
-            <summary>
-            Gets or sets croping area.
-            </summary>
-        </member>
-        <member name="T:Declarations.IMemoryRendererEx">
-            <summary>
-            Contains methods for setting custom processing of video frames.
-            </summary>
-        </member>
-        <member name="T:Declarations.IRenderer">
-            <summary>
-            Base type for custom rendering types
-            </summary>
-        </member>
-        <member name="M:Declarations.IRenderer.SetExceptionHandler(System.Action{System.Exception})">
-            <summary>
-            Sets exception handler for exceptions thrown by background threads.
-            </summary>
-            <param name="handler"></param>
-        </member>
-        <member name="P:Declarations.IRenderer.ActualFrameRate">
-            <summary>
-            Gets the actual frame rate of the rendering.
-            </summary>
-        </member>
-        <member name="M:Declarations.IMemoryRendererEx.SetCallback(Declarations.NewFrameDataEventHandler)">
-            <summary>
-            Sets the callback which invoked when new frame should be displayed
-            </summary>
-            <param name="callback">Callback method</param>
-        </member>
-        <member name="M:Declarations.IMemoryRendererEx.SetFormatSetupCallback(System.Func{Declarations.BitmapFormat,Declarations.BitmapFormat})">
-            <summary>
-            Sets the callback invoked before the media playback starts to set the desired frame format.
-            </summary>
-            <param name="setupCallback"></param>
-            <remarks>If not set, original media format will be used</remarks>
-        </member>
-        <member name="P:Declarations.IMemoryRendererEx.CurrentFrame">
-            <summary>
-            Gets the latest video frame that was displayed.
-            </summary>
-        </member>
-        <member name="P:Declarations.IMemoryRendererEx.SAR">
-            <summary>
-            Storage aspect ratio
-            </summary>
-        </member>
-        <member name="T:Declarations.AspectRatio">
+        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.StreamAddingComplete">
             <summary>
             
             </summary>
         </member>
-        <member name="M:Declarations.AspectRatio.#ctor(System.Int32,System.Int32)">
+        <member name="T:Declarations.Sound">
             <summary>
-            
-            </summary>
-            <param name="numerator"></param>
-            <param name="denumerator"></param>
-        </member>
-        <member name="P:Declarations.AspectRatio.Numerator">
-            <summary>
-            
+            Structure incapsulation for audio samples
             </summary>
         </member>
-        <member name="P:Declarations.AspectRatio.Denumerator">
+        <member name="P:Declarations.Sound.SamplesData">
             <summary>
-            
+            Pointer to the first audio sample
             </summary>
         </member>
-        <member name="P:Declarations.AspectRatio.Ratio">
+        <member name="P:Declarations.Sound.SamplesSize">
             <summary>
-            
+            Size in bytes of SamplesData buffer
             </summary>
         </member>
-        <member name="P:Declarations.AspectRatio.Default">
+        <member name="P:Declarations.Sound.Pts">
             <summary>
-            
+            Playback time stamp in microseconds
             </summary>
         </member>
-        <member name="T:Declarations.MediaStrings">
+        <member name="T:Declarations.Players.IVideoPlayer">
             <summary>
-            String values used to identify media types.
+            Player for audio visual media.
             </summary>
         </member>
-        <member name="F:Declarations.MediaStrings.FAKE">
+        <member name="T:Declarations.Players.IAudioPlayer">
             <summary>
-            Fake access module. Should be used with IVideoInputMedia objects.
-            </summary>
-        </member>
-        <member name="F:Declarations.MediaStrings.IMEM">
-            <summary>
-            imem access module. Should be used with IMemoryInputMedia objects
-            </summary>
-        </member>
-        <member name="T:Declarations.Media.IVideoInputMedia">
-            <summary>
-            Enables raw video frames input into VLC engine (based on invmem access module)
-            </summary>
-        </member>
-        <member name="M:Declarations.Media.IVideoInputMedia.AddFrame(System.Drawing.Bitmap)">
-            <summary>
-            Adds frame to the video stream.
-            </summary>
-            <param name="frame"></param>
-        </member>
-        <member name="M:Declarations.Media.IVideoInputMedia.SetFormat(Declarations.BitmapFormat)">
-            <summary>
-            Sets bitmap format for the video frames.
-            </summary>
-            <param name="format"></param>
-        </member>
-        <member name="T:Declarations.Media.IMemoryInputMedia">
-            <summary>
-            Enables elementary stream (audio, video, subtitles or data) frames insertion into VLC engine (based on imem access module)
-            </summary>
-        </member>
-        <member name="M:Declarations.Media.IMemoryInputMedia.Initialize(Declarations.StreamInfo,System.Int32)">
-            <summary>
-            Initializes instance of the media object with stream information and frames' queue size
-            </summary>
-            <param name="streamInfo"></param>
-            <param name="maxFramesInQueue">Maximum items in the queue. If the queue is full any AddFrame overload 
-            will block until queue slot becomes available</param>
-        </member>
-        <member name="M:Declarations.Media.IMemoryInputMedia.AddFrame(Declarations.FrameData)">
-            <summary>
-            Add frame of elementary stream data from memory on native heap
-            </summary>
-            <param name="streamInfo"></param>
-            <remarks>This function copies frame data to internal buffer, so native memory may be safely freed</remarks>
-        </member>
-        <member name="M:Declarations.Media.IMemoryInputMedia.AddFrame(System.Byte[],System.Int64,System.Int64)">
-            <summary>
-            Add frame of elementary stream data from memory on managed heap
-            </summary>
-            <param name="data"></param>
-            <param name="pts">Presentation time stamp</param>
-            <param name="dts">Decoding time stamp. -1 for unknown</param>
-            <remarks>Time origin for both pts and dts is 0</remarks>
-        </member>
-        <member name="M:Declarations.Media.IMemoryInputMedia.AddFrame(System.Drawing.Bitmap,System.Int64,System.Int64)">
-            <summary>
-            Add frame of video stream from System.Drawing.Bitmap object
-            </summary>
-            <param name="bitmap"></param>
-            <param name="pts">Presentation time stamp</param>
-            <param name="dts">Decoding time stamp. -1 for unknown</param>
-            <remarks>Time origin for both pts and dts is 0</remarks>
-            <remarks>This function copies bitmap data to internal buffer, so bitmap may be safely disposed</remarks>
-        </member>
-        <member name="M:Declarations.Media.IMemoryInputMedia.SetExceptionHandler(System.Action{System.Exception})">
-            <summary>
-            Sets handler for exceptions thrown by background threads
-            </summary>
-            <param name="handler"></param>
-        </member>
-        <member name="P:Declarations.Media.IMemoryInputMedia.PendingFramesCount">
-            <summary>
-            Gets number of pending frames in queue 
-            </summary>
-        </member>
-        <member name="T:Declarations.Events.IMediaListPlayerEvents">
-            <summary>
-            Events raised by IMediaListPlayer object
-            </summary>
-        </member>
-        <member name="T:Declarations.Events.IMediaListEvents">
-            <summary>
-            Events raised by IMediaList object
-            </summary>
-        </member>
-        <member name="T:Declarations.Discovery.IMediaDiscoverer">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.Discovery.IMediaDiscoverer.IsRunning">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.Discovery.IMediaDiscoverer.LocalizedName">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.Discovery.IMediaDiscoverer.MediaList">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.Discovery.IMediaDiscoverer.Events">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:Declarations.VlcColor">
-            <summary>
-            Represents colors in HTML format
-            </summary>
-        </member>
-        <member name="T:Declarations.PlaybackMode">
-            <summary>
-            Available playback modes for the media list player.
-            </summary>
-        </member>
-        <member name="F:Declarations.PlaybackMode.Default">
-            <summary>
-            Playes items sequentially.
-            </summary>
-        </member>
-        <member name="F:Declarations.PlaybackMode.Loop">
-            <summary>
-            Loops playlist on end.
-            </summary>
-        </member>
-        <member name="F:Declarations.PlaybackMode.Repeat">
-            <summary>
-            Repeats the current item until another item is forced.
-            </summary>
-        </member>
-        <member name="T:Declarations.Media.IScreenCaptureMedia">
-            <summary>
-            Represents media captured from screen or a part of it.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IScreenCaptureMedia.CaptureArea">
-            <summary>
-            Capture area of the screen.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IScreenCaptureMedia.FPS">
-            <summary>
-            Gets or sets the frame rate of the capture.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IScreenCaptureMedia.FollowMouse">
-            <summary>
-            Gets or sets value indication whether to include the mouse cursor in the captured frame.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IScreenCaptureMedia.CursorFile">
-            <summary>
-            Gets or sets full path of the file (PNG) containing cursor icon.
+            Player for audio only media
             </summary>
         </member>
         <member name="T:Declarations.Players.IPlayer">
@@ -527,211 +259,6 @@
         <member name="P:Declarations.Players.IPlayer.CurrentMedia">
             <summary>
             Gets reference to current media instance
-            </summary>
-        </member>
-        <member name="T:Declarations.INativePointer">
-            <summary>
-            Represents a managed object with encapsulated native pointer.
-            </summary>
-        </member>
-        <member name="P:Declarations.INativePointer.Pointer">
-            <summary>
-            Reference to a native memory block.
-            </summary>
-        </member>
-        <member name="T:Declarations.MediaStatistics">
-            <summary>
-            Data structure containing media statistics' parameters.
-            </summary>
-        </member>
-        <member name="T:Declarations.Players.IMediaListPlayer">
-            <summary>
-            Player used for IMediaList playback.
-            </summary>
-        </member>
-        <member name="M:Declarations.Players.IMediaListPlayer.PlayNext">
-            <summary>
-            Plays next item in the media list.
-            </summary>
-        </member>
-        <member name="M:Declarations.Players.IMediaListPlayer.PlayPrevios">
-            <summary>
-            Plays previos item in the media list.
-            </summary>
-        </member>
-        <member name="M:Declarations.Players.IMediaListPlayer.PlayItemAt(System.Int32)">
-            <summary>
-            Plays media item at specified index.
-            </summary>
-            <param name="index">Index of media</param>
-        </member>
-        <member name="P:Declarations.Players.IMediaListPlayer.PlaybackMode">
-            <summary>
-            Sets or gets media list playback mode.
-            </summary>
-        </member>
-        <member name="P:Declarations.Players.IMediaListPlayer.PlayerState">
-            <summary>
-            Gets media list player state.
-            </summary>
-        </member>
-        <member name="P:Declarations.Players.IMediaListPlayer.InnerPlayer">
-            <summary>
-            Gets the inner player of the media list player.
-            </summary>
-        </member>
-        <member name="P:Declarations.Players.IMediaListPlayer.MediaListPlayerEvents">
-            <summary>
-            Gets events raised by media list player instnce.
-            </summary>
-        </member>
-        <member name="T:Declarations.VLM.IVlmEventManager">
-            <summary>
-            Gets events raised by the VLM object
-            </summary>
-        </member>
-        <member name="T:Declarations.Filters.IMarqueeFilter">
-            <summary>
-            Represents text overlay filter functionality.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Enabled">
-            <summary>
-            Enables or disables text overlay.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Text">
-            <summary>
-            Marquee text to display.
-            (Available format strings:
-            Time related: %Y = year, %m = month, %d = day, %H = hour,
-            %M = minute, %S = second, ... 
-            Meta data related: $a = artist, $b = album, $c = copyright,
-            $d = description, $e = encoded by, $g = genre,
-            $l = language, $n = track num, $p = now playing,
-            $r = rating, $s = subtitles language, $t = title,
-            $u = url, $A = date,
-            $B = audio bitrate (in kb/s), $C = chapter,
-            $D = duration, $F = full name with path, $I = title,
-            $L = time left,
-            $N = name, $O = audio language, $P = position (in %), $R = rate,
-            $S = audio sample rate (in kHz),
-            $T = time, $U = publisher, $V = volume, $_ = new line) 
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Color">
-            <summary>
-            Color of the text that will be rendered on the video.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Position">
-            <summary>
-            You can enforce the marquee position on the video.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Refresh">
-            <summary>
-            Number of milliseconds between string updates. This is mainly useful when using meta data or time format string sequences.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Size">
-            <summary>
-            Font size, in pixels. Default is -1 (use default font size).
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Timeout">
-            <summary>
-            Number of milliseconds the marquee must remain displayed. Default value is 0 (remains forever).
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.X">
-            <summary>
-            X offset, from the left screen edge.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Y">
-            <summary>
-            Y offset, down from the top.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IMarqueeFilter.Opacity">
-            <summary>
-            Opacity (inverse of transparency) of overlayed text. 0 = transparent, 255 = totally opaque. 
-            </summary>
-        </member>
-        <member name="T:Declarations.IAudioRenderer">
-            <summary>
-            Enables custom processing of audio samples
-            </summary>
-        </member>
-        <member name="M:Declarations.IAudioRenderer.SetCallbacks(Declarations.VolumeChangedEventHandler,Declarations.NewSoundEventHandler)">
-            <summary>
-            Sets callback methods for volume change and audio samples playback
-            </summary>
-            <param name="volume">Callback method invoked when volume changed or muted</param>
-            <param name="sound">Callback method invoked when new audio samples should be played</param>
-        </member>
-        <member name="M:Declarations.IAudioRenderer.SetCallbacks(Declarations.AudioCallbacks)">
-            <summary>
-            Sets callback for audio playback
-            </summary>
-            <param name="callbacks"></param>
-        </member>
-        <member name="M:Declarations.IAudioRenderer.SetFormat(Declarations.SoundFormat)">
-            <summary>
-            Sets audio format
-            </summary>
-            <param name="format"></param>
-            <remarks>Mutually exclusive with SetFormatCallback</remarks>
-        </member>
-        <member name="M:Declarations.IAudioRenderer.SetFormatCallback(System.Func{Declarations.SoundFormat,Declarations.SoundFormat})">
-            <summary>
-            Sets audio format callback, to get/set format before playback starts
-            </summary>
-            <param name="formatSetup"></param>
-            <remarks>Mutually exclusive with SetFormat</remarks>
-        </member>
-        <member name="T:Declarations.IMemoryRenderer">
-            <summary>
-            Enables custom processing of video frames.
-            </summary>
-        </member>
-        <member name="M:Declarations.IMemoryRenderer.SetCallback(Declarations.NewFrameEventHandler)">
-            <summary>
-            Sets the callback which invoked when new frame should be displayed
-            </summary>
-            <param name="callback">Callback method</param>
-            <remarks>The frame will be auto-disposed after callback invokation.</remarks>
-        </member>
-        <member name="M:Declarations.IMemoryRenderer.SetFormat(Declarations.BitmapFormat)">
-            <summary>
-            Sets the bitmap format for the callback.
-            </summary>
-            <param name="format">Bitmap format of the video frame</param>
-        </member>
-        <member name="P:Declarations.IMemoryRenderer.CurrentFrame">
-            <summary>
-            Gets the latest video frame that was displayed.
-            </summary>
-        </member>
-        <member name="T:Declarations.Events.IMediaEvents">
-            <summary>
-            Events raised by IMedia object
-            </summary>
-        </member>
-        <member name="T:Declarations.Players.IDiskPlayer">
-            <summary>
-            DVD, VCD and Audio CD playback
-            </summary>
-        </member>
-        <member name="T:Declarations.Players.IVideoPlayer">
-            <summary>
-            Player for audio visual media.
-            </summary>
-        </member>
-        <member name="T:Declarations.Players.IAudioPlayer">
-            <summary>
-            Player for audio only media
             </summary>
         </member>
         <member name="M:Declarations.Players.IAudioPlayer.ToggleMute">
@@ -910,6 +437,818 @@
             Gets video deinterlace filter.
             </summary>
         </member>
+        <member name="T:Declarations.Players.IMediaListPlayer">
+            <summary>
+            Player used for IMediaList playback.
+            </summary>
+        </member>
+        <member name="M:Declarations.Players.IMediaListPlayer.PlayNext">
+            <summary>
+            Plays next item in the media list.
+            </summary>
+        </member>
+        <member name="M:Declarations.Players.IMediaListPlayer.PlayPrevios">
+            <summary>
+            Plays previos item in the media list.
+            </summary>
+        </member>
+        <member name="M:Declarations.Players.IMediaListPlayer.PlayItemAt(System.Int32)">
+            <summary>
+            Plays media item at specified index.
+            </summary>
+            <param name="index">Index of media</param>
+        </member>
+        <member name="P:Declarations.Players.IMediaListPlayer.PlaybackMode">
+            <summary>
+            Sets or gets media list playback mode.
+            </summary>
+        </member>
+        <member name="P:Declarations.Players.IMediaListPlayer.PlayerState">
+            <summary>
+            Gets media list player state.
+            </summary>
+        </member>
+        <member name="P:Declarations.Players.IMediaListPlayer.InnerPlayer">
+            <summary>
+            Gets the inner player of the media list player.
+            </summary>
+        </member>
+        <member name="P:Declarations.Players.IMediaListPlayer.MediaListPlayerEvents">
+            <summary>
+            Gets events raised by media list player instnce.
+            </summary>
+        </member>
+        <member name="T:Declarations.Events.IEventBroker">
+            <summary>
+            Events raised by the IPlayer object
+            </summary>
+        </member>
+        <member name="E:Declarations.Events.IEventBroker.MediaEnded">
+            <summary>
+            Event raised when media reaches end.
+            </summary>
+        </member>
+        <member name="E:Declarations.Events.IEventBroker.TimeChanged">
+            <summary>
+            Event raised when media time changed.
+            </summary>
+        </member>
+        <member name="T:Declarations.IAudioRenderer">
+            <summary>
+            Enables custom processing of audio samples
+            </summary>
+        </member>
+        <member name="T:Declarations.IRenderer">
+            <summary>
+            Base type for custom rendering types
+            </summary>
+        </member>
+        <member name="M:Declarations.IRenderer.SetExceptionHandler(System.Action{System.Exception})">
+            <summary>
+            Sets exception handler for exceptions thrown by background threads.
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="P:Declarations.IRenderer.ActualFrameRate">
+            <summary>
+            Gets the actual frame rate of the rendering.
+            </summary>
+        </member>
+        <member name="M:Declarations.IAudioRenderer.SetCallbacks(Declarations.VolumeChangedEventHandler,Declarations.NewSoundEventHandler)">
+            <summary>
+            Sets callback methods for volume change and audio samples playback
+            </summary>
+            <param name="volume">Callback method invoked when volume changed or muted</param>
+            <param name="sound">Callback method invoked when new audio samples should be played</param>
+        </member>
+        <member name="M:Declarations.IAudioRenderer.SetCallbacks(Declarations.AudioCallbacks)">
+            <summary>
+            Sets callback for audio playback
+            </summary>
+            <param name="callbacks"></param>
+        </member>
+        <member name="M:Declarations.IAudioRenderer.SetFormat(Declarations.SoundFormat)">
+            <summary>
+            Sets audio format
+            </summary>
+            <param name="format"></param>
+            <remarks>Mutually exclusive with SetFormatCallback</remarks>
+        </member>
+        <member name="M:Declarations.IAudioRenderer.SetFormatCallback(System.Func{Declarations.SoundFormat,Declarations.SoundFormat})">
+            <summary>
+            Sets audio format callback, to get/set format before playback starts
+            </summary>
+            <param name="formatSetup"></param>
+            <remarks>Mutually exclusive with SetFormat</remarks>
+        </member>
+        <member name="T:Declarations.AspectRatioMode">
+            <summary>
+            Available video aspect ratio modes
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Default">
+            <summary>
+            Default aspect ratio of the frame
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode1">
+            <summary>
+            1:1
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode2">
+            <summary>
+            4:3
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode3">
+            <summary>
+            16:9
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode4">
+            <summary>
+            16:10
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode5">
+            <summary>
+            2.21:1
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode6">
+            <summary>
+            2.35:1
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode7">
+            <summary>
+            2:39:1
+            </summary>
+        </member>
+        <member name="F:Declarations.AspectRatioMode.Mode8">
+            <summary>
+            5:4
+            </summary>
+        </member>
+        <member name="T:Declarations.MediaState">
+            <summary>
+            Possible state of the media objects
+            </summary>
+        </member>
+        <member name="T:Declarations.IMemoryRendererEx">
+            <summary>
+            Contains methods for setting custom processing of video frames.
+            </summary>
+        </member>
+        <member name="M:Declarations.IMemoryRendererEx.SetCallback(Declarations.NewFrameDataEventHandler)">
+            <summary>
+            Sets the callback which invoked when new frame should be displayed
+            </summary>
+            <param name="callback">Callback method</param>
+        </member>
+        <member name="M:Declarations.IMemoryRendererEx.SetFormatSetupCallback(System.Func{Declarations.BitmapFormat,Declarations.BitmapFormat})">
+            <summary>
+            Sets the callback invoked before the media playback starts to set the desired frame format.
+            </summary>
+            <param name="setupCallback"></param>
+            <remarks>If not set, original media format will be used</remarks>
+        </member>
+        <member name="P:Declarations.IMemoryRendererEx.CurrentFrame">
+            <summary>
+            Gets the latest video frame that was displayed.
+            </summary>
+        </member>
+        <member name="P:Declarations.IMemoryRendererEx.SAR">
+            <summary>
+            Storage aspect ratio
+            </summary>
+        </member>
+        <member name="T:Declarations.PlaybackMode">
+            <summary>
+            Available playback modes for the media list player.
+            </summary>
+        </member>
+        <member name="F:Declarations.PlaybackMode.Default">
+            <summary>
+            Playes items sequentially.
+            </summary>
+        </member>
+        <member name="F:Declarations.PlaybackMode.Loop">
+            <summary>
+            Loops playlist on end.
+            </summary>
+        </member>
+        <member name="F:Declarations.PlaybackMode.Repeat">
+            <summary>
+            Repeats the current item until another item is forced.
+            </summary>
+        </member>
+        <member name="T:Declarations.Media.IVideoInputMedia">
+            <summary>
+            Enables raw video frames input into VLC engine (based on invmem access module)
+            </summary>
+        </member>
+        <member name="M:Declarations.Media.IVideoInputMedia.AddFrame(System.Drawing.Bitmap)">
+            <summary>
+            Adds frame to the video stream.
+            </summary>
+            <param name="frame"></param>
+        </member>
+        <member name="M:Declarations.Media.IVideoInputMedia.SetFormat(Declarations.BitmapFormat)">
+            <summary>
+            Sets bitmap format for the video frames.
+            </summary>
+            <param name="format"></param>
+        </member>
+        <member name="T:Declarations.Media.IMediaFromFile">
+            <summary>
+            Represents audio/visual media file.
+            </summary>
+        </member>
+        <member name="M:Declarations.Media.IMediaFromFile.GetMetaData(Declarations.MetaDataType)">
+            <summary>
+            Gets meta data of the media.
+            </summary>
+            <param name="dataType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Declarations.Media.IMediaFromFile.SetMetaData(Declarations.MetaDataType,System.String)">
+            <summary>
+            Sets meta data of the media.
+            </summary>
+            <param name="dataType">Meta data type</param>
+            <param name="argument">New meta data value</param>
+        </member>
+        <member name="M:Declarations.Media.IMediaFromFile.SaveMetaData">
+            <summary>
+            Saves changes to media meta data.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IMediaFromFile.Duration">
+            <summary>
+            Gets the duration of media in milliseconds.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IMediaFromFile.TracksInfo">
+            <summary>
+            Gets information describing media elementary streams.
+            </summary>
+            <remarks>Returns array of media tracks info in case of success, or null in case of failure</remarks>
+        </member>
+        <member name="T:Declarations.AspectRatio">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Declarations.AspectRatio.#ctor(System.Int32,System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="numerator"></param>
+            <param name="denumerator"></param>
+        </member>
+        <member name="P:Declarations.AspectRatio.Numerator">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.AspectRatio.Denumerator">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.AspectRatio.Ratio">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.AspectRatio.Default">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Declarations.Filters.ICropFilter">
+            <summary>
+            Represents video crop filter
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.ICropFilter.Enabled">
+            <summary>
+            Enables or disables croping filter
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.ICropFilter.CropArea">
+            <summary>
+            Gets or sets croping area.
+            </summary>
+        </member>
+        <member name="T:Declarations.Events.IMediaDiscoveryEvents">
+            <summary>
+            Events raised by media discoverer
+            </summary>
+        </member>
+        <member name="T:Declarations.DeinterlaceMode">
+            <summary>
+            Available deinterlace algorithms.
+            </summary>
+        </member>
+        <member name="T:Declarations.Media.IMediaList">
+            <summary>
+            Represents a collection of media objects.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IMediaList.Events">
+            <summary>
+            Gets events fired by media list instance.
+            </summary>
+        </member>
+        <member name="T:Declarations.Media.IMemoryInputMedia">
+            <summary>
+            Enables elementary stream (audio, video, subtitles or data) frames insertion into VLC engine (based on imem access module)
+            </summary>
+        </member>
+        <member name="M:Declarations.Media.IMemoryInputMedia.Initialize(Declarations.StreamInfo,System.Int32)">
+            <summary>
+            Initializes instance of the media object with stream information and frames' queue size
+            </summary>
+            <param name="streamInfo"></param>
+            <param name="maxFramesInQueue">Maximum items in the queue. If the queue is full any AddFrame overload 
+            will block until queue slot becomes available</param>
+        </member>
+        <member name="M:Declarations.Media.IMemoryInputMedia.AddFrame(Declarations.FrameData)">
+            <summary>
+            Add frame of elementary stream data from memory on native heap
+            </summary>
+            <param name="streamInfo"></param>
+            <remarks>This function copies frame data to internal buffer, so native memory may be safely freed</remarks>
+        </member>
+        <member name="M:Declarations.Media.IMemoryInputMedia.AddFrame(System.Byte[],System.Int64,System.Int64)">
+            <summary>
+            Add frame of elementary stream data from memory on managed heap
+            </summary>
+            <param name="data"></param>
+            <param name="pts">Presentation time stamp</param>
+            <param name="dts">Decoding time stamp. -1 for unknown</param>
+            <remarks>Time origin for both pts and dts is 0</remarks>
+        </member>
+        <member name="M:Declarations.Media.IMemoryInputMedia.AddFrame(System.Drawing.Bitmap,System.Int64,System.Int64)">
+            <summary>
+            Add frame of video stream from System.Drawing.Bitmap object
+            </summary>
+            <param name="bitmap"></param>
+            <param name="pts">Presentation time stamp</param>
+            <param name="dts">Decoding time stamp. -1 for unknown</param>
+            <remarks>Time origin for both pts and dts is 0</remarks>
+            <remarks>This function copies bitmap data to internal buffer, so bitmap may be safely disposed</remarks>
+        </member>
+        <member name="M:Declarations.Media.IMemoryInputMedia.SetExceptionHandler(System.Action{System.Exception})">
+            <summary>
+            Sets handler for exceptions thrown by background threads
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="P:Declarations.Media.IMemoryInputMedia.PendingFramesCount">
+            <summary>
+            Gets number of pending frames in queue 
+            </summary>
+        </member>
+        <member name="T:Declarations.ChromaType">
+            <summary>
+            VLC pixel formats
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.RV15">
+            <summary>
+            5 bit for each RGB channel
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.RV16">
+            <summary>
+            5 bit Red, 6 bit Green and 5 bit Blue
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.RV24">
+            <summary>
+            8 bit per channel
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.RV32">
+            <summary>
+            8 bit per RGB channel and 8 bit unused
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.RGBA">
+            <summary>
+            8 bit per each RGBA channel
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.YV12">
+            <summary>
+            12 bits per pixel planar format with Y plane followed by V and U planes
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.I420">
+            <summary>
+            Same as YV12 but V and U are swapped
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.NV12">
+            <summary>
+            12 bits per pixel planar format with Y plane and interleaved UV plane
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.YUY2">
+            <summary>
+            16 bits per pixel packed YUYV array
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.UYVY">
+            <summary>
+            16 bits per pixel packed UYVY array 
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.J420">
+            <summary>
+            Same as I420, mainly used with MJPG codecs
+            </summary>
+        </member>
+        <member name="F:Declarations.ChromaType.J422">
+            <summary>
+            Same as YUY2, mainly used with MJPG codecs
+            </summary>
+        </member>
+        <member name="T:Declarations.VlcColor">
+            <summary>
+            Represents colors in HTML format
+            </summary>
+        </member>
+        <member name="T:Declarations.INativePointer">
+            <summary>
+            Represents a managed object with encapsulated native pointer.
+            </summary>
+        </member>
+        <member name="P:Declarations.INativePointer.Pointer">
+            <summary>
+            Reference to a native memory block.
+            </summary>
+        </member>
+        <member name="T:Declarations.Filters.IMarqueeFilter">
+            <summary>
+            Represents text overlay filter functionality.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Enabled">
+            <summary>
+            Enables or disables text overlay.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Text">
+            <summary>
+            Marquee text to display.
+            (Available format strings:
+            Time related: %Y = year, %m = month, %d = day, %H = hour,
+            %M = minute, %S = second, ... 
+            Meta data related: $a = artist, $b = album, $c = copyright,
+            $d = description, $e = encoded by, $g = genre,
+            $l = language, $n = track num, $p = now playing,
+            $r = rating, $s = subtitles language, $t = title,
+            $u = url, $A = date,
+            $B = audio bitrate (in kb/s), $C = chapter,
+            $D = duration, $F = full name with path, $I = title,
+            $L = time left,
+            $N = name, $O = audio language, $P = position (in %), $R = rate,
+            $S = audio sample rate (in kHz),
+            $T = time, $U = publisher, $V = volume, $_ = new line) 
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Color">
+            <summary>
+            Color of the text that will be rendered on the video.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Position">
+            <summary>
+            You can enforce the marquee position on the video.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Refresh">
+            <summary>
+            Number of milliseconds between string updates. This is mainly useful when using meta data or time format string sequences.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Size">
+            <summary>
+            Font size, in pixels. Default is -1 (use default font size).
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Timeout">
+            <summary>
+            Number of milliseconds the marquee must remain displayed. Default value is 0 (remains forever).
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.X">
+            <summary>
+            X offset, from the left screen edge.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Y">
+            <summary>
+            Y offset, down from the top.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IMarqueeFilter.Opacity">
+            <summary>
+            Opacity (inverse of transparency) of overlayed text. 0 = transparent, 255 = totally opaque. 
+            </summary>
+        </member>
+        <member name="T:Declarations.Structures.SlaveMedia">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Declarations.Structures.SlaveMedia.#ctor(System.String,System.Int32,System.Double)">
+            <summary>
+            
+            </summary>
+            <param name="mrl"></param>
+            <param name="caching"></param>
+            <param name="startTime"></param>
+        </member>
+        <member name="M:Declarations.Structures.SlaveMedia.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Declarations.Structures.SlaveMedia.Caching">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.Structures.SlaveMedia.StartTime">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.Structures.SlaveMedia.MRL">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Declarations.FilterInfo">
+            <summary>
+            Information structure for audio and video filters
+            </summary>
+        </member>
+        <member name="T:Declarations.Events.IMediaListEvents">
+            <summary>
+            Events raised by IMediaList object
+            </summary>
+        </member>
+        <member name="T:Declarations.Media.IScreenCaptureMedia">
+            <summary>
+            Represents media captured from screen or a part of it.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IScreenCaptureMedia.CaptureArea">
+            <summary>
+            Capture area of the screen.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IScreenCaptureMedia.FPS">
+            <summary>
+            Gets or sets the frame rate of the capture.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IScreenCaptureMedia.FollowMouse">
+            <summary>
+            Gets or sets value indication whether to include the mouse cursor in the captured frame.
+            </summary>
+        </member>
+        <member name="P:Declarations.Media.IScreenCaptureMedia.CursorFile">
+            <summary>
+            Gets or sets full path of the file (PNG) containing cursor icon.
+            </summary>
+        </member>
+        <member name="T:Declarations.Filters.IAdjustFilter">
+            <summary>
+            Manages video adjustment parameters.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IAdjustFilter.Enabled">
+            <summary>
+            Enables or disables video adjust filter.
+            </summary>          
+        </member>
+        <member name="P:Declarations.Filters.IAdjustFilter.Contrast">
+            <summary>
+            Image contrast in the 0-2 range.
+            </summary>          
+        </member>
+        <member name="P:Declarations.Filters.IAdjustFilter.Brightness">
+            <summary>
+            Image brightness in the 0-2 range.
+            </summary>       
+        </member>
+        <member name="P:Declarations.Filters.IAdjustFilter.Hue">
+            <summary>
+            Image hue in the 0-360 range
+            </summary>    
+        </member>
+        <member name="P:Declarations.Filters.IAdjustFilter.Saturation">
+            <summary>
+            Image saturation in the 0-3 range.
+            </summary>   
+        </member>
+        <member name="P:Declarations.Filters.IAdjustFilter.Gamma">
+            <summary>
+            Image gamma in the 0-10 range.
+            </summary>    
+        </member>
+        <member name="T:Declarations.NewFrameEventHandler">
+            <summary>
+            Represents a callback method that will handle each frame in video sequence as System.Drawing.Bitmap object.
+            </summary>
+            <param name="frame">New frame to display</param>
+        </member>
+        <member name="T:Declarations.NewFrameDataEventHandler">
+            <summary>
+            Represents the method that will handle each frame in video sequence as array of raw pixel planes.
+            </summary>
+            <param name="frame"></param>
+        </member>
+        <member name="T:Declarations.NewSoundEventHandler">
+            <summary>
+            Represents a callback method which handles audio samples
+            </summary>
+            <param name="newSound"></param>
+        </member>
+        <member name="T:Declarations.VolumeChangedEventHandler">
+            <summary>
+            Represents a callback method which handles change in volume or mute values
+            </summary>
+            <param name="volume"></param>
+            <param name="mute"></param>
+        </member>
+        <member name="T:Declarations.AudioCallbacks">
+            <summary>
+            Container for custom audio processing callbacks
+            </summary>
+        </member>
+        <member name="F:Declarations.AudioCallbacks.VolumeCallback">
+            <summary>
+            Callback method for handling voulume and mute proerties change
+            </summary>
+        </member>
+        <member name="F:Declarations.AudioCallbacks.SoundCallback">
+            <summary>
+            Callback method for handling PCM samples
+            </summary>
+        </member>
+        <member name="F:Declarations.AudioCallbacks.PauseCallback">
+            <summary>
+            Callback method called when media player switches to Pause state
+            </summary>
+        </member>
+        <member name="F:Declarations.AudioCallbacks.ResumeCallback">
+            <summary>
+            Callback method called when media player switches to Playback state
+            </summary>
+        </member>
+        <member name="F:Declarations.AudioCallbacks.FlushCallback">
+            <summary>
+            Callback method called when all pending buffers should be discarded
+            </summary>
+        </member>
+        <member name="F:Declarations.AudioCallbacks.DrainCallback">
+            <summary>
+            Callback method called when all pending buffers must be played
+            </summary>
+        </member>
+        <member name="T:Declarations.StreamInfo">
+            <summary>
+            Specifies the attributes of an elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Category">
+            <summary>
+            Set the category of the elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.ID">
+            <summary>
+            Set the ID of the elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Group">
+            <summary>
+            Set the group of the elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Size">
+            <summary>
+            Size of stream in bytes
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.FPS">
+            <summary>
+            Frame rate of a video elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Width">
+            <summary>
+            Width of video or subtitle elementary streams
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Height">
+            <summary>
+            Height of video or subtitle elementary streams
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Codec">
+            <summary>
+            Set the codec of the elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.AspectRatio">
+            <summary>
+            Display aspect ratio of a video elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Samplerate">
+            <summary>
+            Sample rate of an audio elementary stream
+            </summary>
+        </member>
+        <member name="P:Declarations.StreamInfo.Channels">
+            <summary>
+            Channels count of an audio elementary stream
+            </summary>
+        </member>
+        <member name="T:Declarations.VLM.IVlmEventManager">
+            <summary>
+            Gets events raised by the VLM object
+            </summary>
+        </member>
+        <member name="T:Declarations.SoundFormat">
+            <summary>
+            Specifies the parameters of the sound.
+            </summary>
+        </member>
+        <member name="M:Declarations.SoundFormat.#ctor(Declarations.Enums.SoundType,System.Int32,System.Int32)">
+            <summary>
+            Initializes new instance of SoundFormat class
+            </summary>
+            <param name="soundType"></param>
+            <param name="rate"></param>
+            <param name="channels"></param>
+        </member>
+        <member name="P:Declarations.SoundFormat.Format">
+            <summary>
+            Audio format
+            </summary>
+        </member>
+        <member name="P:Declarations.SoundFormat.Rate">
+            <summary>
+            Sampling rate in Hz
+            </summary>
+        </member>
+        <member name="P:Declarations.SoundFormat.Channels">
+            <summary>
+            Number of channels used by audio sample
+            </summary>
+        </member>
+        <member name="P:Declarations.SoundFormat.BitsPerSample">
+            <summary>
+            Size of single audio sample in bytes
+            </summary>
+        </member>
+        <member name="P:Declarations.SoundFormat.SoundType">
+            <summary>
+            Specifies sound sample format
+            </summary>
+        </member>
+        <member name="P:Declarations.SoundFormat.BlockSize">
+            <summary>
+            Size of audio block (BitsPerSample / 8 * Channels)
+            </summary>
+        </member>
+        <member name="P:Declarations.SoundFormat.UseCustomAudioRendering">
+            <summary>
+            Indicated whether to use custom audio renderer (True), or to use default audio output (False)
+            </summary>
+        </member>
+        <member name="T:Declarations.Events.IMediaEvents">
+            <summary>
+            Events raised by IMedia object
+            </summary>
+        </member>
+        <member name="T:Declarations.Players.IDiskPlayer">
+            <summary>
+            DVD, VCD and Audio CD playback
+            </summary>
+        </member>
         <member name="M:Declarations.Players.IDiskPlayer.GetChapterCountForTitle(System.Int32)">
             <summary>
             Gets the number of chapters for specified title.
@@ -1009,6 +1348,21 @@
             Gets or sets video track.
             </summary>
         </member>
+        <member name="T:Declarations.Filters.IDeinterlaceFilter">
+            <summary>
+            Manages deinterlacing functionality.
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IDeinterlaceFilter.Enabled">
+            <summary>
+            Enables or disables deinterlacing
+            </summary>
+        </member>
+        <member name="P:Declarations.Filters.IDeinterlaceFilter.Mode">
+            <summary>
+            Gets or sets deinterlace algorithm
+            </summary>
+        </member>
         <member name="T:Declarations.PlanarFrame">
             <summary>
             Structure for pixel planes and their sizes
@@ -1031,59 +1385,92 @@
             Gets length of each pixel plane
             </summary>
         </member>
+        <member name="T:Declarations.MediaStrings">
+            <summary>
+            String values used to identify media types.
+            </summary>
+        </member>
+        <member name="F:Declarations.MediaStrings.FAKE">
+            <summary>
+            Fake access module. Should be used with IVideoInputMedia objects.
+            </summary>
+        </member>
+        <member name="F:Declarations.MediaStrings.IMEM">
+            <summary>
+            imem access module. Should be used with IMemoryInputMedia objects
+            </summary>
+        </member>
+        <member name="T:Declarations.IMemoryRenderer">
+            <summary>
+            Enables custom processing of video frames.
+            </summary>
+        </member>
+        <member name="M:Declarations.IMemoryRenderer.SetCallback(Declarations.NewFrameEventHandler)">
+            <summary>
+            Sets the callback which invoked when new frame should be displayed
+            </summary>
+            <param name="callback">Callback method</param>
+            <remarks>The frame will be auto-disposed after callback invokation.</remarks>
+        </member>
+        <member name="M:Declarations.IMemoryRenderer.SetFormat(Declarations.BitmapFormat)">
+            <summary>
+            Sets the bitmap format for the callback.
+            </summary>
+            <param name="format">Bitmap format of the video frame</param>
+        </member>
+        <member name="P:Declarations.IMemoryRenderer.CurrentFrame">
+            <summary>
+            Gets the latest video frame that was displayed.
+            </summary>
+        </member>
+        <member name="T:Declarations.Enums.AudioOutputDeviceType">
+            <summary>
+            Audio output device types
+            </summary>
+        </member>
+        <member name="T:Declarations.Discovery.IMediaDiscoverer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.Discovery.IMediaDiscoverer.IsRunning">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.Discovery.IMediaDiscoverer.LocalizedName">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.Discovery.IMediaDiscoverer.MediaList">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.Discovery.IMediaDiscoverer.Events">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Declarations.MetaDataType">
+            <summary>
+            Meta data types of the media object
+            </summary>
+        </member>
+        <member name="T:Declarations.Enums.SoundType">
+            <summary>
+            VLC sound formats
+            </summary>
+        </member>
+        <member name="F:Declarations.Enums.SoundType.S16N">
+            <summary>
+            16 bits per sample
+            </summary>
+        </member>
         <member name="T:Declarations.Enums.NavigationMode">
             <summary>
             DVD menu navigation options
-            </summary>
-        </member>
-        <member name="T:Declarations.AspectRatioMode">
-            <summary>
-            Available video aspect ratio modes
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Default">
-            <summary>
-            Default aspect ratio of the frame
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode1">
-            <summary>
-            1:1
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode2">
-            <summary>
-            4:3
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode3">
-            <summary>
-            16:9
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode4">
-            <summary>
-            16:10
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode5">
-            <summary>
-            2.21:1
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode6">
-            <summary>
-            2.35:1
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode7">
-            <summary>
-            2:39:1
-            </summary>
-        </member>
-        <member name="F:Declarations.AspectRatioMode.Mode8">
-            <summary>
-            5:4
             </summary>
         </member>
         <member name="T:Declarations.VLM.IVideoLanManager">
@@ -1250,81 +1637,6 @@
             
             </summary>
         </member>
-        <member name="T:Declarations.SoundFormat">
-            <summary>
-            Specifies the parameters of the sound.
-            </summary>
-        </member>
-        <member name="M:Declarations.SoundFormat.#ctor(Declarations.Enums.SoundType,System.Int32,System.Int32)">
-            <summary>
-            Initializes new instance of SoundFormat class
-            </summary>
-            <param name="soundType"></param>
-            <param name="rate"></param>
-            <param name="channels"></param>
-        </member>
-        <member name="P:Declarations.SoundFormat.Format">
-            <summary>
-            Audio format
-            </summary>
-        </member>
-        <member name="P:Declarations.SoundFormat.Rate">
-            <summary>
-            Sampling rate in Hz
-            </summary>
-        </member>
-        <member name="P:Declarations.SoundFormat.Channels">
-            <summary>
-            Number of channels used by audio sample
-            </summary>
-        </member>
-        <member name="P:Declarations.SoundFormat.BitsPerSample">
-            <summary>
-            Size of single audio sample in bytes
-            </summary>
-        </member>
-        <member name="P:Declarations.SoundFormat.SoundType">
-            <summary>
-            Specifies sound sample format
-            </summary>
-        </member>
-        <member name="P:Declarations.SoundFormat.BlockSize">
-            <summary>
-            Size of audio block (BitsPerSample / 8 * Channels)
-            </summary>
-        </member>
-        <member name="P:Declarations.SoundFormat.UseCustomAudioRendering">
-            <summary>
-            Indicated whether to use custom audio renderer (True), or to use default audio output (False)
-            </summary>
-        </member>
-        <member name="T:Declarations.MediaTrackInfo">
-            <summary>
-            Data structure containing parameters of elementary media stream
-            </summary>
-        </member>
-        <member name="T:Declarations.VLM.VlmEvent">
-            <summary>
-            Represents VLM events 
-            </summary>
-        </member>
-        <member name="M:Declarations.VLM.VlmEvent.#ctor(System.String,System.String)">
-            <summary>
-            Initializes new intance of VlmEvent
-            </summary>
-            <param name="instanceName"></param>
-            <param name="mediaName"></param>
-        </member>
-        <member name="P:Declarations.VLM.VlmEvent.MediaName">
-            <summary>
-            Gets the VLM media name
-            </summary>
-        </member>
-        <member name="P:Declarations.VLM.VlmEvent.InstanceName">
-            <summary>
-            Gets the VLM media instance name
-            </summary>
-        </member>
         <member name="T:Declarations.Position">
             <summary>
             Position on the video screen
@@ -1375,6 +1687,31 @@
             Logo position.
             </summary>
         </member>
+        <member name="T:Declarations.MediaTrackInfo">
+            <summary>
+            Data structure containing parameters of elementary media stream
+            </summary>
+        </member>
+        <member name="T:Declarations.MediaStatistics">
+            <summary>
+            Data structure containing media statistics' parameters.
+            </summary>
+        </member>
+        <member name="T:Declarations.TrackDescription">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.TrackDescription.Id">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Declarations.TrackDescription.Name">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="T:Declarations.FrameData">
             <summary>
             Data structure for single frame of elementary stream
@@ -1400,147 +1737,34 @@
             Presentation time stamp in microseconds.
             </summary>
         </member>
-        <member name="T:Declarations.Enums.AudioOutputDeviceType">
+        <member name="T:Declarations.Events.IMediaListPlayerEvents">
             <summary>
-            Audio output device types
+            Events raised by IMediaListPlayer object
             </summary>
         </member>
-        <member name="T:Declarations.AudioOutputDeviceInfo">
+        <member name="T:Declarations.Enums.VideoCodecs">
             <summary>
-            Represents hardware audio output device such as sound card.
+            Video codecs supported by imem module (IMemoryInputMedia)
             </summary>
         </member>
-        <member name="T:Declarations.AudioOutputModuleInfo">
+        <member name="F:Declarations.Enums.VideoCodecs.BGR24">
             <summary>
-            Represents software audio output module such as Waveout.
+            24 bits per pixel blue, green and red
             </summary>
         </member>
-        <member name="T:Declarations.Media.ICompositeMemoryInputMedia">
+        <member name="F:Declarations.Enums.VideoCodecs.BGR32">
             <summary>
-            
+            32 bits per pixel blue, green, red and empty (or alpha)
             </summary>
         </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddStream(Declarations.StreamInfo,System.Int32)">
+        <member name="F:Declarations.Enums.VideoCodecs.MJPEG">
             <summary>
-            
-            </summary>
-            <param name="streamInfo"></param>
-            <param name="maxItemsInQueue"></param>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,Declarations.FrameData)">
-            <summary>
-            
-            </summary>
-            <param name="streamId"></param>
-            <param name="frame"></param>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,System.Byte[],System.Int64,System.Int64)">
-            <summary>
-            
-            </summary>
-            <param name="streamId"></param>
-            <param name="data"></param>
-            <param name="pts"></param>
-            <param name="dts"></param>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,System.Drawing.Bitmap,System.Int64,System.Int64)">
-            <summary>
-            
-            </summary>
-            <param name="streamId"></param>
-            <param name="bitmap"></param>
-            <param name="pts"></param>
-            <param name="dts"></param>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.AddFrame(System.Int32,Declarations.Sound,System.Int64)">
-            <summary>
-            
-            </summary>
-            <param name="streamId"></param>
-            <param name="sound"></param>
-            <param name="dts"></param>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.SetExceptionHandler(System.Action{System.Exception})">
-            <summary>
-            
-            </summary>
-            <param name="handler"></param>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.GetPendingFramesCount(System.Int32)">
-            <summary>
-            
-            </summary>
-            <param name="streamId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Declarations.Media.ICompositeMemoryInputMedia.StreamAddingComplete">
-            <summary>
-            
+            Motion JPEG stream - each video frame encoded as jpeg image
             </summary>
         </member>
-        <member name="T:Declarations.Sound">
+        <member name="F:Declarations.Enums.VideoCodecs.I420">
             <summary>
-            Structure incapsulation for audio samples
-            </summary>
-        </member>
-        <member name="P:Declarations.Sound.SamplesData">
-            <summary>
-            Pointer to the first audio sample
-            </summary>
-        </member>
-        <member name="P:Declarations.Sound.SamplesSize">
-            <summary>
-            Size in bytes of SamplesData buffer
-            </summary>
-        </member>
-        <member name="P:Declarations.Sound.Pts">
-            <summary>
-            Playback time stamp in microseconds
-            </summary>
-        </member>
-        <member name="T:Declarations.DeinterlaceMode">
-            <summary>
-            Available deinterlace algorithms.
-            </summary>
-        </member>
-        <member name="T:Declarations.MetaDataType">
-            <summary>
-            Meta data types of the media object
-            </summary>
-        </member>
-        <member name="T:Declarations.TrackDescription">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.TrackDescription.Id">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.TrackDescription.Name">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:Declarations.Enums.SoundType">
-            <summary>
-            VLC sound formats
-            </summary>
-        </member>
-        <member name="F:Declarations.Enums.SoundType.S16N">
-            <summary>
-            16 bits per sample
-            </summary>
-        </member>
-        <member name="T:Declarations.Enums.StreamCategory">
-            <summary>
-            Category of elementary stream
-            </summary>
-        </member>
-        <member name="T:Declarations.MediaState">
-            <summary>
-            Possible state of the media objects
+            YUV420 12 bits per pixel Y, Cb and Cr
             </summary>
         </member>
         <member name="T:Declarations.IMediaPlayerFactory">
@@ -1650,6 +1874,16 @@
             
             </summary>
         </member>
+        <member name="T:Declarations.TrackType">
+            <summary>
+            Represents media track type
+            </summary>
+        </member>
+        <member name="T:Declarations.Enums.StreamCategory">
+            <summary>
+            Category of elementary stream
+            </summary>
+        </member>
         <member name="T:Declarations.BitmapFormat">
             <summary>
             Specifies the parameters of the bitmap.
@@ -1731,240 +1965,6 @@
         <member name="P:Declarations.BitmapFormat.ChromaType">
             <summary>
             Gets the pixel format of the video frame
-            </summary>
-        </member>
-        <member name="T:Declarations.Structures.SlaveMedia">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="M:Declarations.Structures.SlaveMedia.#ctor(System.String,System.Int32,System.Double)">
-            <summary>
-            
-            </summary>
-            <param name="mrl"></param>
-            <param name="caching"></param>
-            <param name="startTime"></param>
-        </member>
-        <member name="M:Declarations.Structures.SlaveMedia.ToString">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="P:Declarations.Structures.SlaveMedia.Caching">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.Structures.SlaveMedia.StartTime">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="P:Declarations.Structures.SlaveMedia.MRL">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="T:Declarations.FilterInfo">
-            <summary>
-            Information structure for audio and video filters
-            </summary>
-        </member>
-        <member name="T:Declarations.Filters.IAdjustFilter">
-            <summary>
-            Manages video adjustment parameters.
-            </summary>
-        </member>
-        <member name="P:Declarations.Filters.IAdjustFilter.Enabled">
-            <summary>
-            Enables or disables video adjust filter.
-            </summary>          
-        </member>
-        <member name="P:Declarations.Filters.IAdjustFilter.Contrast">
-            <summary>
-            Image contrast in the 0-2 range.
-            </summary>          
-        </member>
-        <member name="P:Declarations.Filters.IAdjustFilter.Brightness">
-            <summary>
-            Image brightness in the 0-2 range.
-            </summary>       
-        </member>
-        <member name="P:Declarations.Filters.IAdjustFilter.Hue">
-            <summary>
-            Image hue in the 0-360 range
-            </summary>    
-        </member>
-        <member name="P:Declarations.Filters.IAdjustFilter.Saturation">
-            <summary>
-            Image saturation in the 0-3 range.
-            </summary>   
-        </member>
-        <member name="P:Declarations.Filters.IAdjustFilter.Gamma">
-            <summary>
-            Image gamma in the 0-10 range.
-            </summary>    
-        </member>
-        <member name="T:Declarations.Events.IMediaDiscoveryEvents">
-            <summary>
-            Events raised by media discoverer
-            </summary>
-        </member>
-        <member name="T:Declarations.StreamInfo">
-            <summary>
-            Specifies the attributes of an elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Category">
-            <summary>
-            Set the category of the elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.ID">
-            <summary>
-            Set the ID of the elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Group">
-            <summary>
-            Set the group of the elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Size">
-            <summary>
-            Size of stream in bytes
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.FPS">
-            <summary>
-            Frame rate of a video elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Width">
-            <summary>
-            Width of video or subtitle elementary streams
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Height">
-            <summary>
-            Height of video or subtitle elementary streams
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Codec">
-            <summary>
-            Set the codec of the elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.AspectRatio">
-            <summary>
-            Display aspect ratio of a video elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Samplerate">
-            <summary>
-            Sample rate of an audio elementary stream
-            </summary>
-        </member>
-        <member name="P:Declarations.StreamInfo.Channels">
-            <summary>
-            Channels count of an audio elementary stream
-            </summary>
-        </member>
-        <member name="T:Declarations.TrackType">
-            <summary>
-            Represents media track type
-            </summary>
-        </member>
-        <member name="T:Declarations.Media.IMediaList">
-            <summary>
-            Represents a collection of media objects.
-            </summary>
-        </member>
-        <member name="P:Declarations.Media.IMediaList.Events">
-            <summary>
-            Gets events fired by media list instance.
-            </summary>
-        </member>
-        <member name="T:Declarations.Events.IEventBroker">
-            <summary>
-            Events raised by the IPlayer object
-            </summary>
-        </member>
-        <member name="E:Declarations.Events.IEventBroker.MediaEnded">
-            <summary>
-            Event raised when media reaches end.
-            </summary>
-        </member>
-        <member name="E:Declarations.Events.IEventBroker.TimeChanged">
-            <summary>
-            Event raised when media time changed.
-            </summary>
-        </member>
-        <member name="T:Declarations.ChromaType">
-            <summary>
-            VLC pixel formats
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.RV15">
-            <summary>
-            5 bit for each RGB channel
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.RV16">
-            <summary>
-            5 bit Red, 6 bit Green and 5 bit Blue
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.RV24">
-            <summary>
-            8 bit per channel
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.RV32">
-            <summary>
-            8 bit per RGB channel and 8 bit unused
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.RGBA">
-            <summary>
-            8 bit per each RGBA channel
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.YV12">
-            <summary>
-            12 bits per pixel planar format with Y plane followed by V and U planes
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.I420">
-            <summary>
-            Same as YV12 but V and U are swapped
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.NV12">
-            <summary>
-            12 bits per pixel planar format with Y plane and interleaved UV plane
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.YUY2">
-            <summary>
-            16 bits per pixel packed YUYV array
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.UYVY">
-            <summary>
-            16 bits per pixel packed UYVY array 
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.J420">
-            <summary>
-            Same as I420, mainly used with MJPG codecs
-            </summary>
-        </member>
-        <member name="F:Declarations.ChromaType.J422">
-            <summary>
-            Same as YUY2, mainly used with MJPG codecs
             </summary>
         </member>
     </members>

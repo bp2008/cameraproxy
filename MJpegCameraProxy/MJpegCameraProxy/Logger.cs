@@ -39,17 +39,17 @@ namespace MJpegCameraProxy
 						Console.Write("Exception thrown at ");
 					Console.ForegroundColor = ConsoleColor.Green;
 					Console.WriteLine(DateTime.Now.ToString());
+					if (ex != null)
+					{
+						Console.ForegroundColor = ConsoleColor.Red;
+						Console.WriteLine(ex.ToString());
+					}
 					if (!string.IsNullOrEmpty(additionalInformation))
 					{
 						Console.ForegroundColor = ConsoleColor.DarkYellow;
 						if (ex != null)
 							Console.Write("Additional information: ");
 						Console.WriteLine(additionalInformation);
-					}
-					if (ex != null)
-					{
-						Console.ForegroundColor = ConsoleColor.Red;
-						Console.WriteLine(ex.ToString());
 					}
 					Console.ResetColor();
 				}
@@ -58,14 +58,14 @@ namespace MJpegCameraProxy
 					StringBuilder debugMessage = new StringBuilder();
 					debugMessage.Append("-------------").Append(Environment.NewLine);
 					if (ex != null)
-						debugMessage.Append("Exception thrown at").Append(Environment.NewLine);
+						debugMessage.Append("Exception thrown at ");
+					debugMessage.Append(DateTime.Now.ToString()).Append(Environment.NewLine);
 					if (!string.IsNullOrEmpty(additionalInformation))
 					{
 						if (ex != null)
 							debugMessage.Append("Additional information: ");
 						debugMessage.Append(additionalInformation).Append(Environment.NewLine);
 					}
-					debugMessage.Append(DateTime.Now.ToString()).Append(Environment.NewLine);
 					if (ex != null)
 						debugMessage.Append(ex.ToString()).Append(Environment.NewLine);
 					debugMessage.Append("-------------").Append(Environment.NewLine);

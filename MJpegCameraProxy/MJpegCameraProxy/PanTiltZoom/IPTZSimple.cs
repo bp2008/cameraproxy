@@ -9,6 +9,6 @@ namespace MJpegCameraProxy.PanTiltZoom
 	{
 		void MoveSimple(PTZDirection direction);
 		bool SupportsZoom();
-		void Zoom(ZoomDirection direction);
+		void Zoom(ZoomDirection direction, ZoomAmount amount);
 	}
 }
