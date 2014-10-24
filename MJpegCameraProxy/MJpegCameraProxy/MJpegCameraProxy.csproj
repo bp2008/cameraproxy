@@ -85,15 +85,13 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Magick.NET-x86, Version=6.0.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=x86" />
+    <Reference Include="Antlr3.Runtime, Version=3.3.1.7705, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL" />
+    <Reference Include="CSharpEval, Version=1.1.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="nVLC.Declarations">
       <HintPath>..\..\..\Projects\LibVlcWrapper\Implementation\bin\Debug\nVLC.Declarations.dll</HintPath>
     </Reference>
     <Reference Include="nVLC.Implementation">
       <HintPath>..\..\..\Projects\LibVlcWrapper\Implementation\bin\Debug\nVLC.Implementation.dll</HintPath>
-    </Reference>
-    <Reference Include="Renci.SshNet">
-      <HintPath>SshNet\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -109,6 +107,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraManager.cs" />
+    <Compile Include="CameraProxyWebSocketServer.cs" />
+    <Compile Include="Pages\CamPage2.cs" />
     <Compile Include="ComparisonComparer.cs" />
     <Compile Include="Configuration\CameraSpec.cs" />
     <Compile Include="Configuration\FieldSettable.cs" />
@@ -117,6 +117,7 @@
     <Compile Include="Configuration\PTZSpecV1.cs" />
     <Compile Include="Configuration\PTZSpec.cs" />
     <Compile Include="Configuration\SerializableObjectBase.cs" />
+    <Compile Include="Configuration\SimpleWwwFile.cs" />
     <Compile Include="Configuration\User.cs" />
     <Compile Include="H264Camera.cs" />
     <Compile Include="Hash.cs" />
@@ -129,8 +130,12 @@
     <Compile Include="HttpServer\Crypto\SignatureKey.cs" />
     <Compile Include="HttpServer\Crypto\Win32ErrorHelper.cs" />
     <Compile Include="HttpServer\Crypto\Win32Native.cs" />
+    <Compile Include="HttpServer\Mime.cs" />
     <Compile Include="ImageSignature.cs" />
     <Compile Include="Pages\Admin\PTZProfileList.cs" />
+    <Compile Include="Pages\Admin\WwwFiles.cs" />
+    <Compile Include="Pages\JavascriptCss.cs" />
+    <Compile Include="PanTiltZoom\AdvPtz.cs" />
     <Compile Include="PanTiltZoom\IPTZPresets.cs" />
     <Compile Include="PanTiltZoom\Custom\CustomPTZProfile.cs" />
     <Compile Include="PanTiltZoom\IZoomAbs.cs" />
@@ -146,9 +151,7 @@
     <Compile Include="Pages\WanscamCheapPTZ.cs" />
     <Compile Include="Pages\DahuaPTZ.cs" />
     <Compile Include="Pages\Html.cs" />
-    <Compile Include="Pages\Images.cs" />
     <Compile Include="Pages\Login.cs" />
-    <Compile Include="Pages\JavascriptCss.cs" />
     <Compile Include="JpegRefreshCamera.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="ImageConverter.cs" />
@@ -162,7 +165,6 @@
     <Compile Include="Pages\LoftekCheapPTZ.cs" />
     <Compile Include="Pages\PTZ.cs" />
     <Compile Include="Pages\Resource.cs" />
-    <Compile Include="PanTiltZoom\Dev\Dev.cs" />
     <Compile Include="PanTiltZoom\HtmlOptions.cs" />
     <Compile Include="PanTiltZoom\IPS_EYE01\IPS_EYE01_PTZ.cs" />
     <Compile Include="PanTiltZoom\IPTZHtml.cs" />
@@ -206,20 +208,6 @@
     <None Include="live555\live555 source.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Resources\animated-overlay" />
-    <None Include="Resources\ui-bg_flat_0_aaaaaa_40x100" />
-    <None Include="Resources\ui-bg_flat_75_ffffff_40x100" />
-    <None Include="Resources\ui-bg_glass_55_fbf9ee_1x400" />
-    <None Include="Resources\ui-bg_glass_65_ffffff_1x400" />
-    <None Include="Resources\ui-bg_glass_75_dadada_1x400" />
-    <None Include="Resources\ui-bg_glass_75_e6e6e6_1x400" />
-    <None Include="Resources\ui-bg_glass_95_fef1ec_1x400" />
-    <None Include="Resources\ui-bg_highlight-soft_75_cccccc_1x100" />
-    <None Include="Resources\ui-icons_222222_256x240" />
-    <None Include="Resources\ui-icons_2e83ff_256x240" />
-    <None Include="Resources\ui-icons_454545_256x240" />
-    <None Include="Resources\ui-icons_888888_256x240" />
-    <None Include="Resources\ui-icons_cd0a0a_256x240" />
     <None Include="Start_Service.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -230,9 +218,14 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="VLC\plugins\plugins.dat" />
+    <None Include="www_public\Scripts\jquery.map" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Html\all.html">
+    <Content Include="CsEval\Antlr3.Runtime.dll" />
+    <Content Include="CsEval\CSharpEval.dll" />
+    <Content Include="CsEval\CSharpEval.pdb" />
+    <Content Include="CsEval\CSharpEval.XML" />
+    <Content Include="www\readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="readme.txt">
@@ -245,9 +238,6 @@
     <Content Include="live555\live555ProxyServer.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Magick\license.txt" />
-    <Content Include="Magick\Magick.NET-x86.dll" />
-    <Content Include="Magick\Magick.NET-x86.xml" />
     <Content Include="nVLC\NLog.dll" />
     <Content Include="nVLC\nVLC.Declarations.dll" />
     <Content Include="nVLC\nVLC.Declarations.pdb" />
@@ -258,11 +248,6 @@
     <Content Include="nVLC\nVLC.LibVlcWrapper.dll" />
     <Content Include="nVLC\nVLC.LibVlcWrapper.pdb" />
     <Content Include="nVLC\nVLC.LibVlcWrapper.xml" />
-    <Content Include="Resources\jquery-ui-1.10.2.custom.min.css" />
-    <Content Include="Resources\jquery-ui-1.10.2.custom.min.js" />
-    <Content Include="SshNet\license.txt" />
-    <Content Include="SshNet\Renci.SshNet.dll" />
-    <Content Include="SshNet\Renci.SshNet.xml" />
     <Content Include="VLC\libvlc.dll" />
     <Content Include="VLC\libvlccore.dll" />
     <Content Include="VLC\plugins\access\libaccess_attachment_plugin.dll" />
@@ -563,11 +548,78 @@
     <Content Include="VLC\plugins\visualization\libgoom_plugin.dll" />
     <Content Include="VLC\plugins\visualization\libprojectm_plugin.dll" />
     <Content Include="VLC\plugins\visualization\libvisual_plugin.dll" />
+    <Content Include="www_public\all.html" />
+    <Content Include="www_public\dahua.html" />
+    <Content Include="www_public\Images\3dpos_1.png" />
+    <Content Include="www_public\Images\3dpos_2.png" />
+    <Content Include="www_public\Images\3dpos_3.png" />
+    <Content Include="www_public\Images\3dpos_4.png" />
+    <Content Include="www_public\Images\ajax-loader.gif" />
+    <Content Include="www_public\Images\arrow-down-left.png" />
+    <Content Include="www_public\Images\arrow-down-right.png" />
+    <Content Include="www_public\Images\arrow-down.png" />
+    <Content Include="www_public\Images\arrow-left.png" />
+    <Content Include="www_public\Images\arrow-right.png" />
+    <Content Include="www_public\Images\arrow-up-left.png" />
+    <Content Include="www_public\Images\arrow-up-right.png" />
+    <Content Include="www_public\Images\arrow-up.png" />
+    <Content Include="www_public\Images\Btn_dn_blue_1.png" />
+    <Content Include="www_public\Images\Btn_dn_blue_2.png" />
+    <Content Include="www_public\Images\Btn_dn_blue_3.png" />
+    <Content Include="www_public\Images\Btn_dn_red_1.png" />
+    <Content Include="www_public\Images\Btn_dn_red_2.png" />
+    <Content Include="www_public\Images\Btn_dn_red_3.png" />
+    <Content Include="www_public\Images\Btn_up_blue_1.png" />
+    <Content Include="www_public\Images\Btn_up_blue_2.png" />
+    <Content Include="www_public\Images\Btn_up_blue_3.png" />
+    <Content Include="www_public\Images\Btn_up_red_1.png" />
+    <Content Include="www_public\Images\Btn_up_red_2.png" />
+    <Content Include="www_public\Images\Btn_up_red_3.png" />
+    <Content Include="www_public\Images\Checkerboard.png" />
+    <Content Include="www_public\Images\Corner_Scroll.png" />
+    <Content Include="www_public\Images\increase.png" />
+    <Content Include="www_public\Images\minus.png" />
+    <Content Include="www_public\Images\plus.png" />
+    <Content Include="www_public\Images\ptzarrows.png" />
+    <Content Include="www_public\Images\ptzclick.png" />
+    <Content Include="www_public\Images\qmark.png" />
+    <Content Include="www_public\Images\Slider_1.png" />
+    <Content Include="www_public\Images\Slider_2.png" />
+    <Content Include="www_public\Images\Slider_3.png" />
+    <Content Include="www_public\Scripts\CamPage.js" />
+    <Content Include="www_public\Scripts\jquery-ui.js" />
+    <Content Include="www_public\Scripts\jquery.cookie.js" />
+    <Content Include="www_public\Scripts\jquery.js" />
+    <Content Include="www_public\Scripts\jquery.mousewheel.js" />
+    <Content Include="www_public\Scripts\longclick.js" />
+    <Content Include="www_public\Scripts\PtzAbs.js" />
+    <Content Include="www_public\Scripts\sha1.js" />
+    <Content Include="www_public\Scripts\TableSorter.js" />
+    <Content Include="www_public\Styles\CamPage.css" />
+    <Content Include="www_public\Styles\images\animated-overlay.gif" />
+    <Content Include="www_public\Styles\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="www_public\Styles\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="www_public\Styles\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="www_public\Styles\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="www_public\Styles\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="www_public\Styles\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="www_public\Styles\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="www_public\Styles\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="www_public\Styles\images\ui-icons_222222_256x240.png" />
+    <Content Include="www_public\Styles\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="www_public\Styles\images\ui-icons_454545_256x240.png" />
+    <Content Include="www_public\Styles\images\ui-icons_888888_256x240.png" />
+    <Content Include="www_public\Styles\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="www_public\Styles\jquery-ui.css" />
+    <Content Include="www_public\Styles\Site.css" />
+    <Content Include="www_public\Styles\TableSorter_Blue.css" />
+    <Content Include="www_public\Styles\TableSorter_Green.css" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -595,9 +647,16 @@
   <ItemGroup>
     <Folder Include="Examples\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fleck\Fleck.csproj">
+      <Project>{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}</Project>
+      <Name>Fleck</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(ProjectDir)VLC\*.*" "$(TargetDir)*.*" /E /C /R /Y /I</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(ProjectDir)VLC\*.*" "$(TargetDir)*.*" /E /C /R /Y /I
+xcopy "$(ProjectDir)www_public\*.*" "$(TargetDir)www_public\*.*" /E /C /R /Y /I</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

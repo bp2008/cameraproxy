@@ -36,7 +36,7 @@ namespace MJpegCameraProxy.Configuration
 		public string password = "";
 
 		[EditorCategory("Pan-Tilt-Zoom")]
-		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.Dev, PtzType.CustomPTZProfile)]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.CustomPTZProfile)]
 		[EditorName("PTZ Host Name")]
 		public string ptz_hostName = "";
 		[EditorName("PTZ User Name")]
@@ -66,17 +66,35 @@ namespace MJpegCameraProxy.Configuration
 		[EditorHint("degrees")]
 		public int ptz_absoluteXOffset = 0;
 		[EditorName("PTZ Panorama Selection Rectangle Width")]
-		[EditorHint("pixels")]
-		public int ptz_panorama_selection_rectangle_width = 96;
+		[EditorHint("percentage [0.0-1.0] of panorama's width")]
+		public double ptz_panorama_selection_rectangle_width_percent = 0.17;
 		[EditorName("PTZ Panorama Selection Rectangle Height")]
-		[EditorHint("pixels")]
-		public int ptz_panorama_selection_rectangle_height = 54;
+		[EditorHint("percentage [0.0-1.0] of panorama's height")]
+		public double ptz_panorama_selection_rectangle_height_percent = 0.3;
 		[EditorName("Simple Panorama")]
 		[EditorHint("If checked, thumbnails 0 through 27 will be displayed in a grid.  If unchecked, thumbnail number 99999 will be loaded as a full size panorama.")]
 		public bool ptz_panorama_simple = true;
 		[EditorName("Panorama represented vertical angle")]
 		[EditorHint("degrees.  Adjust this as needed to calibrate vertical positioning in the panorama rectangle.  Default: 90 degrees")]
 		public int ptz_panorama_degrees_vertical = 90;
+		[EditorName("Zoom Magnification")]
+		[EditorHint("x Zoom    (common values are 3 or 12 or 20 or 30)")]
+		public int ptz_magnification = 12;
+		[EditorName("Idle Reset")]
+		[EditorHint("If checked, the camera will return to the specified coordinates after a certain amount of time has passed")]
+		public bool ptz_enableidleresetposition = false;
+		[EditorName("Idle Position Timeout")]
+		[EditorHint("seconds.  If Idle Reset is enabled, camera will move to Idle Position this many seconds after the last PTZ command was received from a user.")]
+		public int ptz_idleresettimeout = 600;
+		[EditorName("Idle Position X")]
+		[EditorHint("[0.0-1.0] Absolute pan position.")]
+		public double ptz_idleresetpositionX = 0;
+		[EditorName("Idle Position Y")]
+		[EditorHint("[0.0-1.0] Absolute tilt position.")]
+		public double ptz_idleresetpositionY = 0;
+		[EditorName("Idle Position Z")]
+		[EditorHint("[0.0-1.0] Absolute zoom position.")]
+		public double ptz_idleresetpositionZ = 0;
 
 		//IO_00000000_PT_157_066
 
@@ -132,7 +150,7 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("Video Height")]
 		[EditorHint("pixels. If 0, this value is autodetected.")]
 		public ushort h264_video_height = 0;
-		
+
 		public int order = -1;
 
 		protected override string validateFieldValues()
@@ -168,6 +186,20 @@ namespace MJpegCameraProxy.Configuration
 				return "0Buffer Time must be > 0 for a " + type.ToString() + " camera.";
 			if (type == CameraType.vlc_transcode && (this.vlc_transcode_image_quality < 0 || this.vlc_transcode_image_quality > 100))
 				return "0Image Quality must be between 0 and 100 (inclusive) for a " + type.ToString() + " camera.";
+			if (this.ptzType == PtzType.Dev)
+				return "0PTZ Type Dev is obsolete and will be removed from a future version.  Please choose another PTZ type.";
+			if (ptz_panorama_selection_rectangle_width_percent < 0.0 || ptz_panorama_selection_rectangle_width_percent > 1.0)
+				return "0PTZ Panorama Selection Rectangle Width must be between 0.0 and 1.0";
+			if (ptz_panorama_selection_rectangle_height_percent < 0.0 || ptz_panorama_selection_rectangle_height_percent > 1.0)
+				return "0PTZ Panorama Selection Rectangle Height must be between 0.0 and 1.0";
+			if (ptz_idleresetpositionX < 0.0 || ptz_idleresetpositionX > 1.0)
+				return "0PTZ Idle Pan Position (X) must be between 0.0 and 1.0";
+			if (ptz_idleresetpositionY < 0.0 || ptz_idleresetpositionY > 1.0)
+				return "0PTZ Idle Tilt Position (Y) must be between 0.0 and 1.0";
+			if (ptz_idleresetpositionZ < 0.0 || ptz_idleresetpositionZ > 1.0)
+				return "0PTZ Idle Zoom Position (Z) must be between 0.0 and 1.0";
+			if (ptz_idleresettimeout < 10 || ptz_idleresettimeout > 604800)
+				return "0PTZ Idle Position timeout must be between 10 and 604800";
 			return "1";
 		}
 
@@ -192,6 +224,6 @@ namespace MJpegCameraProxy.Configuration
 		None, LoftekCheap, Dahua,
 		WanscamCheap, TrendnetIP672,
 		IPS_EYE01, TrendnetTVIP400,
-		Dev, CustomPTZProfile
+		CustomPTZProfile, Dev
 	}
 }

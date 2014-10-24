@@ -14,6 +14,7 @@ namespace MJpegCameraProxy
 		public static volatile bool ApplicationExiting = false;
 
 		MJpegServer httpServer;
+		public static CameraProxyWebSocketServer webSocketServer;
 		public static DateTime startTime = DateTime.MinValue;
 		public static ProxyConfig cfg;
 
@@ -71,6 +72,9 @@ namespace MJpegCameraProxy
 
 			httpServer = new MJpegServer(cfg.webport, cfg.webport_https);
 			httpServer.Start();
+
+			webSocketServer = new CameraProxyWebSocketServer(cfg.webSocketPort, cfg.webSocketPort_secure);
+			webSocketServer.Start();
 		}
 		public void Stop()
 		{
@@ -79,6 +83,8 @@ namespace MJpegCameraProxy
 				httpServer.Stop();
 				httpServer.Join(1000);
 			}
+			// webSocketServer does not support closing/stopping
+			webSocketServer = null;
 		}
 		#endregion
 

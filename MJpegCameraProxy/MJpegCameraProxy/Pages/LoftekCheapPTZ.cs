@@ -51,7 +51,7 @@ $(function()
 		{
 			var mynum = parseInt(ele.getAttribute('mynum'));
 			if(confirm('Are you sure you want to assign preset ' + mynum + '?'))
-				$.get('PTZ?id=" + camId + @"&cmd=' + (28 + (mynum * 2))).done(function()
+				$.get('../control/PTZ?id=" + camId + @"&cmd=' + (28 + (mynum * 2))).done(function()
 				{
 					$('#preset' + mynum).attr('src', 'PTZPRESETIMG?id=" + camId + @"&index=' + mynum + '&nocache=' + new Date().getTime());
 				});
@@ -59,7 +59,7 @@ $(function()
 		function(ele)
 		{
 			var mynum = parseInt(ele.getAttribute('mynum'));
-			$.get('PTZ?id=" + camId + @"&cmd=' + (29 + (mynum * 2)));
+			$.get('../control/PTZ?id=" + camId + @"&cmd=' + (29 + (mynum * 2)));
 		});
 	}
 });
@@ -128,12 +128,12 @@ $(function()
 
 		private static string img(string imageName, int width, int height, bool border = false)
 		{
-			return "<img src=\"Images/" + imageName + "\" style=\"width: " + width + "px; height: " + height + "px;" + (border ? " border: 1px dotted #777777;" : "") + "\" />";
+			return "<img src=\"../Images/" + imageName + "\" style=\"width: " + width + "px; height: " + height + "px;" + (border ? " border: 1px dotted #777777;" : "") + "\" />";
 		}
 
 		private static string GetLinkToPTControl(string camId, string label, string command, string verification = "", int keyboardKey = -1, int keyboardDelay = 1000)
 		{
-			string jsCommand = "$.get('PTZ?id=" + camId + "&cmd=" + command + "');";
+			string jsCommand = "$.get('../control/PTZ?id=" + camId + "&cmd=" + command + "');";
 
 			if (!string.IsNullOrEmpty(verification))
 				verification = "if(confirm('" + HttpUtility.HtmlAttributeEncode(HttpUtility.JavaScriptStringEncode(verification)) + "')) ";
@@ -274,7 +274,7 @@ $(function()
 						byte[] image = MJpegServer.cm.GetLatestImage(cam);
 						if (image.Length > 0)
 						{
-							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.ToLower() + preset_number + ".jpg", useImageMagick: MJpegWrapper.cfg.UseImageMagick);
+							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.ToLower() + preset_number + ".jpg");
 						}
 					}
 					catch (Exception ex)

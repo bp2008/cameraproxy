@@ -18,7 +18,7 @@ namespace MJpegCameraProxy
 <html>
 <head>
 	<title>Log In</title>
-	<script type=""text/javascript"" src=""../Scripts/jquery.js""></script>
+	<script type=""text/javascript"" src=""" + Globals.jQueryPath + @"""></script>
 	<script type=""text/javascript"" src=""../Scripts/sha1.js""></script>
 	" + GetLoginScripts(LoginURL) + @"
 </head>

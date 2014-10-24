@@ -8,6 +8,12 @@ namespace MJpegCameraProxy
 {
 	public static class Globals
 	{
+		public static string jQueryPath = "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js";
+		public static string jQueryUIJsPath = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js";
+		public static string jQueryUICssPath = "//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css";
+		//public static string jQueryPath = "//Scripts/jquery.js";
+		//public static string jQueryUIJsPath = "//Scripts/jquery-ui.js";
+		//public static string jQueryUICssPath = "//Styles/jquery-ui.css";
 		private static string executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 		/// <summary>
 		/// Gets the full path to the current executable file.
@@ -88,6 +94,22 @@ namespace MJpegCameraProxy
 		{
 			get { return configFilePath; }
 		}
-		public static string Version = "1.3.8";
+		private static string wwwDirectoryBase = applicationRoot + "/www/";
+		/// <summary>
+		/// Gets the full path to the www directory including the trailing '/'.  Just add page name!
+		/// </summary>
+		public static string WWWDirectoryBase
+		{
+			get { return wwwDirectoryBase; }
+		}
+		private static string wwwPublicDirectoryBase = applicationRoot + "/www_public/";
+		/// <summary>
+		/// Gets the full path to the www_public directory including the trailing '/'.  Just add page name!
+		/// </summary>
+		public static string WWWPublicDirectoryBase
+		{
+			get { return wwwPublicDirectoryBase; }
+		}
+		public static string Version = "1.5";
 	}
 }

@@ -8,6 +8,8 @@ namespace MJpegCameraProxy.Configuration
 {
 	public class ProxyConfig : SerializableObjectBase
 	{
+		public int webSocketPort = 44454;
+		public int webSocketPort_secure = -1;
 		public int webport = 44456;
 		public int webport_https = -1;
 
@@ -15,6 +17,16 @@ namespace MJpegCameraProxy.Configuration
 
 		public List<User> users = new List<User>();
 		public List<CameraSpec> cameras = new List<CameraSpec>();
+		public List<SimpleWwwFile> wwwFiles = new List<SimpleWwwFile>();
+
+		public void SetWwwFilesList(List<SimpleWwwFile> list)
+		{
+			wwwFiles = list;
+		}
+		public List<SimpleWwwFile> GetWwwFilesList()
+		{
+			return wwwFiles;
+		}
 
 		public string SaveItem(SimpleHttp.HttpProcessor p)
 		{
@@ -214,6 +226,17 @@ namespace MJpegCameraProxy.Configuration
 					foreach(string s in parts)
 						if (ProfileNameIsUsed(s))
 							File.Delete(Globals.PTZProfilesDirectoryBase + s + ".xml");
+				}
+			}
+			else if (itemtype == "wwwfile")
+			{
+				lock (this)
+				{
+					wwwFiles.RemoveAll(f =>
+					{
+						return hsParts.Contains(f.Key) && !File.Exists(Globals.WWWDirectoryBase + f.Key);
+					});
+					Save(Globals.ConfigFilePath);
 				}
 			}
 			return "1";

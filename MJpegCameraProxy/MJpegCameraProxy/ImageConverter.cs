@@ -40,7 +40,7 @@ namespace MJpegCameraProxy
 			{
 				if (quality == -2)
 					quality = 80;
-				byte[] output = ConvertImage(input, size, quality, desiredFormat, rotateFlipType, maxWidth, maxHeight, imgFormat, special, MJpegWrapper.cfg.UseImageMagick, p.request_url.OriginalString);
+				byte[] output = ConvertImage(input, size, quality, desiredFormat, rotateFlipType, maxWidth, maxHeight, imgFormat, special, p.request_url.OriginalString);
 				if (input != output)
 					imgFormat = desiredFormat;
 				return output;
@@ -132,7 +132,7 @@ namespace MJpegCameraProxy
 		/// <param name="special">A string indicating a special image transformation, if any.</param>
 		/// <returns>A byte array containing image data in the specified format.</returns>
 		/// <remarks>Calls EncodeBitmap(...) internally.</remarks>
-		public static byte[] ConvertImage(byte[] input, int size = 100, int quality = 80, ImageFormat format = ImageFormat.Jpeg, RotateFlipType rotateFlipType = RotateFlipType.RotateNoneFlipNone, int maxWidth = 0, int maxHeight = 0, ImageFormat srcImageFormat = ImageFormat.Jpeg, string special = "", bool useImageMagick = false, string errorHelp = "")
+		public static byte[] ConvertImage(byte[] input, int size = 100, int quality = 80, ImageFormat format = ImageFormat.Jpeg, RotateFlipType rotateFlipType = RotateFlipType.RotateNoneFlipNone, int maxWidth = 0, int maxHeight = 0, ImageFormat srcImageFormat = ImageFormat.Jpeg, string special = "", string errorHelp = "")
 		{
 			if (srcImageFormat == ImageFormat.Webp)
 				return input; // Cannot currently read WebP images
@@ -144,7 +144,7 @@ namespace MJpegCameraProxy
 			WrappedImage wi = null;
 			try
 			{
-				wi = new WrappedImage(input, useImageMagick);
+				wi = new WrappedImage(input);
 				byte[] encoded = EncodeImage(wi, size, quality, format, rotateFlipType, maxWidth, maxHeight, special);
 				if (encoded.Length > 0)
 					output = encoded;

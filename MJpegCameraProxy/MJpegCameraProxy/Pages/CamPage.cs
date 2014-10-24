@@ -110,7 +110,7 @@ namespace MJpegCameraProxy
 <html>
 <head>
 	<title>" + HttpUtility.HtmlEncode(cam.cameraSpec.name) + @"</title>
-	<script src=""Scripts/jquery.js"" type=""text/javascript""></script>
+	<script src=""" + Globals.jQueryPath + @""" type=""text/javascript""></script>
 	<script type=""text/javascript"">
 		var disableRefreshAfter = " + disableRefreshAfter + @";
 		var refreshDisabled = false;

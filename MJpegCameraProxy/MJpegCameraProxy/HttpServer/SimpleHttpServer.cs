@@ -774,33 +774,7 @@ namespace SimpleHttp
 			if (this.secure_port > -1)
 			{
 				if (ssl_certificate == null)
-				{
-					string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-					FileInfo fiExe = new FileInfo(exePath);
-					FileInfo fiCert = new FileInfo(fiExe.Directory.FullName + "\\SimpleHttpServer-SslCert.pfx");
-					if (fiCert.Exists)
-						ssl_certificate = new X509Certificate2(fiCert.FullName, "N0t_V3ry-S3cure#lol");
-					else
-					{
-						using (Pluralsight.Crypto.CryptContext ctx = new Pluralsight.Crypto.CryptContext())
-						{
-							ctx.Open();
-
-							ssl_certificate = ctx.CreateSelfSignedCertificate(
-								new Pluralsight.Crypto.SelfSignedCertProperties
-								{
-									IsPrivateKeyExportable = true,
-									KeyBitLength = 4096,
-									Name = new X500DistinguishedName("cn=localhost"),
-									ValidFrom = DateTime.Today.AddDays(-1),
-									ValidTo = DateTime.Today.AddYears(100),
-								});
-
-							byte[] certData = ssl_certificate.Export(X509ContentType.Pfx, "N0t_V3ry-S3cure#lol");
-							File.WriteAllBytes(fiCert.FullName, certData);
-						}
-					}
-				}
+					ssl_certificate = HttpServer.GetSelfSignedCertificate();
 				thrHttps = new Thread(listen);
 				thrHttps.Name = "HttpsServer Thread";
 			}
@@ -813,6 +787,41 @@ namespace SimpleHttp
 					if (bytes != null && bytes.Length == 4)
 						localIPv4Addresses.Add(bytes);
 				}
+			}
+		}
+
+		private static object certCreateLock = new object();
+		public static X509Certificate2 GetSelfSignedCertificate()
+		{
+			lock (certCreateLock)
+			{
+				X509Certificate2 ssl_certificate;
+				string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+				FileInfo fiExe = new FileInfo(exePath);
+				FileInfo fiCert = new FileInfo(fiExe.Directory.FullName + "\\SimpleHttpServer-SslCert.pfx");
+				if (fiCert.Exists)
+					ssl_certificate = new X509Certificate2(fiCert.FullName, "N0t_V3ry-S3cure#lol");
+				else
+				{
+					using (Pluralsight.Crypto.CryptContext ctx = new Pluralsight.Crypto.CryptContext())
+					{
+						ctx.Open();
+
+						ssl_certificate = ctx.CreateSelfSignedCertificate(
+							new Pluralsight.Crypto.SelfSignedCertProperties
+							{
+								IsPrivateKeyExportable = true,
+								KeyBitLength = 4096,
+								Name = new X500DistinguishedName("cn=localhost"),
+								ValidFrom = DateTime.Today.AddDays(-1),
+								ValidTo = DateTime.Today.AddYears(100),
+							});
+
+						byte[] certData = ssl_certificate.Export(X509ContentType.Pfx, "N0t_V3ry-S3cure#lol");
+						File.WriteAllBytes(fiCert.FullName, certData);
+					}
+				}
+				return ssl_certificate;
 			}
 		}
 

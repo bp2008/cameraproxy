@@ -11,7 +11,7 @@ namespace MJpegCameraProxy.Pages.Admin
 	{
 		protected override string GetPageHtml(SimpleHttp.HttpProcessor p, Session s)
 		{
-			ItemTable<PTZProfile> tbl = new ItemTable<PTZProfile>("PTZ Profiles", "ptzprofile", "name", PTZProfile.GetPtzProfiles(), PTZProfile.lockObj, new ItemTableColumnDefinition<PTZProfile>[]
+			ItemTable<PTZProfile> tbl = new ItemTable<PTZProfile>("PTZ Profiles", "ptzprofile", "name", PTZProfile.GetPtzProfiles(), PTZProfile.lockObj, ItemTableMode.Add, new ItemTableColumnDefinition<PTZProfile>[]
 			{
 				new ItemTableColumnDefinition<PTZProfile>("Name", c => { return "<a href=\"javascript:EditItem('" + HttpUtility.JavaScriptStringEncode(c.spec.name) + "')\">" + HttpUtility.HtmlEncode(c.spec.name) + "</a>"; })
 			});

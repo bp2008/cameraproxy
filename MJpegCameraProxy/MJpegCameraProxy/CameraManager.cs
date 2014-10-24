@@ -7,6 +7,7 @@ using System.Threading;
 using System.IO;
 using System.Drawing;
 using MJpegCameraProxy.Configuration;
+using MJpegCameraProxy.PanTiltZoom;
 
 namespace MJpegCameraProxy
 {
@@ -182,6 +183,7 @@ namespace MJpegCameraProxy
 			{
 				cam.Stop();
 			}
+			AdvPtz.Stop();
 		}
 
 		/// <summary>

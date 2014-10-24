@@ -6,6 +6,7 @@ using System.Text;
 using System.Drawing;
 using System.Net;
 using System.Drawing.Imaging;
+using MJpegCameraProxy.Configuration;
 
 namespace MJpegCameraProxy
 {
@@ -46,7 +47,7 @@ namespace MJpegCameraProxy
 				return Directory.CreateDirectory(path).Exists;
 			return true;
 		}
-		public static void WriteImageThumbnailToFile(byte[] imageData, string path, int width = 128, int height = 96, bool useImageMagick = false)
+		public static void WriteImageThumbnailToFile(byte[] imageData, string path, int width = 128, int height = 96)
 		{
 			WrappedImage wi = null;
 			try
@@ -55,7 +56,7 @@ namespace MJpegCameraProxy
 					return;
 				FileInfo file = new FileInfo(path);
 				Util.EnsureDirectoryExists(file.Directory.FullName);
-				wi = new WrappedImage(imageData, useImageMagick);
+				wi = new WrappedImage(imageData);
 				File.WriteAllBytes(file.FullName, wi.ToByteArray(ImageFormat.Jpeg));
 
 			}
@@ -176,6 +177,33 @@ namespace MJpegCameraProxy
 				return "image/webp";
 			else
 				return "image/jpeg";
+		}
+
+
+		public static bool TryGetValue(string requestedPage, List<SimpleWwwFile> fileList, out int permissionRequired)
+		{
+			int idx = fileList.BinarySearch(new SimpleWwwFile(requestedPage, 0), new ComparisonComparer<SimpleWwwFile>((kvp1, kvp2) =>
+			{
+				return string.Compare(kvp1.Key, kvp2.Key);
+			}));
+			if (idx < 0)
+			{
+				permissionRequired = default(int);
+				return false;
+			}
+			else
+			{
+				permissionRequired = fileList[idx].Value;
+				return true;
+			}
+		}
+		public static float Clamp(float num, float min, float max)
+		{
+			if (num < min)
+				return min;
+			if (num > max)
+				return max;
+			return num;
 		}
 	}
 }

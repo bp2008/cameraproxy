@@ -18,8 +18,8 @@ namespace MJpegCameraProxy.Pages.Admin
 <head>
 	<title>CameraProxy Administration</title>
 	"
-		+ GetScriptCallouts("../Scripts/jquery.js", "../Scripts/sha1.js", "../Scripts/TableSorter.js", "../Scripts/jquery_ui_1_10_2_custom_min.js")
-		+ GetStyleCallouts("../Styles/TableSorter_Green.css", "../Styles/jquery_ui_1_10_2_custom_min.css", "../Styles/Site.css")
+		+ GetScriptCallouts(Globals.jQueryPath, "../Scripts/sha1.js", "../Scripts/TableSorter.js", Globals.jQueryUIJsPath)
+		+ GetStyleCallouts("../Styles/TableSorter_Green.css", Globals.jQueryUICssPath, "../Styles/Site.css")
 		+ GetAdminScript(p, s, pageKey)
 	+ @"
 </head>
@@ -154,6 +154,40 @@ namespace MJpegCameraProxy.Pages.Admin
 	{
 		alert('Failed to load page!');
 	}
+	function SaveList()
+	{
+		var outerStr = new Array();
+		var items = new Object();
+		$('*[saveitemfield][saveitemkey]').each(function(idx, ele)
+		{
+			var itemkey = $(ele).attr('saveitemkey');
+			if(typeof(items[itemkey]) == 'undefined')
+				items[itemkey] = new Object();
+			items[itemkey][$(ele).attr('saveitemfield')] = $(ele).val();
+		});
+		var outerChildren = Object.keys(items);
+		for (var i = 0; i < outerChildren.length; i++)
+		{
+			var child = outerChildren[i];
+			var innerStr = new Array();
+			var innerChildren = Object.keys(items[child]);
+			for (var j = 0; j < innerChildren.length; j++)
+			{
+				var innerChild = innerChildren[j];
+				innerStr.push(innerChild + ':' + items[child][innerChild]);
+			}
+			outerStr.push(child + '*' + innerStr.join('*'));
+		}
+		var finalStr = outerStr.join('|');
+		console.log(finalStr);
+		$.post('savelist', {pagename: '" + pageKey + @"', items: finalStr}).done(function(data)
+		{
+			if(data.indexOf('0') == 0)
+				alert(data.substr(1));
+			if(data.indexOf('1') == 0)
+				alert('Saved');
+		});
+	}
 </script>";
 		}
 
@@ -194,6 +228,10 @@ namespace MJpegCameraProxy.Pages.Admin
 			return sb.ToString();
 		}
 		protected abstract string GetPageHtml(SimpleHttp.HttpProcessor p, Session s);
+		internal virtual void HandleSave(SimpleHttp.HttpProcessor p, Session s, SortedList<string, SortedList<string, string>> items)
+		{
+			throw new Exception("HandleSave is not implemented by this class!");
+		}
 		#region Helpers
 
 		internal static void SectionTitle(StringBuilder sb, string title)
@@ -261,10 +299,14 @@ namespace MJpegCameraProxy.Pages.Admin
 			}
 			sb.Append("</tr>").Append(Environment.NewLine);
 		}
-		internal static void AddAndDeleteButtons(StringBuilder sb, string itemType)
+		internal static void AddAndDeleteButtons(StringBuilder sb, string itemType, ItemTableMode mode)
 		{
-			sb.Append("<div class=\"section\"><input type=\"button\" value=\"Add " + itemType + "\" onClick=\"AddItem(); return false;\" /> &nbsp; ");
-			sb.Append("<input type=\"button\" value=\"Delete Selected\" onClick=\"DeleteSelected('" + itemType + "'); return false;\" /> &nbsp; &nbsp; &nbsp; ");
+			sb.Append("<div class=\"section\">");
+			if(mode == ItemTableMode.Add)
+				sb.Append("<input type=\"button\" value=\"Add " + itemType + "\" onClick=\"AddItem(); return false;\" />");
+			else if (mode == ItemTableMode.Save)
+				sb.Append("<input type=\"button\" value=\"Save List\" onClick=\"SaveList(); return false;\" />");
+			sb.Append(" &nbsp; <input type=\"button\" value=\"Delete Selected\" onClick=\"DeleteSelected('" + itemType + "'); return false;\" /> &nbsp; &nbsp; &nbsp; ");
 			sb.Append("<span id=\"errorMessage\" style=\"color:Red;\"></span></div>");
 			sb.Append(@"
 <div id=""newItemDialog"" title=""Enter a " + itemType + @" id:"" itemtype=""" + itemType + @""">
@@ -277,13 +319,19 @@ namespace MJpegCameraProxy.Pages.Admin
 		}
 		#endregion
 	}
+	enum ItemTableMode
+	{
+		Add,
+		Save
+	}
 	class ItemTable<T>
 	{
 		string tableName, tableKey, idField;
 		List<T> myList;
 		ItemTableColumnDefinition<T>[] cols;
 		object objToLockWhenReadingList = new object();
-		public ItemTable(string tableName, string tableKey, string idField, List<T> itemList, object objToLockWhenReadingList, params ItemTableColumnDefinition<T>[] cols)
+		ItemTableMode mode;
+		public ItemTable(string tableName, string tableKey, string idField, List<T> itemList, object objToLockWhenReadingList, ItemTableMode mode, params ItemTableColumnDefinition<T>[] cols)
 		{
 			this.tableName = tableName;
 			this.tableKey = tableKey;
@@ -291,6 +339,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			this.myList = itemList;
 			this.objToLockWhenReadingList = objToLockWhenReadingList;
 			this.cols = cols;
+			this.mode = mode;
 		}
 
 		public string GetSectionHtml()
@@ -309,7 +358,7 @@ namespace MJpegCameraProxy.Pages.Admin
 				{
 					T obj = myList[i];
 					string[] values = new string[cols.Length + 1];
-					values[0] = "<input type=\"checkbox\" class=\"listItemSelectionCheckbox_" + tableKey + "\" itemid=\"" + GetItemId(obj) + "\" />";
+					values[0] = "<input type=\"checkbox\" class=\"listItemSelectionCheckbox_" + tableKey + "\" itemid=\"" + HttpUtility.JavaScriptStringEncode((string)GetItemId(obj)) + "\" />";
 					for (int j = 0; j < cols.Length; j++)
 					{
 						ItemTableColumnDefinition<T> cd = cols[j];
@@ -320,7 +369,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			}
 			AdminBase.SectionTableEnd(sb);
 
-			AdminBase.AddAndDeleteButtons(sb, tableKey);
+			AdminBase.AddAndDeleteButtons(sb, tableKey, mode);
 			return sb.ToString();
 		}
 
@@ -410,6 +459,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			RegisterPage("Cameras", typeof(Cameras));
 			RegisterPage("PTZProfiles", typeof(PTZProfileList));
 			RegisterPage("Users", typeof(Users));
+			RegisterPage("WebServerFiles", typeof(WwwFiles));
 			RegisterPage("edititem", typeof(EditItem), false);
 			RegisterPage("Logout", typeof(Login));
 			RegisterPage("Login", typeof(Login), false);
@@ -447,6 +497,42 @@ namespace MJpegCameraProxy.Pages.Admin
 			}
 			p.writeSuccess();
 			p.outputStream.Write(str);
+		}
+
+		public static string HandleSaveList(SimpleHttp.HttpProcessor p, Session s)
+		{
+			string pageKey = p.GetPostParam("pagename").ToLower();
+
+			if (s.permission < 100)
+				return "0Insufficient Permission";
+
+			Type type;
+			if (!pageKeyToType.TryGetValue(pageKey, out type))
+				return "0Invalid pagename";
+
+			ConstructorInfo ctor = type.GetConstructor(new Type[0]);
+			object instance = ctor.Invoke(null);
+			AdminBase page = (AdminBase)instance;
+
+			SortedList<string, SortedList<string, string>> items = new SortedList<string, SortedList<string, string>>();
+
+			string rawFullItemString = p.GetPostParam("items");
+			string[] itemStrings = rawFullItemString.Split('|');
+			foreach (string itemString in itemStrings)
+			{
+				SortedList<string, string> valuesList = new SortedList<string,string>();
+				string[] keyValuePairs = itemString.Split('*');
+				for (int i = 1; i < keyValuePairs.Length; i++)
+				{
+					string[] keyAndValue = keyValuePairs[i].Split(':');
+					valuesList.Add(keyAndValue[0], keyAndValue[1]);
+				}
+				items.Add(keyValuePairs[0], valuesList);
+			}
+
+			page.HandleSave(p, s, items);
+
+			return "1";
 		}
 	}
 }

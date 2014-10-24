@@ -255,7 +255,7 @@ namespace MJpegCameraProxy.PanTiltZoom.Custom
 					{
 						byte[] image = MJpegServer.cm.GetLatestImage(cam.cameraSpec.id);
 						if (image.Length > 0)
-							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + presetNum + ".jpg", useImageMagick: MJpegWrapper.cfg.UseImageMagick);
+							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + presetNum + ".jpg");
 					}
 					catch (Exception ex)
 					{
