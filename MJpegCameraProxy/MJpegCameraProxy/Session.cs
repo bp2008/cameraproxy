@@ -15,6 +15,12 @@ namespace MJpegCameraProxy
 
 		private SortedList<string, ImageSignature> lastJpgFrame = new SortedList<string, ImageSignature>();
 
+		public Session()
+		{
+			sessionLengthMinutes = permission = 0;
+			expire = DateTime.Now.AddMinutes(-1);
+		}
+
 		public Session(string username, int permission, int sessionLengthMinutes)
 		{
 			if (sessionLengthMinutes < 0)
@@ -46,7 +52,7 @@ namespace MJpegCameraProxy
 				return false;
 			ImageSignature img = new ImageSignature(imgData);
 			ImageSignature old;
-			lock(lastJpgFrame)
+			lock (lastJpgFrame)
 			{
 				if (!lastJpgFrame.TryGetValue(id, out old))
 					old = null;

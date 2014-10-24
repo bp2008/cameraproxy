@@ -1,0 +1,1 @@
+﻿Files placed in this folder are served at the root of the web server, and permissions can be configured in the admin interface.

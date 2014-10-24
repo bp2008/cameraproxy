@@ -1,0 +1,226 @@
+#outerFrame
+{
+	width: 100%;
+	height: 100%;
+}
+#imgFrame
+{
+	position: absolute;
+}
+table
+{
+	border-collapse: collapse;
+}
+td
+{
+	padding: 0px;
+}
+#camCell
+{
+	position: absolute;
+	overflow: hidden;
+	background: linear-gradient(135deg, #131313 0%,#1c1c1c 9%,#2b2b2b 18%,#111111 28%,#000000 38%,#2c2c2c 56%,#474747 68%,#666666 80%,#595959 90%,#4c4c4c 100%);
+}
+#rightMenu
+{
+	position: absolute;
+	background-color: #666666;
+}
+#bottomMenu
+{
+	position: absolute;
+	width: 100%;
+	background-color: #000000;
+	background: linear-gradient(to right, #1b1b1b 0%,#383838 13%,#4e4e4e 24%,#0a0a0a 47%,#010101 50%,#0d0d0d 54%,#959595 100%);
+}
+#panoramaimg
+{
+	position: absolute;
+}
+#cornerMenuResizeButton
+{
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+}
+body
+{
+	background-color: #666666;
+	margin: 0px;
+	overflow: hidden;
+}
+#zoomhint
+{
+	position: absolute;
+	background-color: #000000;
+	color: #FFFFFF;
+	padding: 3px;
+	opacity: 1;
+	margin: 0px 5px 5px 0px;
+}
+.sliderlabel
+{
+	padding-left: 2px;
+}
+.togglebtn
+{
+	width: 36px;
+}
+.sliderbtn
+{
+	width: 36px;
+}
+.sliderhandle
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+.sliderwrapper
+{
+	margin: 3px;
+}
+.slidertrackwrapper
+{
+	margin-left: 2px;
+	position: relative;
+}
+.slidertrack
+{
+	margin-left: 14px;
+	background-color: Black;
+	width: 3px;
+	height: 200px;
+}
+#thumbnailbox
+{
+	background-color: transparent;
+	border: 1px solid Red;
+	position: absolute;
+}
+#thumbnailboxinner
+{
+	background-color: transparent;
+	border: 1px solid Blue;
+	position: absolute;
+}
+#thumbnailboxServer
+{
+	background-color: transparent;
+	border: 1px solid Yellow;
+	position: absolute;
+	opacity: 0.7;
+}
+#thumbnailboxinnerServer
+{
+	background-color: transparent;
+	border: 1px solid White;
+	position: absolute;
+	opacity: 0.7;
+}
+.posbox3d
+{
+	display: none;
+	background-color: transparent;
+	position: absolute;
+	opacity: 1;
+}
+#client3dposbox
+{
+	border: 3px solid Red;
+}
+#server3dposbox
+{
+	border: 3px solid White;
+}
+#popupFrame
+{
+	position: fixed;
+	background-color: #BB0000;
+	border: 1px Solid White;
+	border-radius: 5px;
+	padding: 5px;
+	top: 15px;
+	width: 300px;
+	left: 20px;
+}
+#popupMessage
+{
+	color: White;
+	margin-bottom: 5px;
+}
+#popupMessage a
+{
+	color: #DDDDFF;
+}
+.grabcursor
+{
+	cursor: -moz-grab !important;
+	cursor: -webkit-grab !important;
+	cursor: grab !important;
+}
+.grabbingcursor
+{
+	cursor: -moz-grabbing !important;
+	cursor: -webkit-grabbing !important;
+	cursor: grabbing !important;
+}
+.flip-horizontal
+{
+	-moz-transform: scaleX(-1);
+	-webkit-transform: scaleX(-1);
+	-o-transform: scaleX(-1);
+	transform: scaleX(-1);
+	-ms-filter: fliph; /*IE*/
+	filter: fliph; /*IE*/
+}
+.flip-vertical
+{
+	-moz-transform: scaleY(-1);
+	-webkit-transform: scaleY(-1);
+	-o-transform: scaleY(-1);
+	transform: scaleY(-1);
+	-ms-filter: flipv; /*IE*/
+	filter: flipv; /*IE*/
+}
+.flip-both
+{
+	-moz-transform: scale(-1,-1);
+	-webkit-transform: scale(-1,-1);
+	-o-transform: scale(-1,-1);
+	transform: scale(-1,-1);
+	-ms-filter: flipv fliph; /*IE*/
+	filter: flipv fliph; /*IE*/
+}
+.arrow-up
+{
+	width: 0px;
+	height: 0px;
+	border-bottom: 20px solid #00AA00;
+	border-left: 20px solid transparent;
+	border-right: 20px solid transparent;
+}
+.arrow-down
+{
+	width: 0px;
+	height: 0px;
+	border-top: 20px solid #00AA00;
+	border-left: 20px solid transparent;
+	border-right: 20px solid transparent;
+}
+.arrow-left
+{
+	width: 0px;
+	height: 0px;
+	border-bottom: 10px solid transparent;
+	border-top: 10px solid transparent;
+	border-right: 10px solid #00AA00;
+}
+.arrow-right
+{
+	width: 0px;
+	height: 0px;
+	border-bottom: 10px solid transparent;
+	border-left: 10px solid #00AA00;
+	border-top: 10px solid transparent;
+}

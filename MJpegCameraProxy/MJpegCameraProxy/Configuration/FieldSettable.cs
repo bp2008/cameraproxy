@@ -27,6 +27,22 @@ namespace MJpegCameraProxy.Configuration
 				else
 					return "0Invalid value received for field \"" + fieldName + "\". (" + fieldValue + ")";
 			}
+			else if (fi.FieldType == typeof(float))
+			{
+				float floatValue;
+				if (float.TryParse(fieldValue, out floatValue))
+					fi.SetValue(this, floatValue);
+				else
+					return "0Invalid value received for field \"" + fieldName + "\". (" + fieldValue + ")";
+			}
+			else if (fi.FieldType == typeof(double))
+			{
+				double doubleValue;
+				if (double.TryParse(fieldValue, out doubleValue))
+					fi.SetValue(this, doubleValue);
+				else
+					return "0Invalid value received for field \"" + fieldName + "\". (" + fieldValue + ")";
+			}
 			else if (fi.FieldType == typeof(ushort))
 			{
 				ushort ushortValue;

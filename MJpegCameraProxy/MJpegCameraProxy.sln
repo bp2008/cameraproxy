@@ -5,9 +5,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MJpegCameraProxy", "MJpegCa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MJpegCameraProxyCmd", "MJpegCameraProxyCmd\MJpegCameraProxyCmd.csproj", "{946DFB05-3891-4996-8D8A-714D9451B718}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fleck", "Fleck\Fleck.csproj", "{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs36
 		SccLocalPath0 = .
@@ -17,6 +19,9 @@ Global
 		SccProjectUniqueName2 = MJpegCameraProxyCmd\\MJpegCameraProxyCmd.csproj
 		SccProjectName2 = MJpegCameraProxyCmd
 		SccLocalPath2 = MJpegCameraProxyCmd
+		SccProjectUniqueName3 = Fleck\\Fleck.csproj
+		SccProjectName3 = Fleck
+		SccLocalPath3 = Fleck
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +46,14 @@ Global
 		{946DFB05-3891-4996-8D8A-714D9451B718}.Release|x64.Build.0 = Release|x64
 		{946DFB05-3891-4996-8D8A-714D9451B718}.Release|x86.ActiveCfg = Release|x86
 		{946DFB05-3891-4996-8D8A-714D9451B718}.Release|x86.Build.0 = Release|x86
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Debug|x64.ActiveCfg = Debug|x64
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Debug|x64.Build.0 = Debug|x64
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Debug|x86.ActiveCfg = Debug|x86
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Debug|x86.Build.0 = Debug|x86
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Release|x64.ActiveCfg = Release|x64
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Release|x64.Build.0 = Release|x64
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Release|x86.ActiveCfg = Release|x86
+		{8B12D929-AFA9-4307-BEFF-2ED0F1070FEE}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

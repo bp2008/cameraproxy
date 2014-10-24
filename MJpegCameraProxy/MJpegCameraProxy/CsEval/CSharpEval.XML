@@ -1,0 +1,1969 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CSharpEval</name>
+    </assembly>
+    <members>
+        <member name="T:CSE.Exps.BitwiseType">
+            
+             <summary>
+            		Bitwise expression types
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.BitwiseType.AND">
+            
+             <summary>
+            		And
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.BitwiseType.OR">
+            
+             <summary>
+            		Or
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.BitwiseType.NOT">
+            
+             <summary>
+            		Not
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.BitwiseType.SHL">
+            
+             <summary>
+            		Left shift
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.BitwiseType.SHR">
+            
+             <summary>
+            		Right shift
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.MethResSettings">
+            
+             <summary>
+            		Used in overloaded and overwritten method resolution
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResSettings.Env">
+            
+             <summary>
+            		The parent environment in which this object exists
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResSettings.Name">
+            
+             <summary>
+            		The name of this particular method
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResSettings.Args">
+            
+             <summary>
+            		The list of arguments for the method
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResSettings.IsExtInvocation">
+            
+             <summary>
+            		Whether or not this is an extended invocation
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.MethResSettings.#ctor(System.Object,System.String,CSE.Exps.CseObject[],System.Boolean)">
+            
+             <summary>
+            		Constructor for MethResSettings objects
+             </summary>
+             
+             <param name="env">The environment to use</param>
+             <param name="name">The name of the method</param>
+             <param name="args">Arguments to pass to the method</param>
+             <param name="isExtInvocation">True if this is an extended invocation, false otherwise</param>
+             
+        </member>
+        <member name="T:CSE.Exps.BitwiseExp">
+            
+             <summary>
+            		Used to parse bitwise expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.BitwiseExp.Parse(CSE.Exps.CseObject,CSE.Exps.CseObject,CSE.Exps.BitwiseType)">
+            
+             <summary>
+            		Parses bitwise expressions
+             </summary>
+             
+             <param name="leftOp">Left operand</param>
+             <param name="rightOp">Right operand</param>
+             <param name="type">Bitwise expression type</param>
+             
+             <returns>The result of applying the given bitwise operand</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.MethResObject">
+            
+             <summary>
+            		The internal representation of a method resolution object.
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResObject.MethInfo">
+            
+             <summary>
+            		Method information object.
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResObject.InvTypes">
+            
+             <summary>
+            		InvTypes. Unused.
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResObject.Args">
+            
+             <summary>
+            		The list of arguments for this method resolution.
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethResObject.OnlyAppInExpForm">
+            
+             <summary>
+            		If this method resolution should match only in "expanded form", as defined in the C# specification, this is marked true,
+            		otherwise false.
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.MethResObject.#ctor(System.Reflection.MethodInfo,System.Type[],System.Object[],System.Boolean)">
+            
+             <summary>
+            		The constructor for creating a MethResObject.
+             </summary>
+             
+             <param name="methInfo">The method information to set.</param>
+             <param name="invTypes">unused. Send null</param>
+             <param name="args">The argument list to set up for the constructed method resolution object.</param>
+             <param name="onlyAppInExpForm">Whether or not the method resolution applies only in expanded form.</param>
+             
+        </member>
+        <member name="T:CSE.Exps.MethRes">
+            
+             <summary>
+            		A set of static methods and members for use in method resolution.
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethRes.NumConv">
+            
+             <summary>
+            		The allowed transitions for numerical types. A given type maps to a list of valid conversions type objects for that type.
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethRes.findFlags">
+            
+             <summary>
+            		The default set of binding flags that is used when attempting to look up methods and members.
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.MethRes.GetBestInvocableMember(CSE.Exps.MethResSettings)">
+            
+             <summary>
+            		Returns the best applicable and invokable member for a given MethResSettings object.
+             </summary>
+             
+             <param name="mrSettings">The object to match when invoking</param>
+             
+             <returns>The specific best invokable member that matches the passed MethResSettings object</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.MethRes.GetBestMember(CSE.Exps.MethResSettings)">
+            
+             <summary>
+            		Returns the best matching member for a given MethResSettings object.
+             </summary>
+             
+             <param name="mrSettings">The object to match when invoking</param>
+             
+             <returns>The specific best member that matches the passed MethResSettings object</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.MethRes.GetApplicableMembers(CSE.Exps.MethResSettings)">
+            
+             <summary>
+            		Returns all matching members, according to the C# specification, for a given MethResSettings object.
+             </summary>
+             
+             <param name="mrSettings">The object to match when invoking</param>
+             
+             <returns>The list of applicable members that match the passed MethResSettings object</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.MethRes.GetCandidateMembers(CSE.Exps.MethResSettings)">
+            
+             <summary>
+            		Returns all members that match the name (candidates) of the given MethResSettings object.
+             </summary>
+             
+             <param name="mrSettings">The object to match when invoking</param>
+             
+             <returns>The list of candidate members, as defined in the C# specification, that matches the passed 
+             MethResSettings object</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.MethRes.GetMethodInfos(System.Type,CSE.Exps.MethResSettings)">
+            
+             <summary>
+            		Returns a list of MethResObject objects, within the given environment and MethResSettings object, according to the C# 
+            		specification.
+             </summary>
+             
+             <param name="env">The environment to use when locating the desired MethResObject objects.</param>
+             <param name="mrSettings">The object to match when invoking</param>
+             
+             <returns>The list of MethResObjects which match the given MethResSettings object and environment.</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.MethRes.ImpEnumConv(CSE.Exps.CseObject,System.Type)">
+            
+             <summary>
+            		Tests for an implicit enum conversion, given a CseObject and a type.
+             </summary>
+             
+             <param name="data">The object to test converting</param>
+             <param name="t">The type to attempt to convert the object to</param>
+             
+             <returns>True if an implicit enum conversion is valid, false otherwise</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.MethRes.CanConvertType(CSE.Exps.CseObject,System.Type)">
+            
+             <summary>
+            		A holistic method to use for testing coercion of objects
+             </summary>
+             
+             <param name="fromArg">The object to be coerced</param>
+             
+             <param name="to">The type to convert the object to.</param>
+             
+             <returns>True if the coercion is valid, false otherwise</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.MethRes.ImpRefConv(CSE.Exps.CseObject,System.Type)">
+            
+             <summary>
+            		Tests for an implicit reference conversion, given a CseObject and a type.
+             </summary>
+             
+             <param name="data">The object to test converting</param>
+             <param name="t">The type to attempt to convert the object to</param>
+             
+             <returns>True if an implicit reference conversion is valid, false otherwise</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.MethRes.CrawlThatShit(System.Int32,System.Type,System.Collections.Generic.List{System.Int32})">
+            
+             <summary>
+            		Recursive method to traverse through the class hierarchy in an attempt to determine if the current object may be converted
+            		to the target type, based on it's hash code.
+             </summary>
+             
+             <param name="target">The hashCode value of the target object</param>
+             <param name="current">The object to be converted.</param>
+             <param name="visitedTypes">The list of visited types. This is an optimization parameter.</param>
+             
+             <returns>True if the object can be converted to an object matching the hashCode property of target, false otherwise</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.MethRes.IsNullableType(System.Type)">
+            
+             <summary>
+            		Determines if the passed type is a nullable type
+             </summary>
+             
+             <param name="t">The type to check</param>
+             
+             <returns>True if the type is a nullable type, false otherwise</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.MethRes.IsBoxingConversion(CSE.Exps.CseObject,System.Type)">
+            
+             <summary>
+            		Determines if a boxing conversion exists between the passed object and the type
+             </summary>
+             
+             <param name="fromArg">The object to convert</param>
+             <param name="to">The type to attempt to convert the object to.</param>
+             
+             <returns>True if a boxing conversion exists between the object and the type, false otherwise</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.LiteralExp">
+            
+             <summary>
+            		Used to parse literal expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseIntType(System.String,System.String)">
+            
+             <summary>
+            		Parses integral-type literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             <param name="suffix">Optional type suffix</param>
+             
+             <returns>An integral-type value or float-type if float-type suffix is supplied</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.NOT_A_NUM"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_INT_TYPE"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseIntType(System.String,System.Boolean)">
+            
+             <summary>
+            		Parses integral-type literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             <param name="hasSuffix">Indicates whether a suffix is present or not</param>
+             
+             <returns>An integral-type value or float-type if float-type suffix is supplied</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_INT_TYPE"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.NOT_A_NUM"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseFloatType(System.String,System.String)">
+            
+             <summary>
+            		Parses float-type literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             <param name="suffix">Optional type suffix</param>
+             
+             <returns>A float-type value</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_FLT_TYPE"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.NOT_A_NUM"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseFloatType(System.String,System.Boolean)">
+            
+             <summary>
+            		Parses float-type literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             <param name="hasSuffix">Indicates whether a suffix is present or not</param>
+             
+             <returns>A float-type value</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_FLT_TYPE"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.NOT_A_NUM"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseEType(System.String)">
+            
+             <summary>
+            		Parses literals that contain the exponential 'e' character
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             
+             <returns>A double value</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_DBL"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseChar(System.String)">
+            
+             <summary>
+            		Parses char literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             
+             <returns>A char value</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_CHAR"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseStr(System.String)">
+            
+             <summary>
+            		Parses string literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             
+             <returns>A string value</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseBool(System.String)">
+            
+             <summary>
+            		Parses bool literals
+             </summary>
+             
+             <param name="data">String containing the literal</param>
+             
+             <returns>A bool value</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.ParseEscSeqs(System.String@,System.Boolean)">
+            
+             <summary>
+            		Parses escape sequences found in char or string literals
+             </summary>
+             
+             <param name="data">String containing the literal that may have escape sequences</param>
+             <param name="isVerbatim">
+            		Used to tell if the literal passed is a verbatim string. 
+            		True if data represents verbatim string, false otherwise
+            	</param>
+            	
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.HEX_ESC_CODE_NOT_RECOGNIZED"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.IsIntType(CSE.Exps.CseObject)">
+            
+             <summary>
+            		Determines if value passed in is an integral-type
+             </summary>
+             
+             <param name="data">Value to examine</param>
+             
+             <returns>True if value is an integral-type, false otherwise</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.NarrowIntType(CSE.Exps.CseObject)">
+            
+             <summary>
+            		Changes the given integral-type object to the smallest integral data type
+            		that can contain its value. If xdata has a CompileTimeType that is
+            		unsigned, then the smallest unsigned integral type is used. Otherwise
+            		the smallest signed type is used. The only current exception to this is
+            		byte vs. sbyte as they are considered special cases and therefore, regardless
+            		if the original type is unsigned or not, byte is always attempted in place
+            		of sbyte.
+             </summary>
+             
+             <param name="xdata">Integral-type value to narrow</param>
+             
+             <returns>An integral-type object with same Value as the xdata param</returns>
+             
+             <exception cref="T:System.ArgumentException"/>
+            
+        </member>
+        <member name="M:CSE.Exps.LiteralExp.IsUnsignedType(CSE.Exps.CseObject)">
+            
+             <summary>
+            		Determines whether the xdata's CompileTimeType is an unsigned integral type or not
+             </summary>
+             
+             <param name="xdata">CseObject to examine the CompileTimeType of</param>
+             
+             <returns>True if xdata's CompileTimeType is an unsigned integral type, false otherwise</returns>
+            
+        </member>
+        <member name="T:CSE.Exceptions.CseLogicException">
+            
+             <summary>
+            		Primary class for all logic exceptions in statements
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exceptions.CseLogicException.#ctor(CSE.Exceptions.CseLogicExceptionType)">
+            
+             <summary>
+            		Constructor
+             </summary>
+             
+             <param name="type">Type of exception to display</param>
+             
+        </member>
+        <member name="M:CSE.Exceptions.CseLogicException.#ctor(CSE.Exceptions.CseLogicExceptionType,System.Object[])">
+            
+             <summary>
+            		Constructor
+             </summary>
+             
+             <param name="type">Type of exception to display</param>
+             <param name="args">Argument(s) to send to the formatted string that param type produces</param>
+             
+        </member>
+        <member name="M:CSE.Exceptions.CseLogicException.QuoteArgs(System.Object[])">
+            
+             <summary>
+            		Places double quotes around each argument sent to the constructor.
+            		This changes a statement like:
+            			Can't cast -3 to ulong
+            		to:
+            			Can't cast "-3" to "ulong"
+             </summary>
+             
+             <param name="args">Arguments to convert to strings with double quotes around them</param>
+             
+             <returns>String array containing each object in param args converted to a string with double quotes around it</returns>
+             
+        </member>
+        <member name="M:CSE.Exceptions.CseLogicException.GetExceptionMsg(CSE.Exceptions.CseLogicExceptionType)">
+            
+             <summary>
+            		Converts CseLogicExceptionType value to a formatted exception message
+            		(to be used in String.Format())
+             </summary>
+             
+             <param name="CseLogicExceptionType">Exception to convert to a message</param>
+             
+             <returns>The corresponding message for the exception type given</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.OpOverloadNames">
+            
+             <summary>
+            		Contains the names of the methods generated when operator overloading is used
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.Flags">
+            
+             <summary>
+            		Binding flags for looking up and invoking an operator overloaded method
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.UPLUS">
+            
+             <summary>
+            		Method name generated when the unary plus operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.UMINUS">
+            
+             <summary>
+            		Method name generated when the unary negation operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BANG">
+            
+             <summary>
+            		Method name generated when the logical negation operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.INC">
+            
+             <summary>
+            		Method name generated when the increment operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.DEC">
+            
+             <summary>
+            		Method name generated when the decrement operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.TRUE">
+            
+             <summary>
+            		Method name generated when the true operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.FALSE">
+            
+             <summary>
+            		Method name generated when the false operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.ADD">
+            
+             <summary>
+            		Method name generated when the addition operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.SUB">
+            
+             <summary>
+            		Method name generated when the subtraction operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.MUL">
+            
+             <summary>
+            		Method name generated when the multiplication operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.DIV">
+            
+             <summary>
+            		Method name generated when the division operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.MOD">
+            
+             <summary>
+            		Method name generated when the modulus operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BIT_AND">
+            
+             <summary>
+            		Method name generated when the bitwise and operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BIT_OR">
+            
+             <summary>
+            		Method name generated when the bitwise or operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BIT_XOR">
+            
+             <summary>
+            		Method name generated when the bitwise xor operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BIT_NOT">
+            
+             <summary>
+            		Method name generated when the bitwise negation operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BIT_RSHIFT">
+            
+             <summary>
+            		Method name generated when the right shift operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.BIT_LSHIFT">
+            
+             <summary>
+            		Method name generated when the left shift operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.EQ">
+            
+             <summary>
+            		Method name generated when the equals operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.NEQ">
+            
+             <summary>
+            		Method name generated when the not equals operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.LT">
+            
+             <summary>
+            		Method name generated when the less than operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.LTE">
+            
+             <summary>
+            		Method name generated when the less than or equal to operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.GT">
+            
+             <summary>
+            		Method name generated when the greater than operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.GTE">
+            
+             <summary>
+            		Method name generated when the greater than or equal to operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.COV_WIDE">
+            
+             <summary>
+            		Method name generated when the implicit conversion operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.OpOverloadNames.COV_NARROW">
+            
+             <summary>
+            		Method name generated when the explicit coversion operator is overloaded
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.CastExp">
+            
+             <summary>
+            		Used to parse cast expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.CastExp.Parse(CSE.Exps.CseObject,System.String,CSE.Exps.CseObject)">
+            
+             <summary>
+            		Parses casts
+             </summary>
+             
+             <remarks>
+            		Can only perform a real cast in certain situations. When it can't it
+            		tries to mimic a cast using parsing or conversion.
+            	</remarks>
+            	
+             <param name="instance">The root object</param>
+             <param name="typeName">Type to cast to</param>
+             <param name="cseData">Expression to cast</param>
+             
+             <returns>The converted object</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_CAST_VALUE_TO_TYPE"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.OVERFLOW_TRYING_TO_CAST"/>
+            
+        </member>
+        <member name="T:CSE.CsEvaluator">
+            
+             <summary>
+            		Holds parsed expression for quick evaluation later
+             </summary>
+             
+        </member>
+        <member name="F:CSE.CsEvaluator.lexer">
+            
+             <summary>
+            		Expression lexer
+             </summary>
+             
+        </member>
+        <member name="F:CSE.CsEvaluator.parser">
+            
+             <summary>
+            		Expression parser
+             </summary>
+             
+        </member>
+        <member name="M:CSE.CsEvaluator.#ctor">
+            
+             <summary>
+            		Constructor
+             </summary>
+             
+        </member>
+        <member name="M:CSE.CsEvaluator.Reset">
+            
+             <summary>
+            		Resets lexer and parser. Must be called
+            		before expression can be re-parsed or
+            		re-lexed
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.XorExp">
+            
+             <summary>
+            		Used to parse xor expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.XorExp.Parse(CSE.Exps.CseObject,CSE.Exps.CseObject)">
+            
+             <summary>
+            		Parses xor expressions
+             </summary>
+             
+             <param name="leftOp">Left operand</param>
+             <param name="rightOp">Right operand</param>
+             
+             <returns>The result of applying the xor operator</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.TempIdentifierExp">
+            
+             <summary>
+            		Used for storing temporary identifiers declared in the given expression
+             </summary>
+             
+             <remarks>Not fully supported yet!</remarks>
+             
+        </member>
+        <member name="F:CSE.Exps.TempIdentifierExp.tempIdents">
+            
+             <summary>
+            		List of temporary identifiers that have been declared
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.TempIdentifierExp.AddIdent(System.Type,System.String)">
+            
+             <summary>
+            		Adds a temporary identifier of the given type and name
+             </summary>
+             
+             <param name="type">Type of identifier</param>
+             <param name="name">Name of identifier</param>
+             
+        </member>
+        <member name="M:CSE.Exps.TempIdentifierExp.AddIdent(System.Type,System.String,System.Object)">
+            
+             <summary>
+            		Adds a temporary identifier of the given type and name and initializes
+            		it to the given initValue
+             </summary>
+             
+             <param name="type">Type of identifier</param>
+             <param name="name">Name of identifier</param>
+             <param name="initValue">Initial value of identifer</param>
+             
+        </member>
+        <member name="M:CSE.Exps.TempIdentifierExp.Lookup(System.String)">
+            
+             <summary>
+            		Looks up temporary identifier of the given name and returns it
+             </summary>
+             
+             <param name="name">Identifier name to look up</param>
+             
+             <returns>The temporary identifier of the given name if found, null otherwise</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.TempIdentifierExp.Assign(System.String,System.Object)">
+            
+             <summary>
+            		Assigns the given value to the temporary identifier of the given name
+             </summary>
+             
+             <param name="name">Identifier name</param>
+             <param name="value">Value to assign identifier</param>
+             
+        </member>
+        <member name="T:CSE.Exps.ObjectConstructionExp">
+            
+             <summary>
+            		Used to parse object construction expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.ObjectConstructionExp.Parse(CSE.Exps.CseObject,System.String,System.Collections.Generic.List{CSE.Exps.CseObject})">
+            
+             <summary>
+            		Parses object construction expression (expressions using "new")
+             </summary>
+             
+             <param name="instance">The root object</param>
+             <param name="typeName">Name of the type to create</param>
+             <param name="constructorParams">
+            		CseObject array containing arguments to be sent to the constructor. 
+            		Each CseObject is one argument
+             </param>
+             
+             <returns>CseObject containing the new object</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.UNKNOWN_TYPE"/>
+            
+        </member>
+        <member name="T:CSE.Exps.LogicalExp">
+            
+             <summary>
+            		Used to parse logical expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.LogicalExp.Parse(CSE.Exps.CseObject,CSE.Exps.CseObject,CSE.Exps.LogicalType)">
+            
+             <summary>
+            		Parses logical expressions
+             </summary>
+             
+             <param name="leftOp">Left operand</param>
+             <param name="rightOp">Right operand</param>
+             <param name="type">Logical expression type</param>
+             
+             <returns>The result of applying the given logical expression operator</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.ArithType">
+            
+             <summary>
+            		Arithmetic operator types
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.ArithType.ADD">
+            
+             <summary>
+            		Addition
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.ArithType.SUB">
+            
+             <summary>
+            		Subtraction
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.ArithType.MUL">
+            
+             <summary>
+            		Multiplication
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.ArithType.DIV">
+            
+             <summary>
+            		Division
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.ArithType.MOD">
+            
+             <summary>
+            		Modulus
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.ArithType.POW">
+            
+             <summary>
+            		Power/Exponent
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.ArithExp">
+            
+             <summary>
+            		Used to parse arithmetic expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.ArithExp.Parse(CSE.Exps.CseObject,CSE.Exps.CseObject,CSE.Exps.ArithType)">
+            
+             <summary>
+            		Parses arithmetic expressions
+             </summary>
+             
+             <param name="leftOperand">Left operand</param>
+             <param name="rightOperand">Right operand</param>
+             <param name="arithType">Arithmetic operator type</param>
+             
+             <remarks>
+            		Only works with operands that evaluate to either numeric or string types. If both operands are strings
+            		and arithType is ADD, concatenation is performed. Else, if either operand is of a float type, both are 
+            		treated as float type. Else, both are treated as int types. This is to ensure proper behavior of operators 
+            		such as addition and division. If operands are of int type, result is then parsed as a literal expression
+            		to ensure correct return type.
+            	</remarks>
+            	
+             <returns>Result of arithmetic operation</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.ARITH_EXCEPTION"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.LEFT_OP_NON_NUM"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.RIGHT_OP_NON_NUM"/>
+             
+        </member>
+        <member name="M:CSE.Exps.ArithExp.Affirm(CSE.Exps.CseObject)">
+            
+             <summary>
+            		Applies numeric affirmation (i.e. unary plus) to numeric values
+             </summary>
+             
+             <param name="obj">The CseObject with the value to affirm</param>
+             
+             <returns>The CseObject after affirmation</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_AFFIRM_NON_NUM"/>
+             
+        </member>
+        <member name="M:CSE.Exps.ArithExp.Negate(CSE.Exps.CseObject)">
+            
+             <summary>
+            		Applies numeric negation (i.e. unary minus) to numeric values
+             </summary>
+             
+             <param name="obj">The CseObject with the value to negate</param>
+             
+             <returns>The CseObject after negation</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_NEGATE_NON_NUM"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.ERROR_NEGATING_VALUE_OF_TYPE"/>
+             
+        </member>
+        <member name="T:CSE.Exps.CseObject">
+            
+             <summary>
+            		Wrapper for values passed around the cse expression
+            		Parse methods. This allows the values to have metadata 
+            		attached to them for better decision making in some cases
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CseObject.callMod">
+            
+             <summary>
+            		Indicates what kind of method call argument modifier
+            		this value has in case it is used as an argument.
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.CseObject.#ctor(System.Object)">
+            
+             <summary>
+            		Constructor
+             </summary>
+             
+             <param name="value">Object for it to hold</param>
+             
+        </member>
+        <member name="M:CSE.Exps.CseObject.op_UnaryNegation(CSE.Exps.CseObject)">
+            
+             <summary>
+            		Negates the value property
+             </summary>
+             
+             <param name="obj">CseObject to change</param>
+             
+             <returns>The CseObject with its value property negated</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.CseObject.Clone">
+            
+             <summary>
+            		Creates a shallow copy of this object
+             </summary>
+             
+             <returns>A shallow copy of the object</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.CseObject.Clone(System.Object)">
+            
+             <summary>
+            		Creates a shallow copy of this object with a new value
+             </summary>
+             
+             <param name="newValue">Value to give the cloned object</param>
+             
+             <returns>A shallow copy of the object with the given newValue</returns>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.Value">
+            
+             <summary>
+            		The actual value being held
+             </summary>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.EnvChain">
+            
+             <summary>
+            		List of CseObjects that make up the environments the identifier chain is composed of
+             </summary>
+             
+             <example>
+            		a.b[0].c.d[e]
+            		// EnvChain would be {the value of a, value of b (at 0) on a, value of c on b (at 0), and value of d (at e) on c}
+            	</example>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.EnvNames">
+            
+             <summary>
+            		List of strings that make up the identifier names the identifier chain is composed of
+             </summary>
+             
+             <example>
+            		a.b[0].c.d[e]  
+            		// EnvNames would be {"a", "b", "c", "d"}
+            	</example>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.EnvIndices">
+            
+             <summary>
+            		List of CseObjects that make up the indices of each array found in the identifier chain (or null if not an array)
+             </summary>
+             
+             <example>
+            		a.b[0].c.d[e]
+            		// EnvIndices would be {null, 0, null, value of e}
+            	</example>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.ValueType">
+            
+             <summary>
+            		Returns the compile-time type of the identifier or, if that is null, the type of its current value.
+            		If both are null, null is returned
+             </summary>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.CompileTimeType">
+            
+             <summary>
+            		The type the Value had during compilation. This can
+            		help in cases where inheritance is used and the compile-time
+            		type of a field is not the same as its run-time type.
+            		<para>-</para>
+            		<para>E.g.</para>
+            		<para>/* field declaration */</para>
+            		<para>private BaseClass bc;</para>
+            		<para>/* in constructor or another method */</para>
+            		<para>bc = new DerivedClass();</para>
+            		<para>//</para>
+            		<para>
+            			This property would have the BaseClass type. This is
+            			helpful when determining which overloaded method to
+            			call since C# is single dispatch.
+            		</para>
+             </summary>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.IsLiteral">
+            
+             <summary>
+            		True if value is a literal, false otherwise.
+            		If value is not a literal, its type is not implicitly
+            		coerced to match method signatures during a call
+             </summary>
+             
+        </member>
+        <member name="P:CSE.Exps.CseObject.CallMod">
+            
+             <summary>
+            		Gets or sets the callMod value. During a set, value is
+            		checked to see if it is a literal or not. If it is, only
+            		CallArgMod.NONE is a valid value and an exception is thrown
+            		if any other modifier is used.
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.ArrayExp">
+            
+             <summary>
+            		Used to parse array index expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.ArrayExp.Parse(CSE.Exps.CseObject,System.String,CSE.Exps.CseObject)">
+            
+             <summary>
+            		Parses array expressions
+             </summary>
+             
+             <param name="rootInstance">Environment where the array is implemented</param>
+             <param name="arrayIdent">Name of the array</param>
+             <param name="index">Object for the index value</param>
+             
+             <returns>CseObject containing the array element at the specified index</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.IDENT_IS_NOT_ARRAY"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.IDENT_NOT_FOUND"/>
+            
+        </member>
+        <member name="T:CSE.Exps.MethodExp">
+            
+             <summary>
+            		Used to parse method call expressions
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.MethodExp.findFlags">
+            
+             <summary>
+            		Flags used in GetMethod() to locate the method being called
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.MethodExp.Parse(CSE.Exps.CseObject,System.String,System.Collections.Generic.List{CSE.Exps.CseObject})">
+            
+             <summary>
+            		Parses method calls
+             </summary>
+             
+             <param name="environment">The environment containing the method</param>
+             <param name="methName">Name of the method</param>
+             <param name="args">CseObject array containing arguments to be sent to the method. Each CseObject is one argument</param>
+             
+             <returns>CseObject containing the return result of the method call or CseObject containing null if method is void</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.METHOD_CALL_AMBIGUOUS"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.METHOD_CANT_IMPLICITLY_COERCE_ARGS"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.METHOD_DOESNT_EXIST"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.METHOD_EXISTS_BUT_CANT_BE_INVOKED"/>
+            
+        </member>
+        <member name="M:CSE.Exps.MethodExp.CanCoerce(System.Collections.Generic.List{CSE.Exps.CseObject})">
+            
+             <summary>
+            		Determines if it is possible to coerce the given list of arguments
+            		so a method signature can be matched.
+             </summary>
+             
+             <param name="args">List of arguments to check</param>
+             
+             <returns>
+            		True if exactly one argument is of an integral type, false otherwise.
+            		Idea is to only coerce integral arguments since floating point arguments
+            		would lose precision when converted to a narrower type and objects don't
+            		need it due to inheritance (i.e. they will match the method signature without
+            		it). If there is more than one integral argument, then the chance that the
+            		wrong overloaded method is called is too great, and so this method returns
+            		false meaning it can't safely coerce the integral args. If only one is found,
+            		and a method can't be matched without coercion, then we can safely narrow
+            		down that one integral arg without worry about matching the wrong method.
+             </returns>
+             
+        </member>
+        <member name="M:CSE.Exps.MethodExp.NarrowAllIntTypes(System.Collections.Generic.List{CSE.Exps.CseObject}@)">
+            
+             <summary>
+            		Inspects all CseObjects in args and for the literal integral values, it
+            		converts their type to the most narrow type that can contain their value.
+            		E.g. if the value is a literal 300 (not the value of an identifier as those
+            		types aren't changed), then the smallest integral data type that can store
+            		that would be a short. This increases the chance that the given args will
+            		match a wider method signature.
+             </summary>
+             
+             <param name="args">Arguments to inspect and convert</param>
+             
+        </member>
+        <member name="M:CSE.Exps.MethodExp.GetTypeArray(System.Collections.Generic.List{CSE.Exps.CseObject})">
+            
+             <summary>
+            		Converts list of CseObject arguments into a type array using either
+            		their CompileTimeType property or if that is null, using GetType() on
+            		their Value property.
+             </summary>
+             
+             <param name="args">Arguments to extract the types of</param>
+             
+             <returns>
+            		A type array from the CompileTimeType or the inherited (from Object) GetType() on the Value
+            		property of each CseObject in args
+            	</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.MethodExp.GetObjArgs(System.Collections.Generic.List{CSE.Exps.CseObject})">
+            
+             <summary>
+            		Converts list of CseObject arguments into a object array using their
+            		Value property
+             </summary>
+             
+             <param name="args">Arguments to extract the Value property of</param>
+             
+             <returns>An object array from the Value property of each argument in args</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.CallArgMod">
+            
+             <summary>
+            		Represents a method call argument modifier
+            		(i.e. ref, out, or none)
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CallArgMod.VAL">
+            
+             <summary>
+            		No modifier used (passed by value)
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CallArgMod.OUT">
+            
+             <summary>
+            		Out keyword used
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CallArgMod.REF">
+            
+             <summary>
+            		Ref keyword used
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.TypeExp">
+            
+             <summary>
+            		Used to parse type expressions
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.TypeExp.cachedTypes">
+            
+             <summary>
+            		Holds all types that have been given to it (in CacheCommonTypes method) or 
+            		successfully parsed from cse expressions
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.TypeExp.failedTypes">
+            
+             <summary>
+            		Holds all failed attempts at evaluating an expression into a type.
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.TypeExp.CacheCommonTypes">
+            
+             <summary>
+            		Caches common types for fast lookup
+             </summary>
+            
+        </member>
+        <member name="M:CSE.Exps.TypeExp.GetType(System.String)">
+            
+             <summary>
+            		Converts string parameter containing type into an actual type
+             </summary>
+             
+             <param name="typeData">String containing type</param>
+             
+             <returns>Found type or null if type is not found</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.TypeExp.GetTypeObj(System.Object)">
+            
+             <summary>
+            		Gets type information from object. If object is already a type, object is
+            		casted as a type and returned, if not, GetType is called.
+             </summary>
+             
+             <param name="typeData">Object to get the type of</param>
+             
+             <returns>Type of object</returns>
+            
+        </member>
+        <member name="M:CSE.Exps.TypeExp.TypeAssignMatch(System.Type,System.Object)">
+            
+             <summary>
+            		Heuristic attempt to ensure value given can be coerced into type given.
+            		Useful for temporary variable assignments.
+             </summary>
+             
+             <param name="type">Type to attempt to coerce value to</param>
+             <param name="value">Value to coerce</param>
+             
+             <returns>True if value can be coerced to type given, false otherwise</returns>
+             
+             <remarks>Doesn't work for most cases. Needs more work</remarks>
+             
+        </member>
+        <member name="P:CSE.Exps.TypeExp.HasCachedCommonTypes">
+            
+             <summary>
+            		True if CacheCommonTypes has been called, false otherwise
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.Lambda`1">
+            
+             <summary>
+            		Used to parse lambda expressions
+             </summary>
+             
+             <remarks>This doesn't work yet</remarks>
+             
+        </member>
+        <member name="M:CSE.Exps.Lambda`1.#ctor(`0)">
+            
+             <summary>
+            		
+             </summary>
+             
+        </member>
+        <member name="P:CSE.Exps.Lambda`1.Data">
+            
+             <summary>
+            		
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.LambdaExp">
+            
+             <summary>
+            		
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.LambdaExp.Parse(System.String[],System.String)">
+            
+             <summary>
+            		
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.LambdaExp.Invoke(System.Object,System.Object[])">
+            
+             <summary>
+            		
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.IdentifierExp">
+            
+             <summary>
+            		Used to parse identifier expressions
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.IdentifierExp.defaultFlags">
+            
+             <summary>
+            		Combines standard bindingflag options to be used to find the identifier
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.IdentifierExp.Parse(CSE.Exps.CseObject,System.String)">
+            
+             <summary>
+            		Parses identifiers (fields or properties)
+             </summary>
+             
+             <param name="environment">The environment containing the field or property</param>
+             <param name="data">The name of the field or property</param>
+             
+             <returns>An CseObject containing the value of the identifier or containing null if identifier cannot be found</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.IDENT_NOT_FOUND"/>
+            
+        </member>
+        <member name="M:CSE.Exps.IdentifierExp.Assign(System.Collections.Generic.List{CSE.Exps.CseObject},System.Collections.Generic.List{System.String},System.Collections.Generic.List{CSE.Exps.CseObject},CSE.Exps.CseObject)">
+            
+             <summary>
+            		Assigns a value to the specified identifier (field or property).
+            		Since any field or property that is a ValueType will not have its
+            		value changed without explicitly being set, this method is given the
+            		entire list of objects of the lhs chain expression and uses recursion to
+            		set them right to left.
+             </summary>
+             
+             <example>
+            		<c language="C#">x.y.z = 3</c>
+            		This will set z = 3, then y = z (the newly changed z), then x = y.
+            		If the expression is simply <c language="C#">x = 3</c>, then that is the only assignment
+            		performed and all List arguments contain only a single value.
+             </example>
+             
+             <param name="envChain">
+            		List of CseObjects from the chain expression of the lhs. This makes up the
+            		list of environment objects. In the case of x = 3, envChain would contain
+            		x's value.
+            	</param>
+             <param name="envNames">List of field/property names in the lhs chain expression. In the case of x = 3, envNames would contain "x".</param>
+             <param name="envIndices">
+            		List of array indices for each array in the lhs chain expression. For each non-array, the
+            		envIndices at that index is null. In the case of x = 3, envIndices would contain null.
+            		In the case of x[2] = 3, envIndices would contain 2.
+            	</param>
+             <param name="xrhs">Rhs expression</param>
+             
+             <returns>xrhs's Value property</returns>
+             
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.ARRAY_INDEX_NOT_INT"/>
+             <exception cref="F:CSE.Exceptions.CseLogicExceptionType.CANT_FIND_IDENT_IN_ENV"/>
+            
+        </member>
+        <member name="T:CSE.Exps.CondType">
+            
+             <summary>
+            		Conditional (comparision) expression types
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CondType.EQ">
+            
+             <summary>
+            		Equals
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CondType.NEQ">
+            
+             <summary>
+            		Not equals
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CondType.GT">
+            
+             <summary>
+            		Greater than
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CondType.GTE">
+            
+             <summary>
+            		Greater than or equal to
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CondType.LT">
+            
+             <summary>
+            		Less than
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.CondType.LTE">
+            
+             <summary>
+            		Less than or equal to
+             </summary>
+             
+        </member>
+        <member name="T:CSE.Exps.AssignExp">
+            
+             <summary>
+            		Used to parse assignment expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.AssignExp.Parse(System.Collections.Generic.List{CSE.Exps.CseObject},System.Collections.Generic.List{System.String},System.Collections.Generic.List{CSE.Exps.CseObject},CSE.Exps.CseObject)">
+            
+             <summary>
+            		Parses assignment expressions. This method basically just prepares
+            		the parameters for a call to IdentifierExp.Assign(). Reference that
+            		method for more information on this method's parameters.
+             </summary>
+             
+             <param name="envChain">
+            		List of CseObjects from the chain expression of the lhs.
+            		This makes up the list of environment objects.
+            	</param>
+             <param name="envNames">List of field/property names in the lhs chain expression.</param>
+             <param name="envIndices">
+            		List of array indices for each array in the lhs chain expression.
+            		For each non-array, the envIndices at that index is null.
+            	</param>
+             <param name="rhs">Rhs expression</param>
+             
+             <returns>The rhs parameter</returns>
+             
+        </member>
+        <member name="T:CSE.Exps.LogicalType">
+            
+             <summary>
+            		Logical expression types
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.LogicalType.AND">
+            
+             <summary>
+            		And
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.LogicalType.OR">
+            
+             <summary>
+            		Or
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exps.LogicalType.NOT">
+            
+             <summary>
+            		Not
+             </summary>
+             
+        </member>
+        <member name="T:CSE.CsEval">
+            
+             <summary>
+            		Main class for evaluating expressions
+             </summary>
+             
+        </member>
+        <member name="F:CSE.CsEval.evalEnvironment">
+            
+             <summary>
+            		Root evaluation environment. This is the 
+            		instance that all expressions are 
+            		evaluated against.
+             </summary>
+             
+        </member>
+        <member name="M:CSE.CsEval.Eval(System.Object,System.String)">
+            
+             <summary>
+            		Used for quick evaluation.
+            		Use this when the evaluation environment changes often.
+            		If the environment is consistent, set CsEval.EvalEnvironment
+            		then call CsEval.Eval(string data).
+             </summary>
+             
+             <param name="evalEnvironment">
+            		Provides an evaluation environment for the given expression.
+            		The stored evaluation environment is temporarily replaced
+            		when the given statement is evaluated and restored afterwards.
+            	</param>
+             <param name="data">The expression to evaluate</param>
+             
+             <returns>The return result of evaluating the expression</returns>
+             
+        </member>
+        <member name="M:CSE.CsEval.Eval(System.String)">
+            
+             <summary>
+            		Used for normal evaluation.
+             </summary>
+             
+             <param name="data">The expression to evaluate</param>
+             
+             <returns>The return result of evaluating the expression</returns>
+            
+        </member>
+        <member name="M:CSE.CsEval.Eval(CSE.CsEvaluator)">
+            
+             <summary>
+            		Used for delayed or continuous evaluation.
+            		Use this when you want to parse the expression first and evaluate
+            		it later. Or for when the same expression needs to be evaluated 
+            		several times. CsEvaluator instance comes from CsEval.GetEvaluator.
+             </summary>
+             
+             <param name="evaluator">The CsEvaluator returned from a call to CsEval.GetEvaluator</param>
+             
+             <returns>The return result of evaluating the expression</returns>
+             
+             <exception cref="T:System.Exception"/>
+            
+        </member>
+        <member name="M:CSE.CsEval.GetEvaluator(System.String)">
+            
+             <summary>
+            		Gets a CsEvaluator object for the expression
+             </summary>
+             
+             <param name="data">Expression to evaluate</param>
+             
+             <returns>CsEvaluator object for the given expression</returns>
+             
+        </member>
+        <member name="P:CSE.CsEval.EvalEnvironment">
+            
+             <summary>
+            		Gets/Sets the evaluation environment
+             </summary>
+             
+             <see cref="F:CSE.CsEval.evalEnvironment"/>
+             
+        </member>
+        <member name="T:CSE.Exceptions.CseLogicExceptionType">
+            
+             <summary>
+            		Holds all logical exception types thrown when a 
+            		statement contains a logical error
+             </summary>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.ARITH_EXCEPTION">
+            
+             <summary>
+            		Arithmetic exception
+             </summary>
+             
+             <example>"h" + 3</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.ARRAY_INDEX_NOT_INT">
+            
+             <summary>
+            		Array index is not an integer
+             </summary>
+             
+             <example>arrayIdent["Hello"]</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_AFFIRM_NON_NUM">
+            
+             <summary>
+            		Can't apply unary plus (or "affirmation") to a non-numeric value
+             </summary>
+             
+             <example>+ "Hello"</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_CAST_VALUE_TO_TYPE">
+            
+             <summary>
+            		Can't cast the given value to the given type
+             </summary>
+             
+             <example>(ulong) -3</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_CHAR">
+            
+             <summary>
+            		Can't parse the given value as a character
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_DBL">
+            
+             <summary>
+            		Can't parse the given value as a double
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_FLT_TYPE">
+            
+             <summary>
+            		Can't parse the given value as a floating point type
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_CONVERT_TO_INT_TYPE">
+            
+             <summary>
+            		Can't parse the given value as an integral type
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_FIND_IDENT_IN_ENV">
+            
+             <summary>
+            		Can't find identifier in given environment
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.CANT_NEGATE_NON_NUM">
+            
+             <summary>
+            		Can't apply unary minus (or negation) to a non-numeric value
+             </summary>
+             
+             <example>- "Hello"</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.ERROR_NEGATING_VALUE_OF_TYPE">
+            
+             <summary>
+            		Error while trying to apply unary minus (or negation) to the given value
+             </summary>
+             
+             <example>- unsignedTypeVariable</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.HEX_ESC_CODE_NOT_RECOGNIZED">
+            
+             <summary>
+            		Hex escape character is not a recognizable unicode character
+             </summary>
+             
+             <example>\U12345678</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.IDENT_IS_NOT_ARRAY">
+            
+             <summary>
+            		Identifier is not an array but is being used like one
+             </summary>
+             
+             <example>nonArrayIdent[3]</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.IDENT_NOT_FOUND">
+            
+             <summary>
+            		Identifier can't be found / doesn't exist
+             </summary>
+             
+             <example>unknownIdent</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.LEFT_OP_NON_NUM">
+            
+             <summary>
+            		Left operand to arithmetic expression is non-numeric.
+            		Not throw if both left and right operands are strings.
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.METHOD_CALL_AMBIGUOUS">
+            
+             <summary>
+            		Method is overloaded and correct method to call can't be
+            		accurately determined given the types of arguments being
+            		sent.
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.METHOD_CANT_IMPLICITLY_COERCE_ARGS">
+            
+             <summary>
+            		Method is not overloaded but arguments can't be
+            		coerced to match its signature
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.METHOD_DOESNT_EXIST">
+            
+             <summary>
+            		Method doesn't exist
+             </summary>
+             
+             <example>UnknownMethod()</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.METHOD_EXISTS_BUT_CANT_BE_INVOKED">
+            
+             <summary>
+            		Method does exist but (for some reason) can't be called
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.NOT_A_NUM">
+            
+             <summary>
+            		Value is not a number but is being used in such a way that demands
+            		it to be.
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.OUT_OR_REF_USED_WITH_LIT">
+            
+             <summary>
+            		Out or ref keyword used on a literal
+             </summary>
+             
+             <example>Foo(out 3.2);</example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.OVERFLOW_TRYING_TO_CAST">
+            
+             <summary>
+            		Overflow (or underflow) when trying to cast given value to given type
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.POW_OP_TYPE_INVALID">
+            <summary>
+            	Decimal operators are not valid for the power operator.
+            </summary>
+            
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.RIGHT_OP_NON_NUM">
+            
+             <summary>
+            		Right operand to arithmetic expression is non-numeric.
+            		Not throw if both left and right operands are strings.
+             </summary>
+             
+             <example></example>
+             
+        </member>
+        <member name="F:CSE.Exceptions.CseLogicExceptionType.UNKNOWN_TYPE">
+            
+             <summary>
+            		Type can't be found / doesn't exist
+             </summary>
+             
+             <example>new UnknownType()</example>
+             
+        </member>
+        <member name="T:CSE.Exps.CondExp">
+            
+             <summary>
+            		Used to parse conditional expressions
+             </summary>
+             
+        </member>
+        <member name="M:CSE.Exps.CondExp.Parse(CSE.Exps.CseObject,CSE.Exps.CseObject,CSE.Exps.CondType)">
+            
+             <summary>
+            		Parses conditional expressions
+             </summary>
+             
+             <param name="leftOp">Left operand</param>
+             <param name="rightOp">Right operand</param>
+             <param name="type">Conditional operator type</param>
+             
+             <returns>The result of applying the conditional operator</returns>
+             
+        </member>
+        <member name="M:CSE.Exps.CondExp.Ternary(CSE.Exps.CseObject,CSE.Exps.CseObject,CSE.Exps.CseObject)">
+            
+             <summary>
+            		Parses ternary expressions
+             </summary>
+             
+             <param name="cond">Conditional to test</param>
+             <param name="truePart">Expression to return if condition is true</param>
+             <param name="falsePart">Expression to return if condition is false</param>
+             
+             <returns>truePart if cond is true, falsePart otherwise</returns>
+             
+        </member>
+    </members>
+</doc>

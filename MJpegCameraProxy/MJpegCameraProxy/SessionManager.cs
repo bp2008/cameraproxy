@@ -8,28 +8,30 @@ namespace MJpegCameraProxy
 {
 	public class SessionManager
 	{
-		public SortedList<string, Session> sessions = new SortedList<string, Session>();
-		public Session AddNewSession(string auth, bool passwordIsHashed = true)
+		private SortedList<string, Session> sessions = new SortedList<string, Session>();
+		private Session AddNewSession(string auth, bool passwordIsHashed = true)
 		{
-			int idxColon = auth.IndexOf(':');
-			if (idxColon == -1)
-				return new Session("anonymous", 0, 1);
-			return AddNewSession(auth.Substring(0, idxColon), auth.Substring(idxColon + 1), passwordIsHashed);
+			if (!string.IsNullOrWhiteSpace(auth))
+			{
+				int idxColon = auth.IndexOf(':');
+				if (idxColon != -1)
+					return AddNewSession(auth.Substring(0, idxColon), auth.Substring(idxColon + 1), passwordIsHashed);
+			}
+			return new Session();
 		}
-		public Session AddNewSession(string user, string pass, bool passwordIsHashed = true)
+		private Session AddNewSession(string user, string pass, bool passwordIsHashed = true)
 		{
 			User u = passwordIsHashed ? GetUserIfValid(user, pass) : GetUserIfValid_RawPassword(user, pass);
 			if (u != null)
 			{
 				Session s = new Session(u.name, u.permission, u.sessionLengthMinutes);
-				if (u.sessionLengthMinutes > 0)
-					lock (sessions)
-					{
-						sessions.Add(s.sid, s);
-					}
+				lock (sessions)
+				{
+					sessions.Add(s.sid, s);
+				}
 				return s;
 			}
-			return new Session("anonymous", 0, 1);
+			return new Session();
 		}
 		public Session GetSession(string sid)
 		{
@@ -76,7 +78,7 @@ namespace MJpegCameraProxy
 					sessions.Remove(key);
 			}
 		}
-		internal void RemoveSession(string sid)
+		public void RemoveSession(string sid)
 		{
 			if (sid == null || sid.Length != 16)
 				return;

@@ -113,7 +113,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(SolutionDir)MJpegCameraProxy\VLC\*.*" "$(TargetDir)*.*" /E /C /R /Y /I</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(SolutionDir)MJpegCameraProxy\VLC\*.*" "$(TargetDir)*.*" /E /C /R /Y /I
+xcopy "$(SolutionDir)MJpegCameraProxy\www_public\*.*" "$(TargetDir)www_public\*.*" /E /C /R /Y /I</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

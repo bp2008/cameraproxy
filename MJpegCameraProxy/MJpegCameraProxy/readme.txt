@@ -43,15 +43,15 @@ Each camera is available in 3 ways:
 
 1.  As a JPEG still image 
 
- http://ip_address:8077/camera_id.jpg
+ http://ip_address:8077/image/camera_id.jpg
 
 2.  As a continuous stream of JPEG still images (MJPEG - not supported in all browsers):
 
- http://ip_address:8077/camera_id.mjpg
+ http://ip_address:8077/image/camera_id.mjpg
 
 3.  With an HTML interface that refreshes the image automatically:
 
- http://ip_address:8077/camera_id.cam
+ http://ip_address:8077/image/camera_id.cam
 
 -------------------------
 Html Files
