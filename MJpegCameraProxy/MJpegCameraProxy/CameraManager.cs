@@ -38,8 +38,19 @@ namespace MJpegCameraProxy
 			GetLatestImage(id);
 			return GetCamera(id);
 		}
-		public byte[] GetLatestImage(string id)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="waitTime">Time to wait in milliseconds for a frame to be available.</param>
+		/// <returns></returns>
+		public byte[] GetLatestImage(string id, int waitTime = 5000)
 		{
+			if (waitTime < 0)
+				waitTime = 0;
+			if (waitTime > 60000)
+				waitTime = 60000;
+			waitTime = waitTime / 20;
 			IPCameraBase cam = GetCameraById(id);
 			if (cam == null || cam.cameraSpec.type == CameraType.h264_rtsp_proxy)
 				return new byte[0];
@@ -50,7 +61,7 @@ namespace MJpegCameraProxy
 			}
 			int timesWaited = 0;
 			byte[] frame = cam.LastFrame;
-			while (frame.Length == 0 && timesWaited++ < 250)
+			while (frame.Length == 0 && timesWaited++ < waitTime)
 			{
 				Thread.Sleep(20);
 				frame = cam.LastFrame;

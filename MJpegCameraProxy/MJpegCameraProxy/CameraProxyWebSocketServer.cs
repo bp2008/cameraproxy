@@ -120,11 +120,11 @@ namespace MJpegCameraProxy
 						//    socket.Send("sessioninvalid");
 						//else
 						//{
-							socket.Send("sessionaccepted");
-							lock (allSockets)
-							{
-								allSockets[socket] = (s == null ? 0 : s.permission);
-							}
+						socket.Send("sessionaccepted");
+						lock (allSockets)
+						{
+							allSockets[socket] = (s == null ? 0 : s.permission);
+						}
 						//}
 					}
 					else if (message.StartsWith("login "))
@@ -183,8 +183,8 @@ namespace MJpegCameraProxy
 									socket.Send("registrationaccepted");
 									AdvPtz obj = AdvPtz.GetPtzObj(cameraId);
 
-									if (obj != null && obj.dahuaPtz != null)
-										socket.Send("sup " + cameraId + " " + obj.dahuaPtz.GetStatusUpdate());
+									if (obj != null)
+										socket.Send("sup " + cameraId + " " + obj.ptzController.GetStatusUpdate());
 								}
 								else
 									socket.Send("registrationfailed insufficientpermission");
@@ -206,10 +206,10 @@ namespace MJpegCameraProxy
 								if (cam.isRunning)
 								{
 									AdvPtz obj = AdvPtz.GetPtzObj(cameraId);
-									if (obj != null && obj.dahuaPtz != null)
+									if (obj != null)
 									{
-										obj.dahuaPtz.PrepareWorkerThreadIfNecessary();
-										obj.dahuaPtz.desiredPTZPosition = new DahuaPTZ.PTZPosition(Util.Clamp((float)x, 0f, 1f), Util.Clamp((float)y, 0f, 1f), Util.Clamp((float)z, 0f, 1f));
+										obj.ptzController.PrepareWorkerThreadIfNecessary();
+										obj.ptzController.SetAbsolutePTZPosition(new FloatVector3(Util.Clamp((float)x, 0f, 1f), Util.Clamp((float)y, 0f, 1f), Util.Clamp((float)z, 0f, 1f)));
 									}
 									else
 										socket.Send("error Camera is not correct type.");
@@ -238,10 +238,10 @@ namespace MJpegCameraProxy
 								if (cam.isRunning)
 								{
 									AdvPtz obj = AdvPtz.GetPtzObj(cameraId);
-									if (obj != null && obj.dahuaPtz != null)
+									if (obj != null)
 									{
-										obj.dahuaPtz.PrepareWorkerThreadIfNecessary();
-										System.Threading.Interlocked.Exchange(ref obj.dahuaPtz.desired3dPosition, new DahuaPTZ.Pos3d(Util.Clamp((float)x, 0, 1), Util.Clamp((float)y, 0, 1), Util.Clamp((float)w, 0, 1), Util.Clamp((float)h, 0, 1), zoom == 1 ? true : false));
+										obj.ptzController.PrepareWorkerThreadIfNecessary();
+										obj.ptzController.Set3DPTZPosition(new Pos3d(Util.Clamp((float)x, 0, 1), Util.Clamp((float)y, 0, 1), Util.Clamp((float)w, 0, 1), Util.Clamp((float)h, 0, 1), zoom == 1 ? true : false));
 									}
 									else
 										socket.Send("error Camera is not correct type.");
@@ -252,6 +252,76 @@ namespace MJpegCameraProxy
 							else
 								socket.Send("error This WebSocket connection does not have a camera registered.");
 						}
+					}
+					else if (message.StartsWith("zoom "))
+					{
+						double z;
+						string[] parts = message.Split(' ');
+						if (parts.Length == 2 && double.TryParse(parts[1], out z))
+						{
+							string cameraId;
+							if (registration_socketToCamera.TryGetValue(socket, out cameraId))
+							{
+								IPCameraBase cam = MJpegServer.cm.GetCamera(cameraId);
+								if (cam.isRunning)
+								{
+									AdvPtz obj = AdvPtz.GetPtzObj(cameraId);
+									if (obj != null)
+									{
+										obj.ptzController.PrepareWorkerThreadIfNecessary();
+										obj.ptzController.SetZoomPosition(z);
+									}
+									else
+										socket.Send("error Camera is not correct type.");
+								}
+								else
+									socket.Send("error Camera is not running. Refresh page.");
+							}
+							else
+								socket.Send("error This WebSocket connection does not have a camera registered.");
+						}
+					}
+					else if (message.StartsWith("genpano "))
+					{
+						bool permissionOkay = false;
+						lock (allSockets)
+						{
+							if (allSockets[socket] >= 100)
+								permissionOkay = true;
+						}
+						if (permissionOkay)
+						{
+							string cameraId;
+							if (registration_socketToCamera.TryGetValue(socket, out cameraId))
+							{
+								IPCameraBase cam = MJpegServer.cm.GetCamera(cameraId);
+								if (cam.isRunning)
+								{
+									AdvPtz obj = AdvPtz.GetPtzObj(cameraId);
+									if (obj != null)
+									{
+										if (message.EndsWith(" full"))
+										{
+											obj.ptzController.PrepareWorkerThreadIfNecessary();
+											obj.ptzController.GeneratePanorama(true);
+										}
+										else if (message.EndsWith(" pseudo"))
+										{
+											obj.ptzController.PrepareWorkerThreadIfNecessary();
+											obj.ptzController.GeneratePanorama(false);
+										}
+									}
+									else
+										socket.Send("error Camera is not correct type.");
+								}
+								else
+									socket.Send("error Camera is not running. Refresh page.");
+							}
+							else
+								socket.Send("error This WebSocket connection does not have a camera registered.");
+						}
+						else
+							socket.Send("error Insufficient Permission");
 					}
 				}
 				catch (Exception ex)

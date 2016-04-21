@@ -20,7 +20,7 @@ namespace MJpegCameraProxy
 		public string webSocketUrl = "";
 		public double thumbnailBoxPercentWidth = 0.1;
 		public double thumbnailBoxPercentHeight = 0.1;
-		public int zoomMagnification = 1;
+		public double zoomMagnification = 1;
 
 		public CamPage2(string html, SimpleHttp.HttpProcessor p)
 		{
@@ -33,7 +33,11 @@ namespace MJpegCameraProxy
 				return;
 			}
 			disableRefreshAfter = p.GetIntParam("override", 600000);
-			refreshDelay = p.GetIntParam("refresh", 250);
+			string userAgent = p.GetHeaderValue("User-Agent", "");
+			bool isMobile = userAgent.Contains("iPad") || userAgent.Contains("iPhone") || userAgent.Contains("Android") || userAgent.Contains("BlackBerry");
+			bool isLanConnection = p == null ? false : p.IsLanConnection;
+			int defaultRefresh = isLanConnection && !isMobile ? 0 : 250;
+			refreshDelay = p.GetIntParam("refresh", defaultRefresh);
 			cameraName = cam.cameraSpec.name;
 			if (cam.cameraSpec.type == CameraType.h264_rtsp_proxy)
 			{

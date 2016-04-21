@@ -87,12 +87,8 @@
   <ItemGroup>
     <Reference Include="Antlr3.Runtime, Version=3.3.1.7705, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL" />
     <Reference Include="CSharpEval, Version=1.1.0.0, Culture=neutral, processorArchitecture=x86" />
-    <Reference Include="nVLC.Declarations">
-      <HintPath>..\..\..\Projects\LibVlcWrapper\Implementation\bin\Debug\nVLC.Declarations.dll</HintPath>
-    </Reference>
-    <Reference Include="nVLC.Implementation">
-      <HintPath>..\..\..\Projects\LibVlcWrapper\Implementation\bin\Debug\nVLC.Implementation.dll</HintPath>
-    </Reference>
+    <Reference Include="nVLC.Declarations, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="nVLC.Implementation, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -108,6 +104,7 @@
   <ItemGroup>
     <Compile Include="CameraManager.cs" />
     <Compile Include="CameraProxyWebSocketServer.cs" />
+    <Compile Include="Html5Camera.cs" />
     <Compile Include="Pages\CamPage2.cs" />
     <Compile Include="ComparisonComparer.cs" />
     <Compile Include="Configuration\CameraSpec.cs" />
@@ -134,8 +131,11 @@
     <Compile Include="ImageSignature.cs" />
     <Compile Include="Pages\Admin\PTZProfileList.cs" />
     <Compile Include="Pages\Admin\WwwFiles.cs" />
+    <Compile Include="Pages\HikvisionPTZ.cs" />
     <Compile Include="Pages\JavascriptCss.cs" />
+    <Compile Include="Pages\LoginManager.cs" />
     <Compile Include="PanTiltZoom\AdvPtz.cs" />
+    <Compile Include="PanTiltZoom\Huisun\Huisun.cs" />
     <Compile Include="PanTiltZoom\IPTZPresets.cs" />
     <Compile Include="PanTiltZoom\Custom\CustomPTZProfile.cs" />
     <Compile Include="PanTiltZoom\IZoomAbs.cs" />
@@ -192,6 +192,7 @@
     <Compile Include="SessionManager.cs" />
     <Compile Include="HttpServer\SimpleHttpServer.cs" />
     <Compile Include="SimpleProxy.cs" />
+    <Compile Include="StreamListener.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="VlcCamera.cs" />
     <Compile Include="WebP.cs" />
@@ -208,6 +209,7 @@
     <None Include="live555\live555 source.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="nVLC\nVLC Source %28Modified%29.7z" />
     <None Include="Start_Service.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -218,7 +220,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="VLC\plugins\plugins.dat" />
-    <None Include="www_public\Scripts\jquery.map" />
+    <None Include="www_public\Scripts\jquery.map">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="CsEval\Antlr3.Runtime.dll" />
@@ -548,72 +552,204 @@
     <Content Include="VLC\plugins\visualization\libgoom_plugin.dll" />
     <Content Include="VLC\plugins\visualization\libprojectm_plugin.dll" />
     <Content Include="VLC\plugins\visualization\libvisual_plugin.dll" />
-    <Content Include="www_public\all.html" />
-    <Content Include="www_public\dahua.html" />
-    <Content Include="www_public\Images\3dpos_1.png" />
-    <Content Include="www_public\Images\3dpos_2.png" />
-    <Content Include="www_public\Images\3dpos_3.png" />
-    <Content Include="www_public\Images\3dpos_4.png" />
-    <Content Include="www_public\Images\ajax-loader.gif" />
-    <Content Include="www_public\Images\arrow-down-left.png" />
-    <Content Include="www_public\Images\arrow-down-right.png" />
-    <Content Include="www_public\Images\arrow-down.png" />
-    <Content Include="www_public\Images\arrow-left.png" />
-    <Content Include="www_public\Images\arrow-right.png" />
-    <Content Include="www_public\Images\arrow-up-left.png" />
-    <Content Include="www_public\Images\arrow-up-right.png" />
-    <Content Include="www_public\Images\arrow-up.png" />
-    <Content Include="www_public\Images\Btn_dn_blue_1.png" />
-    <Content Include="www_public\Images\Btn_dn_blue_2.png" />
-    <Content Include="www_public\Images\Btn_dn_blue_3.png" />
-    <Content Include="www_public\Images\Btn_dn_red_1.png" />
-    <Content Include="www_public\Images\Btn_dn_red_2.png" />
-    <Content Include="www_public\Images\Btn_dn_red_3.png" />
-    <Content Include="www_public\Images\Btn_up_blue_1.png" />
-    <Content Include="www_public\Images\Btn_up_blue_2.png" />
-    <Content Include="www_public\Images\Btn_up_blue_3.png" />
-    <Content Include="www_public\Images\Btn_up_red_1.png" />
-    <Content Include="www_public\Images\Btn_up_red_2.png" />
-    <Content Include="www_public\Images\Btn_up_red_3.png" />
-    <Content Include="www_public\Images\Checkerboard.png" />
-    <Content Include="www_public\Images\Corner_Scroll.png" />
-    <Content Include="www_public\Images\increase.png" />
-    <Content Include="www_public\Images\minus.png" />
-    <Content Include="www_public\Images\plus.png" />
-    <Content Include="www_public\Images\ptzarrows.png" />
-    <Content Include="www_public\Images\ptzclick.png" />
-    <Content Include="www_public\Images\qmark.png" />
-    <Content Include="www_public\Images\Slider_1.png" />
-    <Content Include="www_public\Images\Slider_2.png" />
-    <Content Include="www_public\Images\Slider_3.png" />
-    <Content Include="www_public\Scripts\CamPage.js" />
-    <Content Include="www_public\Scripts\jquery-ui.js" />
-    <Content Include="www_public\Scripts\jquery.cookie.js" />
-    <Content Include="www_public\Scripts\jquery.js" />
-    <Content Include="www_public\Scripts\jquery.mousewheel.js" />
-    <Content Include="www_public\Scripts\longclick.js" />
-    <Content Include="www_public\Scripts\PtzAbs.js" />
-    <Content Include="www_public\Scripts\sha1.js" />
-    <Content Include="www_public\Scripts\TableSorter.js" />
-    <Content Include="www_public\Styles\CamPage.css" />
-    <Content Include="www_public\Styles\images\animated-overlay.gif" />
-    <Content Include="www_public\Styles\images\ui-bg_flat_0_aaaaaa_40x100.png" />
-    <Content Include="www_public\Styles\images\ui-bg_flat_75_ffffff_40x100.png" />
-    <Content Include="www_public\Styles\images\ui-bg_glass_55_fbf9ee_1x400.png" />
-    <Content Include="www_public\Styles\images\ui-bg_glass_65_ffffff_1x400.png" />
-    <Content Include="www_public\Styles\images\ui-bg_glass_75_dadada_1x400.png" />
-    <Content Include="www_public\Styles\images\ui-bg_glass_75_e6e6e6_1x400.png" />
-    <Content Include="www_public\Styles\images\ui-bg_glass_95_fef1ec_1x400.png" />
-    <Content Include="www_public\Styles\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
-    <Content Include="www_public\Styles\images\ui-icons_222222_256x240.png" />
-    <Content Include="www_public\Styles\images\ui-icons_2e83ff_256x240.png" />
-    <Content Include="www_public\Styles\images\ui-icons_454545_256x240.png" />
-    <Content Include="www_public\Styles\images\ui-icons_888888_256x240.png" />
-    <Content Include="www_public\Styles\images\ui-icons_cd0a0a_256x240.png" />
-    <Content Include="www_public\Styles\jquery-ui.css" />
-    <Content Include="www_public\Styles\Site.css" />
-    <Content Include="www_public\Styles\TableSorter_Blue.css" />
-    <Content Include="www_public\Styles\TableSorter_Green.css" />
+    <Content Include="www_public\all.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\camera.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\3dpos_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\3dpos_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\3dpos_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\3dpos_4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\ajax-loader.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-down-left.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-down-right.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-down.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-left.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-right.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-up-left.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-up-right.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\arrow-up.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_dn_blue_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_dn_blue_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_dn_blue_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_dn_red_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_dn_red_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_dn_red_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_up_blue_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_up_blue_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_up_blue_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_up_red_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_up_red_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Btn_up_red_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Checkerboard.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Corner_Scroll.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\increase.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\minus.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\plus.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\ptzarrows.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\ptzclick.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\qmark.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Slider_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Slider_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Images\Slider_3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\CamPage.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\jquery-ui.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\jquery.cookie.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\jquery.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\jquery.mousewheel.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\longclick.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\PtzAbs.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\sha1.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Scripts\TableSorter.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\CamPage.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\animated-overlay.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_flat_0_aaaaaa_40x100.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_flat_75_ffffff_40x100.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_glass_55_fbf9ee_1x400.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_glass_65_ffffff_1x400.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_glass_75_dadada_1x400.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_glass_75_e6e6e6_1x400.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_glass_95_fef1ec_1x400.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-bg_highlight-soft_75_cccccc_1x100.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-icons_222222_256x240.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-icons_2e83ff_256x240.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-icons_454545_256x240.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-icons_888888_256x240.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\images\ui-icons_cd0a0a_256x240.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\jquery-ui.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\Site.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\TableSorter_Blue.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="www_public\Styles\TableSorter_Green.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

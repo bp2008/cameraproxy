@@ -15,12 +15,16 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("ID")]
 		public string id = "";
 		[EditorName("Camera Type")]
+		[EditorHint("<br/>Note: Type vlc_transcode_to_html5 is mostly non-functional.")]
 		public CameraType type = CameraType.jpg;
 		[EditorName("Imagery URL")]
 		public string imageryUrl = "";
 		[EditorHint("seconds. The server will stop requesting imagery from the source this long after the last image request is made by a client.")]
 		[EditorName("Idle Timeout")]
 		public int maxBufferTime = 10;
+		[EditorHint("If checked, the last buffered frame will be preserved when the camera's idle timeout is triggered.")]
+		[EditorName("Keep Last Image")]
+		public bool keepLastImageAfterCameraTimeout = true;
 		[EditorHint("0 to 100.  Anonymous users have permission 0.")]
 		[EditorName("Minimum User Permission")]
 		public int minPermissionLevel = 0;
@@ -36,7 +40,7 @@ namespace MJpegCameraProxy.Configuration
 		public string password = "";
 
 		[EditorCategory("Pan-Tilt-Zoom")]
-		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.CustomPTZProfile)]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.LoftekCheap, PtzType.Dahua, PtzType.WanscamCheap, PtzType.IPS_EYE01, PtzType.TrendnetTVIP400, PtzType.CustomPTZProfile, PtzType.Hikvision, PtzType.Huisun)]
 		[EditorName("PTZ Host Name")]
 		public string ptz_hostName = "";
 		[EditorName("PTZ User Name")]
@@ -59,9 +63,9 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("Profile Name")]
 		[EditorHint(" Check the PTZProfiles page for a list of valid profile names.")]
 		public string ptz_customPTZProfile = "";
-
-		[EditorCategory("Dahua PTZ Settings")]
-		[EditorCondition_FieldMustBe("ptzType", PtzType.Dahua)]
+		
+		[EditorCategory("Dahua/Hikvision PTZ Settings")]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.Dahua, PtzType.Hikvision)]
 		[EditorName("PTZ Absolute X Position Offset")]
 		[EditorHint("degrees")]
 		public int ptz_absoluteXOffset = 0;
@@ -78,7 +82,7 @@ namespace MJpegCameraProxy.Configuration
 		[EditorHint("degrees.  Adjust this as needed to calibrate vertical positioning in the panorama rectangle.  Default: 90 degrees")]
 		public int ptz_panorama_degrees_vertical = 90;
 		[EditorName("Zoom Magnification")]
-		[EditorHint("x Zoom    (common values are 3 or 12 or 20 or 30)")]
+		[EditorHint("x Zoom (common values are 3 or 12 or 20 or 30)")]
 		public int ptz_magnification = 12;
 		[EditorName("Idle Reset")]
 		[EditorHint("If checked, the camera will return to the specified coordinates after a certain amount of time has passed")]
@@ -95,6 +99,21 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("Idle Position Z")]
 		[EditorHint("[0.0-1.0] Absolute zoom position.")]
 		public double ptz_idleresetpositionZ = 0;
+		[EditorName("Horizontal FOV")]
+		[EditorHint("degrees field of view horizontally when the camera is fully zoomed out.")]
+		public double ptz_fov_horizontal = 0;
+		[EditorName("Vertical FOV")]
+		[EditorHint("degrees field of view vertically when the camera is fully zoomed out.")]
+		public double ptz_fov_vertical = 0;
+
+		[EditorCategory("Hikvision PTZ Settings")]
+		[EditorCondition_FieldMustBe("ptzType", PtzType.Hikvision)]
+		[EditorName("High tilt limit")]
+		[EditorHint("The high point of the tilt range. (e.g. -100 or 0)  Note, camera elevation typically works where 0 is horizon level and 900 is straight down, though the range of accepted values can vary.")]
+		public int ptz_tiltlimit_high = -100;
+		[EditorName("Low tilt limit")]
+		[EditorHint("The low point of the tilt range (e.g. 710 or 900).  Note, camera elevation typically works where 0 is horizon level and 900 is straight down, though the range of accepted values can vary.")]
+		public int ptz_tiltlimit_low = 710;
 
 		//IO_00000000_PT_157_066
 
@@ -123,6 +142,9 @@ namespace MJpegCameraProxy.Configuration
 		public int vlc_transcode_image_quality = 80;
 		[EditorName("Rotate / Flip")]
 		public System.Drawing.RotateFlipType vlc_transcode_rotate_flip = System.Drawing.RotateFlipType.RotateNoneFlipNone;
+		[EditorName("Throwaway Frames")]
+		[EditorHint("Number of frames to drop upon beginning to receive the stream. Recommended 0 value unless video corruption is a problem at stream start.")]
+		public int vlc_transcode_throwaway_frames = 0;
 		[EditorName("Watchdog Time")]
 		[EditorHint("Time in seconds to wait for an unresponsive stream to recover before restarting the camera. (0 or below to disable watchdog)")]
 		public int vlc_watchdog_time = 20;
@@ -143,7 +165,7 @@ namespace MJpegCameraProxy.Configuration
 		public ushort h264_port = 554;
 
 		[EditorCategory("Configuration: <b>vlc_transcode</b> and <b>h264_rtsp_proxy</b>")]
-		[EditorCondition_FieldMustBe("type", CameraType.vlc_transcode, CameraType.h264_rtsp_proxy)]
+		[EditorCondition_FieldMustBe("type", CameraType.vlc_transcode, CameraType.h264_rtsp_proxy, CameraType.vlc_transcode_to_html5)]
 		[EditorName("Video Width")]
 		[EditorHint("pixels. If 0, this value is autodetected.")]
 		public ushort h264_video_width = 0;
@@ -205,6 +227,8 @@ namespace MJpegCameraProxy.Configuration
 
 		public int GetMaxBufferTime()
 		{
+			if (type == CameraType.vlc_transcode_to_html5)
+				return Math.Max(60, maxBufferTime);
 			if (type == CameraType.h264_rtsp_proxy || type == CameraType.vlc_transcode)
 				return Math.Max(10, maxBufferTime);
 			return Math.Max(3, maxBufferTime);
@@ -217,13 +241,14 @@ namespace MJpegCameraProxy.Configuration
 
 	public enum CameraType
 	{
-		jpg, mjpg, h264_rtsp_proxy, vlc_transcode
+		jpg, mjpg, h264_rtsp_proxy, vlc_transcode, vlc_transcode_to_html5
 	}
 	public enum PtzType
 	{
 		None, LoftekCheap, Dahua,
 		WanscamCheap, TrendnetIP672,
 		IPS_EYE01, TrendnetTVIP400,
-		CustomPTZProfile, Dev
+		CustomPTZProfile, Dev, Hikvision,
+		Huisun
 	}
 }

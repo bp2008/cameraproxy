@@ -15,6 +15,8 @@ namespace MJpegCameraProxy.PanTiltZoom
 				return new TrendNet.TV_IP400(cam.cameraSpec).GetHtml(camId, cam);
 			else if (cam.cameraSpec.ptzType == Configuration.PtzType.CustomPTZProfile)
 				return new Custom.CustomPTZProfile(cam.cameraSpec, cam).GetHtml(camId, cam);
+			else if (cam.cameraSpec.ptzType == Configuration.PtzType.Huisun)
+				return new HuisunBullet(cam.cameraSpec, cam).GetHtml(camId, cam);
 			return "";
 		}
 	}

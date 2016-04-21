@@ -95,7 +95,8 @@ namespace MJpegCameraProxy
 					threadDownloadStream.Abort();
 				}
 				isRunning = false;
-				lastFrame = new byte[0];
+				if(!cameraSpec.keepLastImageAfterCameraTimeout)
+					lastFrame = new byte[0];
 			}
 		}
 		#endregion
@@ -136,6 +137,10 @@ namespace MJpegCameraProxy
 					// VlcCamera does support jpeg output, but not stream reflection
 					cam = new VlcCamera();
 					break;
+				case CameraType.vlc_transcode_to_html5:
+					// Html5Camera does not support jpeg output - only streaming via VLC's http server.
+					cam = new Html5VideoCamera();
+					break;
 				default:
 					break;
 			}
@@ -143,6 +148,8 @@ namespace MJpegCameraProxy
 			{
 				cam.cameraSpec = cs;
 				if (cs.ptzType == PtzType.Dahua)
+					MJpegCameraProxy.PanTiltZoom.AdvPtz.AssignPtzObj(cs);
+				else if (cs.ptzType == PtzType.Hikvision)
 					MJpegCameraProxy.PanTiltZoom.AdvPtz.AssignPtzObj(cs);
 			}
 			return cam;

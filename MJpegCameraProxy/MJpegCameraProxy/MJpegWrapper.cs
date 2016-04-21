@@ -34,11 +34,6 @@ namespace MJpegCameraProxy
 					cfg.users.Add(new User("admin", "admin", 100));
 				cfg.Save(Globals.ConfigFilePath);
 			}
-			if (Environment.OSVersion.Platform != PlatformID.Win32NT && cfg.UseImageMagick)
-			{
-				cfg.UseImageMagick = false;
-				cfg.Save(Globals.ConfigFilePath);
-			}
 			SimpleHttp.SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
 			bool killed = false;
 			try

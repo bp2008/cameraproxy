@@ -103,13 +103,11 @@ function HandleWSMessage(msg)
 	else if (msg.indexOf("sup " + cameraId + " newpos ") == 0)
 	{
 		var parts = msg.split(" ");
-		if (parts.length == 7)
+		if (parts.length == 6)
 		{
 			serverPanoPercentX = parseFloat(parts[3]);
 			serverPanoPercentY = parseFloat(parts[4]);
 			serverPanoPercentZ = parseFloat(parts[5]);
-			currentPositionIsAbsolute = parts[6] == "1";
-			$("#thumbnailboxServer, #thumbnailboxinnerServer").css("opacity", currentPositionIsAbsolute ? "0.7" : "0.3");
 
 			serverPanoPercentY = (serverPanoPercentY * (1 - thumbnailBoxPercentHeight)) + (thumbnailBoxPercentHeight / 2);
 
@@ -122,8 +120,6 @@ function HandleWSMessage(msg)
 		if (parts.length == 8)
 		{
 			showServerside3dPositioningBox(parseFloat(parts[3]), parseFloat(parts[4]), parseFloat(parts[5]), parseFloat(parts[6]), parts[7] == "1");
-			currentPositionIsAbsolute = false;
-			$("#thumbnailboxServer, #thumbnailboxinnerServer").css("opacity", "0.3");
 		}
 	}
 }
@@ -137,7 +133,7 @@ function EndPtzLoop()
 // The ptzLoop function is called every 100 ms.  Here, we check for changes in client-side PTZ state and send them to the server.
 function ptzLoop()
 {
-	if (previousPtzState.x != panoPercentX || previousPtzState.y != panoPercentY || previousPtzState.z != zoomSliderHandle.percent)
+	if (previousPtzState.x != panoPercentX || previousPtzState.y != panoPercentY)
 	{
 		if (!isWebSocketReady())
 			return;
@@ -145,6 +141,13 @@ function ptzLoop()
 		PtzSend("abs " + panoPercentX + " " + reportableY + " " + zoomSliderHandle.percent);
 		previousPtzState.x = panoPercentX;
 		previousPtzState.y = panoPercentY;
+		previousPtzState.z = zoomSliderHandle.percent;
+	}
+	if (previousPtzState.z != zoomSliderHandle.percent)
+	{
+		if (!isWebSocketReady())
+			return;
+		PtzSend("zoom " + zoomSliderHandle.percent);
 		previousPtzState.z = zoomSliderHandle.percent;
 	}
 	if (pos3dNew != null)

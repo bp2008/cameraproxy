@@ -15,6 +15,9 @@ using System.Diagnostics;
 
 namespace MJpegCameraProxy
 {
+	/// <summary>
+	/// This class transcodes video in-process to jpeg/mjpeg at a variable frame rate (i.e. frames are not encoded as jpeg unless they are needed).  It is the most efficient method of transcoding video to jpeg/mjpeg, but it only works in Windows.
+	/// </summary>
 	public class VlcCamera : IPCameraBase
 	{
 		private IMemoryRenderer memRender;
@@ -27,8 +30,6 @@ namespace MJpegCameraProxy
 		private uint frameNumber = 0;
 		private uint lastFrameEncoded = 0;
 		private object frameLock = new object();
-
-		private byte[] latestFrame = new byte[0];
 
 		private bool isWatchdogTimeSurpassed(long time)
 		{
@@ -44,16 +45,20 @@ namespace MJpegCameraProxy
 		{
 			get
 			{
+
 				if (!Exit)
 					ImageLastViewed = DateTime.Now;
 
 				long time = frameTimer.ElapsedMilliseconds;
 
 				if (!isWatchdogTimeSurpassed(time) && lastFrameEncoded == frameNumber)
-					return latestFrame; // The last encoded frame is still the best we have
+					return lastFrame; // The last encoded frame is still the best we have
 
 				if (time < nextFrameEncodeTime)
-					return latestFrame; // It is not yet time to encode a new frame.
+					return lastFrame; // It is not yet time to encode a new frame.
+
+				if (cameraSpec.vlc_transcode_throwaway_frames > frameNumber)
+					return lastFrame; // This frame should be dropped
 
 				// If we get here, it is time to encode a new frame
 				lock (frameLock) // Lock and check conditions again to ensure we don't encode the same frame more than once.
@@ -70,7 +75,7 @@ namespace MJpegCameraProxy
 								bmp = memRender.CurrentFrame;
 								lastFrameEncoded = frameNumber;
 								wi = new WrappedImage(bmp);
-								latestFrame = ImageConverter.EncodeImage(wi, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
+								lastFrame = ImageConverter.EncodeImage(wi, 100, cameraSpec.vlc_transcode_image_quality, ImageFormat.Jpeg, cameraSpec.vlc_transcode_rotate_flip);
 								EventWaitHandle oldWaitHandle = newFrameWaitHandle;
 								newFrameWaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 								oldWaitHandle.Set();
@@ -107,7 +112,7 @@ namespace MJpegCameraProxy
 						}
 					}
 				}
-				return latestFrame;
+				return lastFrame;
 			}
 		}
 		internal VlcCamera()
@@ -143,7 +148,7 @@ namespace MJpegCameraProxy
 						if (cameraSpec.wanscamCompatibilityMode)
 							url = "http://127.0.0.1:" + MJpegWrapper.cfg.webport + "/" + cameraSpec.id + ".wanscamstream";
 						IMedia media = factory.CreateMedia<IMedia>(url, args);
-						memRender = player.CustomRenderer;
+						memRender = player.CustomRenderer2;
 						//memRender.SetExceptionHandler(ExHandler);
 						memRender.SetCallback(delegate(Bitmap frame)
 						{
@@ -160,7 +165,7 @@ namespace MJpegCameraProxy
 							//long time = frameCounter.ElapsedMilliseconds;
 							//if (time >= nextFrameEncodeTime)
 							//{
-							//    latestFrame = ImageConverter.GetJpegBytes(frame);
+							//    lastFrame = ImageConverter.GetJpegBytes(frame);
 							//    nextFrameEncodeTime = time + frameEncodeInterval;
 							//}
 							//latestBitmap = new Bitmap(frame);  // frame.Clone() actually doesn't copy the data and exceptions get thrown
