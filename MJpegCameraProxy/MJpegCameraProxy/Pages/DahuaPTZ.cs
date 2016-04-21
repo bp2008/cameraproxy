@@ -10,65 +10,12 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Drawing;
 using MJpegCameraProxy.Configuration;
+using MJpegCameraProxy.PanTiltZoom;
 
-namespace MJpegCameraProxy
+namespace MJpegCameraProxy.Dahua
 {
-	public class DahuaPTZ
+	public class DahuaPTZ : AdvPtzController
 	{
-		public enum Direction
-		{
-			Up, Down, Left, Right, LeftUp, RightUp, LeftDown, RightDown
-		}
-		public class PTZPosition
-		{
-			public volatile float X = 0;
-			public volatile float Y = 0;
-			public volatile float Z = 0;
-			public PTZPosition()
-			{
-			}
-			public PTZPosition(float X, float Y, float Z)
-			{
-				this.X = X;
-				this.Y = Y;
-				this.Z = Z;
-			}
-		}
-		public class IntPTZPosition
-		{
-			public volatile int X = 0;
-			public volatile int Y = 0;
-			public volatile int Z = 0;
-			public IntPTZPosition()
-			{
-			}
-			public IntPTZPosition(int X, int Y, int Z)
-			{
-				this.X = X;
-				this.Y = Y;
-				this.Z = Z;
-			}
-		}
-		public class Pos3d
-		{
-			public volatile float X = 0;
-			public volatile float Y = 0;
-			public volatile float W = 0;
-			public volatile float H = 0;
-			public volatile bool zoomIn = false;
-			public Pos3d()
-			{
-			}
-			public Pos3d(float X, float Y, float W, float H, bool zoomIn)
-			{
-				this.X = X;
-				this.Y = Y;
-				this.W = W;
-				this.H = H;
-				this.zoomIn = zoomIn;
-			}
-		}
-
 		string baseCGIURL;
 		string host, user, pass;
 		System.Threading.Timer keepAliveTimer = null;
@@ -85,13 +32,13 @@ namespace MJpegCameraProxy
 
 		DateTime willBeIdleAt;
 
-		PTZPosition currentPTZPosition = new PTZPosition();
-		IntPTZPosition currentIntPTZPosition = new IntPTZPosition(0, 0, 0);
-		public PTZPosition desiredPTZPosition = null;
+		FloatVector3 currentPTZPosition = new FloatVector3();
 
-		public Pos3d desired3dPosition = null;
-
-		volatile bool currentlyAbsolutePositioned = false;
+		private FloatVector3 desiredPTZPosition = null;
+		private Pos3d desired3dPosition = null;
+		private double[] desiredZoomPosition = null;
+		private bool generatePanoramaSourceFrames = false;
+		private bool generatePseudoPanorama = false;
 
 		protected long CmdID
 		{
@@ -222,10 +169,6 @@ namespace MJpegCameraProxy
 		{
 			if (ptzWorkerThread != null && !isAboutToStart)
 				ptzThreadAbortFlag[0] = true;
-			//SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=Up&arg1=0&arg2=0&arg3=0", user, pass, true, false);
-			//SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=ZoomWide&arg1=0&arg2=0&arg3=0", user, pass, true, false);
-			//SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=FocusFar&arg1=0&arg2=0&arg3=0", user, pass, true, false);
-			//SimpleProxy.GetData(baseCGIURL + "action=stop&channel=0&code=IrisSmall&arg1=0&arg2=0&arg3=0", user, pass, false, false);
 			if (keepAliveTimer != null)
 				keepAliveTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
 			keepAliveTimer = null;
@@ -239,21 +182,22 @@ namespace MJpegCameraProxy
 					ptzWorkerThread.Abort();
 			}
 		}
-		public void GeneratePseudoPanorama(int numImagesWide = 6, int numImagesHigh = 4, bool fullSizeImages = false)
+		public void GeneratePseudoPanorama(bool overlap, bool fullSizeImages = false)
 		{
 			IPCameraBase cam = MJpegServer.cm.GetCamera(cs.id);
 			bool isFirstTime = true;
-			//int numImagesHigh = full ? 6 : 4;
-			//int numImagesWide = full ? 14 : 7;
-			double degreesSeparationVertical = 810.0 / (numImagesHigh - 1);
-			double degreesSeparationHorizontal = 3600.0 / -numImagesWide;
+			double hfov = cs.ptz_fov_horizontal == 0 ? 60 : cs.ptz_fov_horizontal;
+			double vfov = cs.ptz_fov_vertical == 0 ? 34 : cs.ptz_fov_vertical;
+			int numImagesWide = overlap ? (int)Math.Round((360 / hfov) * 2) : 6;
+			int numImagesHigh = overlap ? (int)Math.Round(((cs.ptz_tiltlimit_low - cs.ptz_tiltlimit_high) / (vfov * 10)) * 2) : 3;
+
 			for (int j = 0; j < numImagesHigh; j++)
 			{
 				for (int i = 0; i < numImagesWide; i++)
 				{
-					PositionABS((int)(i * degreesSeparationHorizontal), (int)(j * degreesSeparationVertical) + 90, 0);
-					//Thread.Sleep(isFirstTime ? 7000 : 4500);
-					Thread.Sleep(isFirstTime ? 6000 : 4500);
+					FloatVector3 percentPos = new FloatVector3((float)i / (float)numImagesWide, (float)j / (float)numImagesHigh, 0);
+					PositionABS_PercentPosition(percentPos);
+					Thread.Sleep(isFirstTime ? 7000 : 4500);
 					isFirstTime = false;
 					try
 					{
@@ -287,14 +231,48 @@ namespace MJpegCameraProxy
 				{
 					try
 					{
-						PTZPosition desiredAbs = (PTZPosition)Interlocked.Exchange(ref desiredPTZPosition, null);
-						if (desiredAbs != null)
+						if (generatePanoramaSourceFrames)
 						{
-							GoToAbsolutePosition(desiredAbs, true);
+							generatePanoramaSourceFrames = false;
+							GeneratePseudoPanorama(true, true);
+							SetNewIdleTime();
+						}
+						if (generatePseudoPanorama)
+						{
+							generatePseudoPanorama = false;
+							GeneratePseudoPanorama(false, false);
+							SetNewIdleTime();
+						}
+						FloatVector3 desiredAbsPos = (FloatVector3)Interlocked.Exchange(ref desiredPTZPosition, null);
+						if (desiredAbsPos != null)
+						{
+							SetNewIdleTime();
+
+							desiredAbsPos.Y = Util.Clamp(desiredAbsPos.Y, 0, 1);
+							desiredAbsPos.Y = desiredAbsPos.Y * (float)(panoramaVerticalDegrees / 90.0);
+							desiredAbsPos.Z = Util.Clamp(desiredAbsPos.Z, 0, 1);
+
+							PositionABS_PercentPosition(desiredAbsPos);
+							BroadcastStatusUpdate();
+							Thread.Sleep(1000);
+
 							//if ("grapefruit" == false.ToString().ToLower())
 							//{
 							//    GeneratePseudoPanorama(14, 6, true);
 							//}
+						}
+
+						double[] desiredZoom = (double[])Interlocked.Exchange(ref desiredZoomPosition, null);
+						if (desiredZoom != null)
+						{
+							SetNewIdleTime();
+							FloatVector3 percentPos = currentPTZPosition.Copy();
+							float newZ = (float)Util.Clamp(desiredZoom[0], 0, 1);
+							float diffZ = Math.Abs(newZ - percentPos.Z);
+							percentPos.Z = newZ;
+							PositionABS_PercentPosition(percentPos);
+							BroadcastStatusUpdate();
+							Thread.Sleep((int)(diffZ * 1000));
 						}
 
 						Pos3d desired3d = (Pos3d)Interlocked.Exchange(ref desired3dPosition, null);
@@ -310,16 +288,22 @@ namespace MJpegCameraProxy
 							float z = Math.Max(w, h);
 							if (!zIn)
 								z *= -1;
-							currentlyAbsolutePositioned = false;
 							this.Position3D(x, y, z);
 							Broadcast3dPosition(x, y, w, h, zIn);
+							BroadcastStatusUpdate();
 							Thread.Sleep(500);
 						}
 						Thread.Sleep(10);
 						if (DateTime.Now > willBeIdleAt)
 						{
 							willBeIdleAt = DateTime.MaxValue;
-							GoToAbsolutePosition(new PTZPosition((float)cs.ptz_idleresetpositionX, (float)cs.ptz_idleresetpositionY, (float)cs.ptz_idleresetpositionZ), false);
+							desiredAbsPos = new FloatVector3((float)cs.ptz_idleresetpositionX, (float)cs.ptz_idleresetpositionY, (float)cs.ptz_idleresetpositionZ);
+							desiredAbsPos.Y = Util.Clamp(desiredAbsPos.Y, 0, 1);
+							desiredAbsPos.Z = Util.Clamp(desiredAbsPos.Z, 0, 1);
+
+							PositionABS_PercentPosition(desiredAbsPos);
+							BroadcastStatusUpdate();
+							Thread.Sleep(1000);
 						}
 					}
 					catch (ThreadAbortException ex)
@@ -351,201 +335,19 @@ namespace MJpegCameraProxy
 			Console.ResetColor();
 		}
 
-		private void GoToAbsolutePosition(PTZPosition desiredAbs, bool setNewIdleTime)
-		{
-			float x = Util.Clamp(desiredAbs.X, 0, 1);
-			float y = Util.Clamp(desiredAbs.Y, 0, 1);
-			float z = Util.Clamp(desiredAbs.Z, 0, 1);
-			int X = (int)((1 - x) * 3600) % 3600;
-			int Y = (int)(y * (panoramaVerticalDegrees / 90.0f) * 900);
-			int Z = (int)Math.Round((double)z * 127) + 1;
-			if (currentIntPTZPosition.X != X || currentIntPTZPosition.Y != Y || currentIntPTZPosition.Z != Z)
-			{
-				if (setNewIdleTime)
-					SetNewIdleTime();
-
-				currentPTZPosition.X = desiredAbs.X;
-				currentPTZPosition.Y = desiredAbs.Y;
-				currentPTZPosition.Z = desiredAbs.Z;
-				currentIntPTZPosition.X = X;
-				currentIntPTZPosition.Y = Y;
-				currentIntPTZPosition.Z = Z;
-				currentlyAbsolutePositioned = true;
-				this.PositionABS(X, Y, Z);
-				BroadcastStatusUpdate();
-				Thread.Sleep(1000);
-			}
-		}
 		public void Broadcast3dPosition(float x, float y, float w, float h, bool zIn)
 		{
 			MJpegWrapper.webSocketServer.BroadcastCameraStatusUpdate(cs.id, "3dpos " + x + " " + y + " " + w + " " + h + " " + (zIn ? "1" : "0"));
 		}
 		public string GetStatusUpdate()
 		{
-			return "newpos " + currentPTZPosition.X + " " + currentPTZPosition.Y + " " + currentPTZPosition.Z + " " + (currentlyAbsolutePositioned ? "1" : "0");
+			FloatVector3 cp = currentPTZPosition.Copy();
+			cp.Y = cp.Y / (float)(panoramaVerticalDegrees / 90.0);
+			return "newpos " + cp.X + " " + cp.Y + " " + cp.Z;
 		}
 		public void BroadcastStatusUpdate()
 		{
 			MJpegWrapper.webSocketServer.BroadcastCameraStatusUpdate(cs.id, GetStatusUpdate());
-		}
-		/// <summary>
-		/// Runs the specified PTZ command.  Note that this is the only way to perform the commands in a thread-safe manner.
-		/// </summary>
-		/// <param name="cam"></param>
-		/// <param name="cmd"></param>
-		public static void RunCommand(IPCameraBase cam, string cmd)
-		{
-			//if (cam == null || cam.dahuaPtz == null || string.IsNullOrWhiteSpace(cmd))
-			//    return;
-			//if (cam.ptzLock != null && cam.ptzLock.Wait(0))
-			//{
-			//    try
-			//    {
-
-			//        string[] parts = cmd.Split('/');
-			//        if (parts.Length < 1)
-			//            return;
-
-			//        if (parts[0] == "move_simple")
-			//        {
-			//            int moveButtonIndex = int.Parse(parts[1]);
-			//            if (moveButtonIndex < 1 || moveButtonIndex > 9)
-			//                return;
-
-			//            int x = 0;
-			//            int y = 0;
-
-			//            if (moveButtonIndex < 4)
-			//                y = -6000;
-			//            else if (moveButtonIndex > 6)
-			//                y = 6000;
-
-			//            if (moveButtonIndex % 3 == 1)
-			//                x = -6000;
-			//            else if (moveButtonIndex % 3 == 0)
-			//                x = 6000;
-
-			//            cam.dahuaPtz.MoveSimple(x, y, 0);
-			//        }
-			//        else if (parts[0] == "zoom")
-			//        {
-			//            int amount = int.Parse(parts[1]);
-			//            cam.dahuaPtz.MoveSimple(0, 0, amount);
-			//        }
-			//        else if (parts[0] == "focus")
-			//        {
-			//            //int amount = int.Parse(parts[1]);
-			//        }
-			//        else if (parts[0] == "iris")
-			//        {
-			//            int amount = int.Parse(parts[1]);
-			//            cam.dahuaPtz.Iris(amount);
-			//        }
-			//        else if (parts[0] == "frame")
-			//        {
-			//            double x = double.Parse(parts[1]);
-			//            double y = double.Parse(parts[2]);
-			//            x -= 0.5;
-			//            y -= 0.5;
-			//            int amountX = (int)(20900.0 * x);
-			//            int amountY = (int)(16500.0 * y);
-			//            cam.dahuaPtz.MoveSimple(amountX, amountY, 0);
-			//        }
-			//        else if (parts[0] == "m" && parts.Length == 3)
-			//        {
-			//            // Constant motion from joystick-like control; disabled due to usability and reliability concerns.  The camera's http interface simply can't accept the necessary level of control.
-			//            //
-			//            //double x = double.Parse(parts[1]);
-			//            //double y = double.Parse(parts[2]);
-			//            //x -= 0.5;
-			//            //y -= 0.5;
-			//            //x *= 10;
-			//            //y *= 10;
-			//            //int speedX = (int)Math.Round(x);
-			//            //int speedY = (int)Math.Round(y);
-			//            //Stopwatch watch = new Stopwatch();
-			//            //watch.Start();
-			//            //cam.dahuaPtz.StopMoving();
-			//            //watch.Stop();
-			//            //Console.WriteLine(watch.ElapsedMilliseconds);
-			//            //watch.Reset();
-			//            //watch.Start();
-			//            //cam.dahuaPtz.StartMoving(speedX, speedY);
-			//            //watch.Stop();
-			//            //Console.WriteLine(watch.ElapsedMilliseconds);
-			//            //Console.WriteLine();
-			//        }
-			//        else if (parts[0] == "stopall")
-			//        {
-			//            cam.dahuaPtz.StopAll();
-			//        }
-			//        else if (parts[0] == "generatepseudopanorama" || parts[0] == "generatepseudopanoramafull")
-			//        {
-			//            bool full = parts[0].EndsWith("full");
-			//            bool isFirstTime = true;
-			//            int numImagesHigh = full ? 6 : 4;
-			//            int numImagesWide = full ? 14 : 7;
-			//            double degreesSeparationVertical = 900.0 / (numImagesHigh - 1);
-			//            double degreesSeparationHorizontal = 3600.0 / -numImagesWide;
-			//            for (int j = 0; j < numImagesHigh; j++)
-			//            {
-			//                for (int i = 0; i < numImagesWide; i++)
-			//                {
-			//                    cam.dahuaPtz.PositionABS((int)(i * degreesSeparationHorizontal), (int)(j * degreesSeparationVertical), 0);
-			//                    Thread.Sleep(isFirstTime ? 7000 : 4500);
-			//                    isFirstTime = false;
-			//                    try
-			//                    {
-			//                        byte[] input = cam.LastFrame;
-			//                        if (input.Length > 0)
-			//                        {
-			//                            if (!full)
-			//                                input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160);
-			//                            FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * numImagesWide)) + ".jpg");
-			//                            Util.EnsureDirectoryExists(file.Directory.FullName);
-			//                            File.WriteAllBytes(file.FullName, input);
-			//                        }
-			//                    }
-			//                    catch (Exception ex)
-			//                    {
-			//                        Logger.Debug(ex);
-			//                    }
-			//                }
-			//            }
-			//        }
-			//        else if (parts[0] == "percent" && parts.Length == 4)
-			//        {
-			//            double x = 1 - double.Parse(parts[1]);
-			//            double y = double.Parse(parts[2]);
-			//            x *= 3600;
-			//            y *= cam.dahuaPtz.panoramaVerticalDegrees * 10;
-			//            cam.dahuaPtz.PositionABS((int)x, (int)y, int.Parse(parts[3]) * 8);
-			//        }
-			//        //if (preset_number > 0)
-			//        //{
-			//        //    try
-			//        //    {
-			//        //        byte[] image = MJpegServer.cm.GetLatestImage(cam);
-			//        //        if (image.Length > 0)
-			//        //        {
-			//        //            Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.ToLower() + preset_number + ".jpg");
-			//        //        }
-			//        //    }
-			//        //    catch (Exception ex)
-			//        //    {
-			//        //        Logger.Debug(ex);
-			//        //    }
-			//        //}
-			//    }
-			//    catch (Exception ex)
-			//    {
-			//        Logger.Debug(ex);
-			//    }
-			//    finally
-			//    {
-			//        cam.ptzLock.Release();
-			//    }
-			//}
 		}
 
 		public void MoveSimple(int xAmount, int yAmount, int zAmount)
@@ -553,25 +355,120 @@ namespace MJpegCameraProxy
 			DoAction("start", "Position", xAmount, yAmount, zAmount);
 		}
 
-		public void PositionABS(int x, int y, int z)
+		public void SetAbsolutePTZPosition(FloatVector3 pos)
 		{
-			x = (x + (this.absoluteXOffset * 10)) % 3600;
-			if (x < 0) x = 3600 + x;
-			if (y < 0) y = 0;
-			if (y > 900) y = 900;
-			if (z < 1) z = 1;
-			if (z > 128) z = 128;
+			desiredPTZPosition = pos;
+		}
+		public void Set3DPTZPosition(Pos3d pos)
+		{
+			System.Threading.Interlocked.Exchange(ref desired3dPosition, pos);
+		}
+		public void SetZoomPosition(double z)
+		{
+			desiredZoomPosition = new double[] { z };
+		}
+		public void GeneratePanorama(bool full)
+		{
+			if (full)
+				generatePanoramaSourceFrames = true;
+			else
+				generatePseudoPanorama = true;
+		}
+
+		public void PositionABS_PercentPosition(FloatVector3 percentagePosition)
+		{
+			IntVector3 camPosition = PercentagePosToCameraPos(percentagePosition);
+			PositionABS_CamPosition(camPosition);
+		}
+		public void PositionABS_CamPosition(IntVector3 camPosition)
+		{
+			camPosition.X = Util.Modulus(camPosition.X, 3600);
+
+			camPosition.Y = Util.Clamp(camPosition.Y, 0, 900);
+
+			camPosition.Z = Util.Clamp(camPosition.Z, 1, 128);
+
+			FloatVector3 percentPos = CameraPosToPercentagePos(camPosition);
+			currentPTZPosition.X = percentPos.X;
+			currentPTZPosition.Y = percentPos.Y;
+			currentPTZPosition.Z = percentPos.Z;
+
+			DoAbsPos(camPosition.X, camPosition.Y, camPosition.Z);
+		}
+
+		private void DoAbsPos(int x, int y, int z)
+		{
 			Console.WriteLine("ab x:" + x + ", y:" + y + ", z:" + z);
 			DoAction("start", "PositionABS", x, y, z);
 		}
+		/// <summary>
+		/// Positions the camera to center on the specified location, with the specified zoom change.
+		/// </summary>
+		/// <param name="x">Number between 0 and 1 indicating the X position on the camera view that is the center of the user's drawn rectangle.</param>
+		/// <param name="y">Number between 0 and 1 indicating the Y position on the camera view that is the center of the user's drawn rectangle.</param>
+		/// <param name="z">Number between -1 and 1 indicating the size of the rectangle drawn relative to the size of the camera.  Negative values indicate the zoom should be out, positive values indicate the zoom should be in.</param>
 		public void Position3D(float x, float y, float z)
 		{
-			x = Util.Clamp(x, 0, 1);
-			y = Util.Clamp(y, 0, 1);
-			z = Util.Clamp(z, -1, 1);
-			Console.WriteLine("3d x:" + x + ", y:" + y + ", z:" + z);
-			string json = "{\"method\" : \"ptz.moveDirectly\", \"session\" : " + session + ", \"params\" : {\"screen\" : [" + x + "," + y + "," + z + "]}, \"id\" : " + CmdID + "}";
-			DoJsonAction(json);
+			x -= 0.5f;
+			y -= 0.5f;
+
+			FloatVector3 percentagePosition = currentPTZPosition.Copy();
+			IntVector3 camPosition = PercentagePosToCameraPos(percentagePosition);
+
+			int currentMagnification = Util.PercentageToRangeValueInt(percentagePosition.Z, 1, cs.ptz_magnification);
+
+			double hfov = cs.ptz_fov_horizontal / currentMagnification;
+			double vfov = cs.ptz_fov_vertical / currentMagnification;
+
+			double offsetDegreesX = hfov * x;
+			double offsetDegreesY = vfov * y;
+
+			IntVector3 newCamPosition = new IntVector3();
+			newCamPosition.X = camPosition.X + (int)Math.Round(offsetDegreesX * -10);
+			newCamPosition.Y = camPosition.Y + (int)Math.Round(offsetDegreesY * 10);
+
+			// Calculate new zoom position
+			if (z == 0)
+				newCamPosition.Z = camPosition.Z;
+			else
+			{
+				double offsetMultiplierZ;
+				if (z > 0)
+					offsetMultiplierZ = 1.0 / z;
+				else
+					offsetMultiplierZ = -z;
+				double newMagnification = currentMagnification * offsetMultiplierZ;
+				if (newMagnification < 1)
+					newMagnification = 1;
+				else if (newMagnification > cs.ptz_magnification)
+					newMagnification = cs.ptz_magnification;
+				double newPercentMag = Util.DahuaZoomCalc(newMagnification, cs.ptz_magnification);
+				newCamPosition.Z = (int)Math.Round(newPercentMag);
+			}
+
+			PositionABS_CamPosition(newCamPosition);
+		}
+		private FloatVector3 CameraPosToPercentagePos(IntVector3 camPos)
+		{
+			FloatVector3 percentagePos = new FloatVector3();
+
+			percentagePos.X = (float)Util.RangeValueToPercentage(Util.Modulus(camPos.X - (this.absoluteXOffset * 10), 3600), 3600, 0);
+			percentagePos.Y = (float)Util.RangeValueToPercentage(camPos.Y, 0, 900);
+			double approxMagnification = Util.DahuaMagnificationCalc(camPos.Z, cs.ptz_magnification);
+			percentagePos.Z = (float)Util.RangeValueToPercentage(approxMagnification, 1, cs.ptz_magnification);
+
+			return percentagePos;
+		}
+		private IntVector3 PercentagePosToCameraPos(FloatVector3 percentagePos)
+		{
+			IntVector3 camPos = new IntVector3();
+
+			camPos.X = Util.Modulus(Util.PercentageToRangeValueInt(percentagePos.X, 3600, 0) + (this.absoluteXOffset * 10), 3600);
+			camPos.Y = Util.PercentageToRangeValueInt(percentagePos.Y, 0, 900);
+			double magnification = Util.PercentageToRangeValueDouble(percentagePos.Z, 1, cs.ptz_magnification);
+			camPos.Z = Util.DahuaZoomCalc(magnification, cs.ptz_magnification);
+
+			return camPos;
 		}
 
 		public void FocusStart(int amount)
@@ -770,30 +667,6 @@ namespace MJpegCameraProxy
 		public override string GetJson()
 		{
 			return "{\"channel\" : " + channel + ", \"code\" : \"" + code + "\",\"arg1\" : " + arg1 + ",\"arg2\" : " + arg2 + ",\"arg3\" : " + arg3 + "}";
-		}
-	}
-	public class LoginManager
-	{
-		Queue<DateTime> lastLogins = new Queue<DateTime>();
-		public LoginManager()
-		{
-		}
-		public bool AllowLogin()
-		{
-			DateTime now = DateTime.Now;
-			if (lastLogins.Count < 2)
-			{
-				lastLogins.Enqueue(now);
-				return true;
-			}
-			if (lastLogins.Peek() < now.Subtract(TimeSpan.FromMinutes(1)))
-			{
-				lastLogins.Dequeue(); // Oldest login in queue was older than a minute ago
-				lastLogins.Enqueue(now);
-				return true;
-			}
-			else
-				return false; // Oldest login in queue was newer than a minute ago.
 		}
 	}
 	#endregion

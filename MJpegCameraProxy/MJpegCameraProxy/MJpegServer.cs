@@ -9,6 +9,7 @@ using SimpleHttp;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Net.Sockets;
+using System.Collections.Concurrent;
 
 namespace MJpegCameraProxy
 {
@@ -83,8 +84,9 @@ namespace MJpegCameraProxy
 							LogOutUser(p, s);
 							return;
 						}
+						int wait = p.GetIntParam("wait", 5000);
 						IPCameraBase cam = cm.GetCamera(cameraId);
-						byte[] latestImage = cm.GetLatestImage(cameraId);
+						byte[] latestImage = cm.GetLatestImage(cameraId, wait);
 						int patience = p.GetIntParam("patience");
 						if (patience > 0)
 						{
@@ -103,8 +105,14 @@ namespace MJpegCameraProxy
 								timeLeft = patience - (int)timer.ElapsedMilliseconds;
 							}
 						}
+						if (latestImage.Length == 0)
+						{
+							p.writeFailure("502 Bad Gateway");
+							return;
+						}
 						ImageFormat imgFormat = ImageFormat.Jpeg;
 						latestImage = ImageConverter.HandleRequestedConversionIfAny(latestImage, p, ref imgFormat, format);
+						p.tcpClient.SendBufferSize = latestImage.Length + 256;
 						p.writeSuccess(Util.GetMime(imgFormat), latestImage.Length);
 						p.outputStream.Flush();
 						p.rawOutputStream.Write(latestImage, 0, latestImage.Length);
@@ -126,6 +134,7 @@ namespace MJpegCameraProxy
 						}
 						if (cm.GetLatestImage(cameraId).Length == 0)
 							return;
+						// Increasing the send buffer size here does not help streaming fluidity.
 						p.writeSuccess("multipart/x-mixed-replace;boundary=ipcamera");
 						byte[] newImage;
 						byte[] lastImage = null;
@@ -138,6 +147,8 @@ namespace MJpegCameraProxy
 								{
 									Thread.Sleep(1);
 									newImage = cm.GetLatestImage(cameraId);
+									if (this.stopRequested)
+										return;
 								}
 								lastImage = newImage;
 
@@ -161,6 +172,70 @@ namespace MJpegCameraProxy
 							}
 						}
 					}
+					else if (requestedPage.EndsWith(".ogg"))
+					{
+						string cameraId = requestedPage.Substring(0, requestedPage.Length - 4);
+						cameraId = cameraId.ToLower();
+						int minPermission = cm.GetCameraMinPermission(cameraId);
+						if (minPermission == 101)
+						{
+							p.writeFailure();
+							return;
+						}
+						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
+						{
+							LogOutUser(p, s);
+							return;
+						}
+						IPCameraBase _cam = cm.GetCamera(cameraId);
+						if (_cam is Html5VideoCamera)
+						{
+							Html5VideoCamera cam = (Html5VideoCamera)_cam;
+							ConcurrentQueue<byte[]> myDataListener = new ConcurrentQueue<byte[]>();
+							try
+							{
+								cam.RegisterStreamListener(myDataListener);
+								p.writeSuccess("application/octet-stream");
+								p.outputStream.Flush();
+								byte[] outputBuffer;
+								int chunkCount = 0;
+								while (!this.stopRequested)
+								{
+									try
+									{
+										chunkCount = myDataListener.Count;
+										if (chunkCount > 100)
+											return; // This connection is falling too far behind.  End it.
+										else if (chunkCount > 0)
+										{
+											Console.Write(chunkCount + " ");
+											if (myDataListener.TryDequeue(out outputBuffer))
+											{
+												p.rawOutputStream.Write(outputBuffer, 0, outputBuffer.Length);
+												p.rawOutputStream.Flush();
+											}
+										}
+										else
+											Thread.Sleep(1);
+									}
+									catch (Exception ex)
+									{
+										if (!p.isOrdinaryDisconnectException(ex))
+											Logger.Debug(ex);
+										break;
+									}
+								}
+							}
+							finally
+							{
+								cam.UnregisterStreamListener(myDataListener);
+							}
+						}
+						else
+						{
+							p.writeFailure("501 Not Implemented");
+						}
+					}
 					else if (requestedPage.EndsWith(".cam"))
 					{
 						string cameraId = requestedPage.Substring(0, requestedPage.Length - 4);
@@ -174,6 +249,12 @@ namespace MJpegCameraProxy
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
 						{
 							LogOutUser(p, s);
+							return;
+						}
+						IPCameraBase cam = cm.GetCamera(cameraId);
+						if (cam != null && cam.cameraSpec.ptzType == MJpegCameraProxy.Configuration.PtzType.Dahua || cam.cameraSpec.ptzType == MJpegCameraProxy.Configuration.PtzType.Hikvision)
+						{
+							p.writeRedirect("../Camera.html?cam=" + cameraId);
 							return;
 						}
 
@@ -365,12 +446,30 @@ namespace MJpegCameraProxy
 						return;
 					}
 
-					if ((fi.Extension == ".html" || fi.Extension == ".htm") && fi.Length < 256000)
+					// && (fi.Extension == ".html" || fi.Extension == ".htm")
+					if (fi.Name.ToLower() == "camera.html" && fi.Length < 256000)
 					{
 						p.writeSuccess(Mime.GetMimeType(fi.Extension));
 						string html = File.ReadAllText(fi.FullName);
 						CamPage2 cp = new CamPage2(html, p);
 						html = cp.Html;
+						html = html.Replace("%ALLCAMS%", string.Join(",", MJpegServer.cm.GenerateAllCameraIdList()));
+						html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
+						try
+						{
+							html = html.Replace("%REMOTEIP%", p.RemoteIPAddress);
+						}
+						catch (Exception ex)
+						{
+							Logger.Debug(ex);
+						}
+						p.outputStream.Write(html);
+						p.outputStream.Flush();
+					}
+					else if ((fi.Extension == ".html" || fi.Extension == ".htm") && fi.Length < 256000)
+					{
+						p.writeSuccess(Mime.GetMimeType(fi.Extension));
+						string html = File.ReadAllText(fi.FullName);
 						html = html.Replace("%ALLCAMS%", string.Join(",", MJpegServer.cm.GenerateAllCameraIdList()));
 						html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
 						try

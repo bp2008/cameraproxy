@@ -51,7 +51,7 @@ namespace SimpleHttp
 		/// 
 		/// This stream is for writing binary data.
 		/// </summary>
-		public BufferedStream rawOutputStream;
+		public Stream rawOutputStream;
 
 		/// <summary>
 		/// The cookies sent by the remote client.
@@ -114,9 +114,9 @@ namespace SimpleHttp
 		public SortedList<string, string> RawQueryString = new SortedList<string, string>();
 
 		/// <summary>
-		/// A flag that is set when WriteSuccess(), WriteFailure(), or WriteRedirect() is called.  If the
+		/// A flag that is set when WriteSuccess(), WriteFailure(), or WriteRedirect() is called.
 		/// </summary>
-		private bool responseWritten = false;
+		public bool responseWritten = false;
 
 		private int isLanConnection = -1;
 		/// <summary>
@@ -181,7 +181,7 @@ namespace SimpleHttp
 				return remoteIPAddressBytes;
 			}
 		}
-		private string remoteIPAddress = null;
+		protected string remoteIPAddress = null;
 		/// <summary>
 		/// Returns the remote client's IP address, or an empty string if the remote IP address is somehow not available.
 		/// </summary>
@@ -215,6 +215,11 @@ namespace SimpleHttp
 			this.tcpClient = s;
 			this.base_uri_this_server = new Uri("http" + (this.secure_https ? "s" : "") + "://" + s.Client.LocalEndPoint.ToString(), UriKind.Absolute);
 			this.srv = srv;
+		}
+
+		public HttpProcessor(bool secure_https)
+		{
+			this.secure_https = secure_https;
 		}
 
 		private string streamReadLine(Stream inputStream)
@@ -255,7 +260,7 @@ namespace SimpleHttp
 					}
 				}
 				inputStream = new BufferedStream(tcpStream);
-				rawOutputStream = new BufferedStream(tcpStream);
+				rawOutputStream = tcpStream;
 				outputStream = new StreamWriter(rawOutputStream);
 				try
 				{
@@ -264,6 +269,8 @@ namespace SimpleHttp
 					RawQueryString = ParseQueryStringArguments(this.request_url.Query, preserveKeyCharacterCase: true);
 					QueryString = ParseQueryStringArguments(this.request_url.Query);
 					requestCookies = Cookies.FromString(GetHeaderValue("Cookie", ""));
+					requestedPage = Uri.UnescapeDataString(request_url.AbsolutePath.TrimStart('/'));
+					pathParts = requestedPage.Split('/');
 					try
 					{
 						if (http_method.Equals("GET"))
@@ -479,7 +486,7 @@ namespace SimpleHttp
 		/// </summary>
 		/// <param name="contentType">The MIME type of your response.</param>
 		/// <param name="contentLength">(OPTIONAL) The length of your response, in bytes, if you know it.</param>
-		public void writeSuccess(string contentType = "text/html", long contentLength = -1, string responseCode = "200 OK", List<KeyValuePair<string, string>> additionalHeaders = null)
+		public virtual void writeSuccess(string contentType = "text/html", long contentLength = -1, string responseCode = "200 OK", List<KeyValuePair<string, string>> additionalHeaders = null)
 		{
 			responseWritten = true;
 			outputStream.WriteLine("HTTP/1.1 " + responseCode);
@@ -502,7 +509,7 @@ namespace SimpleHttp
 		/// </summary>
 		/// <param name="code">(OPTIONAL) The http error code (including explanation entity).  For example: "404 Not Found" where 404 is the error code and "Not Found" is the explanation.</param>
 		/// <param name="description">(OPTIONAL) A description string to send after the headers as the response.  This is typically shown to the remote user in his browser.  If null, the code string is sent here.  If "", no response body is sent by this function, and you may or may not want to write your own.</param>
-		public void writeFailure(string code = "404 Not Found", string description = null)
+		public virtual void writeFailure(string code = "404 Not Found", string description = null)
 		{
 			responseWritten = true;
 			outputStream.WriteLine("HTTP/1.1 " + code);
@@ -518,7 +525,7 @@ namespace SimpleHttp
 		/// Writes a redirect header instructing the remote user's browser to load the URL you specify.  Call this one time and do not write any other data to the response stream.
 		/// </summary>
 		/// <param name="redirectToUrl">URL to redirect to.</param>
-		public void writeRedirect(string redirectToUrl)
+		public virtual void writeRedirect(string redirectToUrl)
 		{
 			responseWritten = true;
 			outputStream.WriteLine("HTTP/1.1 302 Found");
@@ -548,7 +555,7 @@ namespace SimpleHttp
 		/// <param name="queryString"></param>
 		/// <param name="requireQuestionMark"></param>
 		/// <returns></returns>
-		private static SortedList<string, string> ParseQueryStringArguments(string queryString, bool requireQuestionMark = true, bool preserveKeyCharacterCase = false)
+		protected static SortedList<string, string> ParseQueryStringArguments(string queryString, bool requireQuestionMark = true, bool preserveKeyCharacterCase = false)
 		{
 			SortedList<string, string> arguments = new SortedList<string, string>();
 			int idx = queryString.IndexOf('?');
@@ -569,14 +576,14 @@ namespace SimpleHttp
 				string[] argument = parts[i].Split(new char[] { '=' });
 				if (argument.Length == 2)
 				{
-					string key = HttpUtility.UrlDecode(argument[0]);
+					string key = Uri.UnescapeDataString(argument[0]);
 					if (!preserveKeyCharacterCase)
 						key = key.ToLower();
 					string existingValue;
 					if (arguments.TryGetValue(key, out existingValue))
-						arguments[key] += "," + HttpUtility.UrlDecode(argument[1]);
+						arguments[key] += "," + Uri.UnescapeDataString(argument[1].Replace('+',' '));
 					else
-						arguments[key] = HttpUtility.UrlDecode(argument[1]);
+						arguments[key] = Uri.UnescapeDataString(argument[1].Replace('+', ' '));
 				}
 			}
 			if (hash != null)
@@ -758,6 +765,7 @@ namespace SimpleHttp
 		/// <param name="cert">(Optional) Certificate to use for https connections.  If null and an httpsPort was specified, a certificate is automatically created if necessary and loaded from "SimpleHttpServer-SslCert.pfx" in the same directory that the current executable is located in.</param>
 		public HttpServer(int port, int httpsPort = -1, X509Certificate2 cert = null)
 		{
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
 			this.port = port;
 			this.secure_port = httpsPort;
 			this.ssl_certificate = cert;
@@ -1130,7 +1138,7 @@ namespace SimpleHttp
 			Cookies cookies = new Cookies();
 			if (str == null)
 				return cookies;
-			str = HttpUtility.UrlDecode(str);
+			str = Uri.UnescapeDataString(str);
 			string[] parts = str.Split(';');
 			for (int i = 0; i < parts.Length; i++)
 			{

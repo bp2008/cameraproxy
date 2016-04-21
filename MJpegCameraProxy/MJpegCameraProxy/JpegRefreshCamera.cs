@@ -17,13 +17,23 @@ namespace MJpegCameraProxy
 
 		protected override void DoBackgroundWork()
 		{
+			WebClient wc = new WebClient();
+			wc.Proxy = null;
+			if (!string.IsNullOrEmpty(cameraSpec.username) || !string.IsNullOrEmpty(cameraSpec.password))
+			{
+				wc.Credentials = new NetworkCredential(cameraSpec.username, cameraSpec.password);
+				//string authInfo = cameraSpec.username + ":" + cameraSpec.password;
+				//authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+				//wc.Headers["Authorization"] = "Basic " + authInfo;
+			}
 			while (!Exit)
 			{
 				try
 				{
 					System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 					timer.Start();
-					byte[] newFrame = SimpleProxy.GetData(cameraSpec.imageryUrl, cameraSpec.username, cameraSpec.password, true);
+
+					byte[] newFrame = wc.DownloadData(cameraSpec.imageryUrl);//SimpleProxy.GetData(cameraSpec.imageryUrl, cameraSpec.username, cameraSpec.password, true);
 					if (!ArraysLooselyMatch(newFrame, lastFrame))
 					{
 						this.lastFrame = newFrame;

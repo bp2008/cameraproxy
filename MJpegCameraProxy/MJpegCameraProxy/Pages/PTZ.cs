@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using MJpegCameraProxy.Configuration;
 using System.Web;
+using MJpegCameraProxy.PanTiltZoom;
 
 namespace MJpegCameraProxy
 {
@@ -50,41 +51,47 @@ namespace MJpegCameraProxy
 					dir = PanTiltZoom.PTZDirection.Right;
 				new PanTiltZoom.TrendNet.TV_IP400(cam.cameraSpec).MoveSimple(dir);
 			}
-			else if (cam.cameraSpec.ptzType == PtzType.CustomPTZProfile)
+			else if (cam.cameraSpec.ptzType == PtzType.CustomPTZProfile || cam.cameraSpec.ptzType == PtzType.Huisun)
 			{
+				object ptzProfile = null;
+				if (cam.cameraSpec.ptzType == PtzType.CustomPTZProfile)
+					ptzProfile = new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam);
+				else if (cam.cameraSpec.ptzType == PtzType.Huisun)
+					ptzProfile = new PanTiltZoom.HuisunBullet(cam.cameraSpec, cam);
+
 				int presetNum;
 				if (cmd == "u")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.Up);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.Up);
 				else if (cmd == "d")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.Down);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.Down);
 				else if (cmd == "l")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.Left);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.Left);
 				else if (cmd == "r")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.Right);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.Right);
 				else if (cmd == "ul")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.UpLeft);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.UpLeft);
 				else if (cmd == "ur")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.UpRight);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.UpRight);
 				else if (cmd == "dl")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.DownLeft);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.DownLeft);
 				else if (cmd == "dr")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).MoveSimple(PanTiltZoom.PTZDirection.DownRight);
+					((IPTZSimple)ptzProfile).MoveSimple(PanTiltZoom.PTZDirection.DownRight);
 				else if (cmd == "i3")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).Zoom(PanTiltZoom.ZoomDirection.In, PanTiltZoom.ZoomAmount.Long);
+					((IPTZSimple)ptzProfile).Zoom(PanTiltZoom.ZoomDirection.In, PanTiltZoom.ZoomAmount.Long);
 				else if (cmd == "o3")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).Zoom(PanTiltZoom.ZoomDirection.Out, PanTiltZoom.ZoomAmount.Long);
+					((IPTZSimple)ptzProfile).Zoom(PanTiltZoom.ZoomDirection.Out, PanTiltZoom.ZoomAmount.Long);
 				else if (cmd == "i2")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).Zoom(PanTiltZoom.ZoomDirection.In, PanTiltZoom.ZoomAmount.Medium);
+					((IPTZSimple)ptzProfile).Zoom(PanTiltZoom.ZoomDirection.In, PanTiltZoom.ZoomAmount.Medium);
 				else if (cmd == "o2")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).Zoom(PanTiltZoom.ZoomDirection.Out, PanTiltZoom.ZoomAmount.Medium);
+					((IPTZSimple)ptzProfile).Zoom(PanTiltZoom.ZoomDirection.Out, PanTiltZoom.ZoomAmount.Medium);
 				else if (cmd == "i1")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).Zoom(PanTiltZoom.ZoomDirection.In, PanTiltZoom.ZoomAmount.Short);
+					((IPTZSimple)ptzProfile).Zoom(PanTiltZoom.ZoomDirection.In, PanTiltZoom.ZoomAmount.Short);
 				else if (cmd == "o1")
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).Zoom(PanTiltZoom.ZoomDirection.Out, PanTiltZoom.ZoomAmount.Short);
+					((IPTZSimple)ptzProfile).Zoom(PanTiltZoom.ZoomDirection.Out, PanTiltZoom.ZoomAmount.Short);
 				else if (cmd.Length == 3 && cmd.StartsWith("pl") && int.TryParse(cmd.Substring(2), out presetNum))
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).LoadPreset(presetNum);
+					((IPTZPresets)ptzProfile).LoadPreset(presetNum);
 				else if (cmd.Length == 3 && cmd.StartsWith("ps") && int.TryParse(cmd.Substring(2), out presetNum))
-					new PanTiltZoom.Custom.CustomPTZProfile(cam.cameraSpec, cam).SavePreset(presetNum);		
+					((IPTZPresets)ptzProfile).SavePreset(presetNum);
 			}
 		}
 
