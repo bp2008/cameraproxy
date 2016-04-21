@@ -50,7 +50,7 @@ namespace Fleck
             var ssl = new SslStream(_stream, false);
             _stream = ssl;
             Func<AsyncCallback, object, IAsyncResult> begin =
-                (cb, s) => ssl.BeginAuthenticateAsServer(certificate, false, SslProtocols.Tls, false, cb, s);
+                (cb, s) => ssl.BeginAuthenticateAsServer(certificate, false, SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false, cb, s);
                 
             Task task = Task.Factory.FromAsync(begin, ssl.EndAuthenticateAsServer, null);
             task.ContinueWith(t => callback(), TaskContinuationOptions.NotOnFaulted)

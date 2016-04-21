@@ -4,6 +4,10 @@ MJpeg Camera Proxy Readme
 
 The service listens on port 44456 by default.  If this is a problem, run the command-line version once, and then you can change the port in "Config.cfg".
 
+The service also uses web sockets for Dahua and Hikvision PTZ cameras now.  This port is 44454 by default.
+
+The service can optionally use https and wss (web socket secure).  Just configure their ports in Config.cfg and restart the service.
+
 -------------------------
 Installation
 -------------------------
@@ -43,30 +47,29 @@ Each camera is available in 3 ways:
 
 1.  As a JPEG still image 
 
- http://ip_address:8077/image/camera_id.jpg
+ http://ip_address:44456/image/camera_id.jpg
 
 2.  As a continuous stream of JPEG still images (MJPEG - not supported in all browsers):
 
- http://ip_address:8077/image/camera_id.mjpg
+ http://ip_address:44456/image/camera_id.mjpg
 
 3.  With an HTML interface that refreshes the image automatically:
 
- http://ip_address:8077/image/camera_id.cam
+ http://ip_address:44456/image/camera_id.cam
 
 -------------------------
 Html Files
 -------------------------
 
-If you like, you can add custom html files to the "Html" 
-subdirectory.  These files are regular Html files with the 
-sole exception that the first line must be a number between 
-0 and 100 to indicate the permission level required to view 
-the file.
+If you like, you can add files to the "www" or "www_public"
+subdirectories.
 
-Any html file with a permission level higher than 0 will 
-require authentication before it can be loaded.
+Files in the "www_public" directory will be made available
+to anyone, even users who have not authenticated.
 
-Html pages are served at the application root, so to 
-access the included example "all.html", you would go to:
+Files in the "www" directory will require authentication 
+with a permission level you set in the admin interface.
 
-http://localhost:8077/all.html
+To access the included example "all.html", you would go to:
+
+http://localhost:44456/all.html

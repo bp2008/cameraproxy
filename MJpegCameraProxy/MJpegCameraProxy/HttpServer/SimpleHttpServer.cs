@@ -765,7 +765,6 @@ namespace SimpleHttp
 		/// <param name="cert">(Optional) Certificate to use for https connections.  If null and an httpsPort was specified, a certificate is automatically created if necessary and loaded from "SimpleHttpServer-SslCert.pfx" in the same directory that the current executable is located in.</param>
 		public HttpServer(int port, int httpsPort = -1, X509Certificate2 cert = null)
 		{
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 			this.port = port;
 			this.secure_port = httpsPort;
 			this.ssl_certificate = cert;
