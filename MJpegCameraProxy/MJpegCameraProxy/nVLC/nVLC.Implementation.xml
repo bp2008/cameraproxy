@@ -229,6 +229,11 @@
             <param name="player"></param>
             <param name="equalizer"></param>
         </member>
+        <member name="P:Implementation.MemoryRenderer2.CurrentFrame">
+            <summary>
+            Be sure to call dispose on this Bitmap when you are finished with it!
+            </summary>
+        </member>
         <member name="T:Implementation.Exceptions.LibVlcRemovedModuleException">
             <summary>
             Represents error that occured due to removal of libVLC module

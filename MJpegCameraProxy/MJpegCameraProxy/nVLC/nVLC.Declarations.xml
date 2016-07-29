@@ -416,6 +416,11 @@
             Gets custom renderer object allowing to process each frame as System.Drawing.Bitmap object.
             </summary>
         </member>
+        <member name="P:Declarations.Players.IVideoPlayer.CustomRenderer2">
+            <summary>
+            (ADDED by CameraProxy project) Gets custom renderer object allowing to process each frame as System.Drawing.Bitmap object.  CustomRenderer2 passes null to the NewFrameEventHandler, whereas the CustomRenderer builds and passes a bitmap image.  Use CustomRenderer2 if you want to be notified when there is a new frame, but don't want the overhead of having it converted to a Bitmap at that time.
+            </summary>
+        </member>
         <member name="P:Declarations.Players.IVideoPlayer.CustomRendererEx">
             <summary>
             Gets custom renderer object allowing to process each frame as YUV or RGB raw pixel format. 
