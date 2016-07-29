@@ -130,9 +130,9 @@ namespace MJpegCameraProxy.Pages.Admin
 					else if (fi.FieldType == typeof(int))
 						SectionTableEntry(sb, displayName, "<input style=\"width:100px\" type=\"number\" fieldname=\"" + fi.Name + "\" value=\"" + ToString(fi.GetValue(obj)) + "\" />" + hint);
 					else if (fi.FieldType == typeof(float))
-						SectionTableEntry(sb, displayName, "<input style=\"width:100px\" type=\"number\" fieldname=\"" + fi.Name + "\" value=\"" + ToString(fi.GetValue(obj)) + "\" />" + hint);
+						SectionTableEntry(sb, displayName, "<input style=\"width:100px\" type=\"text\" fieldname=\"" + fi.Name + "\" value=\"" + ToString(fi.GetValue(obj)) + "\" />" + hint);
 					else if (fi.FieldType == typeof(double))
-						SectionTableEntry(sb, displayName, "<input style=\"width:100px\" type=\"number\" fieldname=\"" + fi.Name + "\" value=\"" + ToString(fi.GetValue(obj)) + "\" />" + hint);
+						SectionTableEntry(sb, displayName, "<input style=\"width:100px\" type=\"text\" fieldname=\"" + fi.Name + "\" value=\"" + ToString(fi.GetValue(obj)) + "\" />" + hint);
 					else if (fi.FieldType == typeof(ushort))
 						SectionTableEntry(sb, displayName, "<input style=\"width:100px\" type=\"number\" min=\"0\" max=\"65535\" fieldname=\"" + fi.Name + "\" value=\"" + ToString(fi.GetValue(obj)) + "\" />" + hint);
 					else if (fi.FieldType == typeof(bool))
