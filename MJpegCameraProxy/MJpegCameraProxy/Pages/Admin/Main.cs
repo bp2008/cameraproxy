@@ -22,7 +22,7 @@ namespace MJpegCameraProxy.Pages.Admin
 		for(var i = 0; i < camDefs.length; i++)
 		{
 			var myid = camDefs[i][0];
-			$(""#maindiv"").append('<div class=""outer""><a href=""../' + myid + '.cam""><table><tbody><tr><td class=""imgbox""><img id=""' + myid + '"" alt=""' + camDefs[i][1] + '""></td></tr></tbody></table><div class=""caption"">' + camDefs[i][1] + '</div></a></div>');
+			$(""#maindiv"").append('<div class=""outer""><a href=""../image/' + myid + '.cam""><table><tbody><tr><td class=""imgbox""><img id=""' + myid + '"" alt=""' + camDefs[i][1] + '""></td></tr></tbody></table><div class=""caption"">' + camDefs[i][1] + '</div></a></div>');
 			if(isLocal)
 				refreshTime = 250;
 			$(""#"" + myid).load(function ()
@@ -42,7 +42,7 @@ namespace MJpegCameraProxy.Pages.Admin
 	});
 	function GetNewImage(id)
 	{
-		$(""#"" + id).attr('src', '../' + id + '.jpg?maxwidth=320&maxheight=240&nocache=' + new Date().getTime());
+		$(""#"" + id).attr('src', '../image/' + id + '.jpg?maxwidth=320&maxheight=240&nocache=' + new Date().getTime());
 	}
 	function disableRefresh()
 	{
