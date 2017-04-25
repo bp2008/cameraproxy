@@ -35,7 +35,7 @@ Yes.  A simple (and optional) authentication scheme is in place.  Cameras have a
 
 * The base functionality (not including h264 / rtsp options) now works under Linux with the Mono framework.
 
-* The service can re-encode imagery on-the-fly to JPG, PNG, and even WebP formats at any size and quality you specify in the URL.  Note that re-encoding images requires quite a lot of CPU time.  Here is a [Guide to On-the-Fly Image Conversion].
+* The service can re-encode imagery on-the-fly to JPG, PNG, and even WebP formats at any size and quality you specify in the URL.  Note that re-encoding images requires quite a lot of CPU time.  Here is a [Guide to Image URLs](https://github.com/bp2008/cameraproxy/wiki/Guide-to-Image-URLs).
 
 ## Why?
 
@@ -43,4 +43,4 @@ Most software NVRs can do everything this does and a lot more.  The difference i
 
 ## How to Use
 
-Please see the [Setup Guide]
+Please see the [Setup Guide](https://github.com/bp2008/cameraproxy/wiki/Setup-Guide)
