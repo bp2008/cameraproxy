@@ -1,6 +1,6 @@
 # Camera Proxy
 
-A Windows Service which acts as a "smart" proxy for IP network cameras. Uses the .NET framework and parts of the VLC media player libraries.
+Camera Proxy is a Windows Service which acts as a "smart" proxy for IP network cameras. Uses the .NET framework and parts of the VLC media player libraries.
 
 The service runs a simple embedded HTTP(S) server and is compatible with practically any browser.
 
