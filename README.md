@@ -1,4 +1,4 @@
-# cameraproxy
+# Camera Proxy
 
 A Windows Service which acts as a "smart" proxy for IP network cameras. Uses the .NET framework and parts of the VLC media player libraries.
 
