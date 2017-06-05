@@ -805,7 +805,7 @@ namespace SimpleHttp
 				X509Certificate2 ssl_certificate;
 				string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 				FileInfo fiExe = new FileInfo(exePath);
-				FileInfo fiCert = new FileInfo(fiExe.Directory.FullName + "\\SimpleHttpServer-SslCert.pfx");
+				FileInfo fiCert = new FileInfo(Path.Combine(fiExe.Directory.FullName, "SimpleHttpServer-SslCert.pfx"));
 				if (fiCert.Exists)
 					ssl_certificate = new X509Certificate2(fiCert.FullName, "N0t_V3ry-S3cure#lol");
 				else
@@ -837,101 +837,109 @@ namespace SimpleHttp
 		/// </summary>
 		private void listen(object param)
 		{
-			bool isSecureListener = (bool)param;
-
-			int errorCount = 0;
-			DateTime lastError = DateTime.Now;
-
-			TcpListener listener = null;
-
-			while (!stopRequested)
+			try
 			{
-				bool threwExceptionOuter = false;
-				try
+				bool isSecureListener = (bool)param;
+
+				int errorCount = 0;
+				DateTime lastError = DateTime.Now;
+
+				TcpListener listener = null;
+
+				while (!stopRequested)
 				{
-					listener = new TcpListener(IPAddress.Any, isSecureListener ? secure_port : port);
-					if (isSecureListener)
-						secureListener = listener;
-					else
-						unsecureListener = listener;
-					listener.Start();
-					while (!stopRequested)
-					{
-						int innerErrorCount = 0;
-						DateTime innerLastError = DateTime.Now;
-						try
-						{
-							TcpClient s = listener.AcceptTcpClient();
-							int workerThreads, completionPortThreads;
-							ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
-							// Here is where we could enforce a minimum number of free pool threads, 
-							// if we wanted to ensure better performance.
-							if (workerThreads > 0)
-							{
-								HttpProcessor processor = new HttpProcessor(s, this, isSecureListener ? ssl_certificate : null);
-								ThreadPool.QueueUserWorkItem(processor.process);
-							}
-							else
-							{
-								try
-								{
-									StreamWriter outputStream = new StreamWriter(s.GetStream());
-									outputStream.WriteLine("HTTP/1.1 503 Service Unavailable");
-									outputStream.WriteLine("Connection: close");
-									outputStream.WriteLine("");
-									outputStream.WriteLine("Server too busy");
-								}
-								catch (ThreadAbortException ex)
-								{
-									throw ex;
-								}
-							}
-						}
-						catch (ThreadAbortException ex)
-						{
-							throw ex;
-						}
-						catch (Exception ex)
-						{
-							if (DateTime.Now.Hour != innerLastError.Hour || DateTime.Now.DayOfYear != innerLastError.DayOfYear)
-							{
-								innerLastError = DateTime.Now;
-								innerErrorCount = 0;
-							}
-							if (++innerErrorCount > 10)
-								throw ex;
-							SimpleHttpLogger.Log(ex, "Inner Error count this hour: " + innerErrorCount);
-							Thread.Sleep(1);
-						}
-					}
-				}
-				catch (ThreadAbortException) { stopRequested = true; }
-				catch (Exception ex)
-				{
-					if (DateTime.Now.DayOfYear != lastError.DayOfYear || DateTime.Now.Year != lastError.Year)
-					{
-						lastError = DateTime.Now;
-						errorCount = 0;
-					}
-					if (++errorCount > 100)
-						throw ex;
-					SimpleHttpLogger.Log(ex, "Restarting listener. Error count today: " + errorCount);
-					threwExceptionOuter = true;
-				}
-				finally
-				{
+					bool threwExceptionOuter = false;
 					try
 					{
-						if (listener != null)
+						listener = new TcpListener(IPAddress.Any, isSecureListener ? secure_port : port);
+						if (isSecureListener)
+							secureListener = listener;
+						else
+							unsecureListener = listener;
+						listener.Start();
+						while (!stopRequested)
 						{
-							listener.Stop();
-							if (threwExceptionOuter)
-								Thread.Sleep(1000);
+							int innerErrorCount = 0;
+							DateTime innerLastError = DateTime.Now;
+							try
+							{
+								TcpClient s = listener.AcceptTcpClient();
+								int workerThreads, completionPortThreads;
+								ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
+								// Here is where we could enforce a minimum number of free pool threads, 
+								// if we wanted to ensure better performance.
+								if (workerThreads > 0)
+								{
+									HttpProcessor processor = new HttpProcessor(s, this, isSecureListener ? ssl_certificate : null);
+									ThreadPool.QueueUserWorkItem(processor.process);
+								}
+								else
+								{
+									try
+									{
+										StreamWriter outputStream = new StreamWriter(s.GetStream());
+										outputStream.WriteLine("HTTP/1.1 503 Service Unavailable");
+										outputStream.WriteLine("Connection: close");
+										outputStream.WriteLine("");
+										outputStream.WriteLine("Server too busy");
+									}
+									catch (ThreadAbortException ex)
+									{
+										throw ex;
+									}
+								}
+							}
+							catch (ThreadAbortException ex)
+							{
+								throw ex;
+							}
+							catch (Exception ex)
+							{
+								if (DateTime.Now.Hour != innerLastError.Hour || DateTime.Now.DayOfYear != innerLastError.DayOfYear)
+								{
+									innerLastError = DateTime.Now;
+									innerErrorCount = 0;
+								}
+								if (++innerErrorCount > 10)
+									throw ex;
+								SimpleHttpLogger.Log(ex, "Inner Error count this hour: " + innerErrorCount);
+								Thread.Sleep(1);
+							}
 						}
 					}
 					catch (ThreadAbortException) { stopRequested = true; }
-					catch (Exception) { }
+					catch (Exception ex)
+					{
+						if (DateTime.Now.DayOfYear != lastError.DayOfYear || DateTime.Now.Year != lastError.Year)
+						{
+							lastError = DateTime.Now;
+							errorCount = 0;
+						}
+						if (++errorCount > 100)
+							throw ex;
+						SimpleHttpLogger.Log(ex, "Restarting listener. Error count today: " + errorCount);
+						threwExceptionOuter = true;
+					}
+					finally
+					{
+						try
+						{
+							if (listener != null)
+							{
+								listener.Stop();
+								if (threwExceptionOuter)
+									Thread.Sleep(1000);
+							}
+						}
+						catch (ThreadAbortException) { stopRequested = true; }
+						catch (Exception) { }
+					}
 				}
+			}
+			catch (ThreadAbortException) { stopRequested = true; }
+			catch (Exception ex)
+			{
+				SimpleHttpLogger.Log(ex);
 			}
 		}
 

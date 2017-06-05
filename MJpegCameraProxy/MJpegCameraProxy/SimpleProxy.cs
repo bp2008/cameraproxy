@@ -28,6 +28,7 @@ namespace MJpegCameraProxy
 					string authInfo = user + ":" + password;
 					authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
 					webRequest.Headers["Authorization"] = "Basic " + authInfo;
+					webRequest.Credentials = new NetworkCredential(user, password);
 				}
 				webRequest.Method = "GET";
 				webRequest.Timeout = 5000;
@@ -36,7 +37,7 @@ namespace MJpegCameraProxy
 			catch (ThreadAbortException ex) { throw ex; }
 			catch (WebException ex)
 			{
-				if(ex.Status != WebExceptionStatus.Timeout)
+				if (ex.Status != WebExceptionStatus.Timeout)
 					if (allowErrorLogging)
 						Logger.Debug(ex, "SimpleProxy URL: " + url);
 			}
