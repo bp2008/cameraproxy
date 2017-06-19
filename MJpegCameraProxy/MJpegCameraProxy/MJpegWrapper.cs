@@ -6,6 +6,9 @@ using System.Threading;
 using MJpegCameraProxy.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using BPUtil;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy
 {
@@ -34,7 +37,7 @@ namespace MJpegCameraProxy
 					cfg.users.Add(new User("admin", "admin", 100));
 				cfg.Save(Globals.ConfigFilePath);
 			}
-			SimpleHttp.SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
+			SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
 			bool killed = false;
 			try
 			{
@@ -65,7 +68,15 @@ namespace MJpegCameraProxy
 
 			startTime = DateTime.Now;
 
-			httpServer = new MJpegServer(cfg.webport, cfg.webport_https);
+			X509Certificate2 cert = null;
+			if (!string.IsNullOrWhiteSpace(cfg.certificate_pfx_path))
+			{
+				if (!string.IsNullOrEmpty(cfg.certificate_pfx_password))
+					cert = new X509Certificate2(cfg.certificate_pfx_path, cfg.certificate_pfx_password);
+				else
+					cert = new X509Certificate2(cfg.certificate_pfx_path);
+			}
+			httpServer = new MJpegServer(cfg.webport, cfg.webport_https, cert);
 			httpServer.Start();
 
 			webSocketServer = new CameraProxyWebSocketServer(cfg.webSocketPort, cfg.webSocketPort_secure);

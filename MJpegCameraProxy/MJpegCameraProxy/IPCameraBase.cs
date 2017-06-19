@@ -6,6 +6,7 @@ using System.Threading;
 using System.IO;
 using System.Drawing;
 using MJpegCameraProxy.Configuration;
+using BPUtil;
 
 namespace MJpegCameraProxy
 {

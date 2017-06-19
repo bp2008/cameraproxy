@@ -8,6 +8,8 @@ using System.IO;
 using System.Drawing;
 using MJpegCameraProxy.Configuration;
 using MJpegCameraProxy.PanTiltZoom;
+using BPUtil;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy
 {
@@ -68,7 +70,7 @@ namespace MJpegCameraProxy
 			}
 			return frame;
 		}
-		public string GetRTSPUrl(string id, SimpleHttp.HttpProcessor p)
+		public string GetRTSPUrl(string id, HttpProcessor p)
 		{
 			IPCameraBase cam = GetCameraById(id);
 			if (cam == null || cam.cameraSpec.type != CameraType.h264_rtsp_proxy)

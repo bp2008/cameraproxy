@@ -5,11 +5,13 @@ using System.Text;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
-using SimpleHttp;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Net.Sockets;
 using System.Collections.Concurrent;
+using System.Security.Cryptography.X509Certificates;
+using BPUtil;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy
 {
@@ -17,8 +19,8 @@ namespace MJpegCameraProxy
 	{
 		public static CameraManager cm = new CameraManager();
 		public static SessionManager sm = new SessionManager();
-		public MJpegServer(int port, int port_https)
-			: base(port, port_https)
+		public MJpegServer(int port, int port_https, X509Certificate2 cert)
+			: base(port, port_https, cert)
 		{
 		}
 		public override void handleGETRequest(HttpProcessor p)
@@ -559,7 +561,7 @@ namespace MJpegCameraProxy
 			}
 		}
 
-		public override void stopServer()
+		protected override void stopServer()
 		{
 			cm.Stop();
 		}

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Drawing;
 using MJpegCameraProxy.Configuration;
 using MJpegCameraProxy.PanTiltZoom;
+using BPUtil;
 
 namespace MJpegCameraProxy.Dahua
 {

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy.Pages.Admin
 {
 	class Main : AdminBase
 	{
-		protected override string GetPageHtml(SimpleHttp.HttpProcessor p, Session s)
+		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
 			return @"
 	<script type=""text/javascript"">

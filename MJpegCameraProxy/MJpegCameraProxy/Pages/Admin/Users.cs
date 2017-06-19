@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy.Pages.Admin
 {
 	class Users : AdminBase
 	{
-		protected override string GetPageHtml(SimpleHttp.HttpProcessor p, Session s)
+		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
 			ItemTable<Configuration.User> tbl = new ItemTable<Configuration.User>("Users", "user", "name", MJpegWrapper.cfg.users, MJpegWrapper.cfg, ItemTableMode.Add, new ItemTableColumnDefinition<Configuration.User>[]
 			{

@@ -5,6 +5,7 @@ using System.Text;
 using MJpegCameraProxy.Configuration;
 using System.Threading;
 using System.Web;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy
 {
@@ -22,7 +23,7 @@ namespace MJpegCameraProxy
 		public double thumbnailBoxPercentHeight = 0.1;
 		public double zoomMagnification = 1;
 
-		public CamPage2(string html, SimpleHttp.HttpProcessor p)
+		public CamPage2(string html, HttpProcessor p)
 		{
 			// Set the parameters so the eval statements later can access them.
 			cameraId = p.GetParam("cam");

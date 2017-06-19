@@ -5,12 +5,13 @@ using System.Text;
 using System.Web;
 using System.IO;
 using MJpegCameraProxy.Configuration;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy.Pages.Admin
 {
 	class WwwFiles : AdminBase
 	{
-		protected override string GetPageHtml(SimpleHttp.HttpProcessor p, Session s)
+		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
 			SortedList<string, int> wwwFileSortedList = new SortedList<string, int>();
 			// Add configured files to list
@@ -53,7 +54,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			});
 			return tbl.GetSectionHtml() + "<div>* Note: Only files with a red name can be deleted from this list.  Files have a red name when they no longer exist in the www directory.</div>";
 		}
-		internal override void HandleSave(SimpleHttp.HttpProcessor p, Session s, SortedList<string, SortedList<string, string>> items)
+		internal override void HandleSave(HttpProcessor p, Session s, SortedList<string, SortedList<string, string>> items)
 		{
 			SortedList<string, int> newWWWFiles = new SortedList<string, int>();
 			foreach (var item in items)

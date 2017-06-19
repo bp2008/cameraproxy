@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using MJpegCameraProxy.Configuration;
 using System.Web;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy.Pages.Admin
 {
 	class PTZProfileList : AdminBase
 	{
-		protected override string GetPageHtml(SimpleHttp.HttpProcessor p, Session s)
+		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
 			ItemTable<PTZProfile> tbl = new ItemTable<PTZProfile>("PTZ Profiles", "ptzprofile", "name", PTZProfile.GetPtzProfiles(), PTZProfile.lockObj, ItemTableMode.Add, new ItemTableColumnDefinition<PTZProfile>[]
 			{

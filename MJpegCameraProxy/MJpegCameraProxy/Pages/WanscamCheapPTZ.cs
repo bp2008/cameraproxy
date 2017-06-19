@@ -5,6 +5,7 @@ using System.Text;
 using System.Web;
 using System.Threading;
 using System.IO;
+using BPUtil;
 
 namespace MJpegCameraProxy
 {

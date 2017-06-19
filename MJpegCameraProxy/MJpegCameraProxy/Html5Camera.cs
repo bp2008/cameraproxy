@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Diagnostics;
 using System.Collections.Concurrent;
 using System.IO;
+using BPUtil;
 
 namespace MJpegCameraProxy
 {

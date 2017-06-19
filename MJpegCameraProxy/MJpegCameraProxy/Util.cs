@@ -7,19 +7,15 @@ using System.Drawing;
 using System.Net;
 using System.Drawing.Imaging;
 using MJpegCameraProxy.Configuration;
+using BPUtil;
 
 namespace MJpegCameraProxy
 {
 	public static class Util
 	{
-		private static Random rand = new Random();
 		public static char GetRandomAlphaNumericChar()
 		{
-			int i;
-			lock (rand)
-			{
-				i = rand.Next(62);
-			}
+			int i = StaticRandom.Next(62);
 			if (i < 10)
 				return (char)(48 + i);
 			if (i < 36)

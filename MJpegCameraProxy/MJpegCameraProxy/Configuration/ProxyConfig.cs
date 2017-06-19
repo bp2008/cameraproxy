@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using BPUtil;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy.Configuration
 {
@@ -12,6 +14,9 @@ namespace MJpegCameraProxy.Configuration
 		public int webSocketPort_secure = -1;
 		public int webport = 44456;
 		public int webport_https = -1;
+		
+		public string certificate_pfx_path = "";
+		public string certificate_pfx_password = "";
 
 		public List<User> users = new List<User>();
 		public List<CameraSpec> cameras = new List<CameraSpec>();
@@ -26,7 +31,7 @@ namespace MJpegCameraProxy.Configuration
 			return wwwFiles;
 		}
 
-		public string SaveItem(SimpleHttp.HttpProcessor p)
+		public string SaveItem(HttpProcessor p)
 		{
 			bool isNew = p.GetBoolParam("new");
 			string originalIdNotLowerCase = p.GetPostParam("itemid");
@@ -183,7 +188,7 @@ namespace MJpegCameraProxy.Configuration
 			return null;
 		}
 
-		public string DeleteItems(SimpleHttp.HttpProcessor p)
+		public string DeleteItems(HttpProcessor p)
 		{
 			string itemtype = p.GetPostParam("itemtype");
 			string ids = p.GetPostParam("ids").ToLower();
@@ -240,7 +245,7 @@ namespace MJpegCameraProxy.Configuration
 			return "1";
 		}
 
-		public string ReorderCam(SimpleHttp.HttpProcessor p)
+		public string ReorderCam(HttpProcessor p)
 		{
 			lock (this)
 			{

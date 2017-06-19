@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using SimpleHttp;
+using BPUtil;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy
 {

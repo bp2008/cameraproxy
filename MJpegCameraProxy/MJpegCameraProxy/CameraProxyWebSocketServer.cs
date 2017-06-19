@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using Fleck;
-using SimpleHttp;
+using BPUtil.SimpleHttp;
 using MJpegCameraProxy.PanTiltZoom;
+using BPUtil;
 
 namespace MJpegCameraProxy
 {

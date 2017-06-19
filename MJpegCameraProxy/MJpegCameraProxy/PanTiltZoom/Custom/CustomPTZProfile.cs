@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using MJpegCameraProxy.Configuration;
 using System.Threading;
+using BPUtil;
 
 namespace MJpegCameraProxy.PanTiltZoom.Custom
 {

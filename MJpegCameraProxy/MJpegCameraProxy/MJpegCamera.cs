@@ -6,6 +6,7 @@ using System.Threading;
 using System.Net;
 using System.IO;
 using System.Text.RegularExpressions;
+using BPUtil;
 
 namespace MJpegCameraProxy
 {

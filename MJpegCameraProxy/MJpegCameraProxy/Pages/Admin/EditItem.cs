@@ -5,13 +5,14 @@ using System.Text;
 using MJpegCameraProxy.Configuration;
 using System.Reflection;
 using System.Web;
+using BPUtil.SimpleHttp;
 
 namespace MJpegCameraProxy.Pages.Admin
 {
 	class EditItem : AdminBase
 	{
 		StringBuilder sb = new StringBuilder();
-		protected override string GetPageHtml(SimpleHttp.HttpProcessor p, Session s)
+		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
 			sb.Clear();
 			string itemtype = p.GetParam("itemtype");
