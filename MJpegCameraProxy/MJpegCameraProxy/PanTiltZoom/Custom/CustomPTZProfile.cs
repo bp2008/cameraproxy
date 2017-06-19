@@ -256,7 +256,7 @@ namespace MJpegCameraProxy.PanTiltZoom.Custom
 					{
 						byte[] image = MJpegServer.cm.GetLatestImage(cam.cameraSpec.id);
 						if (image.Length > 0)
-							Util.WriteImageThumbnailToFile(image, Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + presetNum + ".jpg");
+							Util.WriteImageThumbnailToFile(image, CameraProxyGlobals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + presetNum + ".jpg");
 					}
 					catch (Exception ex)
 					{
@@ -272,7 +272,7 @@ namespace MJpegCameraProxy.PanTiltZoom.Custom
 			if (camSpec.ptzType != PtzType.CustomPTZProfile)
 				return null;
 			PTZProfile profile = new PTZProfile();
-			profile.Load(Globals.PTZProfilesDirectoryBase + camSpec.ptz_customPTZProfile + ".xml");
+			profile.Load(CameraProxyGlobals.PTZProfilesDirectoryBase + camSpec.ptz_customPTZProfile + ".xml");
 			if (profile.spec == null)
 				profile = null;
 			return profile;

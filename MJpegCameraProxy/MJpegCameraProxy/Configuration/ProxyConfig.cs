@@ -70,7 +70,7 @@ namespace MJpegCameraProxy.Configuration
 							cameras.Add(cs);
 					}
 					MJpegServer.cm.CleanUpCameraOrder();
-					Save(Globals.ConfigFilePath);
+					Save(CameraProxyGlobals.ConfigFilePath);
 				}
 				return result;
 			}
@@ -104,7 +104,7 @@ namespace MJpegCameraProxy.Configuration
 						if (!foundUser)
 							users.Add(u);
 					}
-					Save(Globals.ConfigFilePath);
+					Save(CameraProxyGlobals.ConfigFilePath);
 				}
 				return result;
 			}
@@ -125,14 +125,14 @@ namespace MJpegCameraProxy.Configuration
 						f.name = originalIdNotLowerCase;
 						if (ProfileNameIsUsed(f.name))
 							return "0A PTZ Profile with this name already exists.";
-						f.Save(Globals.PTZProfilesDirectoryBase + f.name + ".xml");
+						f.Save(CameraProxyGlobals.PTZProfilesDirectoryBase + f.name + ".xml");
 					}
 					else
 					{
 						if (originalId != f.name.ToLower() && ProfileNameIsUsed(f.name))
 							return "0A PTZ Profile with this name already exists.";
-						File.Delete(Globals.PTZProfilesDirectoryBase + originalId + ".xml");
-						f.Save(Globals.PTZProfilesDirectoryBase + f.name + ".xml");
+						File.Delete(CameraProxyGlobals.PTZProfilesDirectoryBase + originalId + ".xml");
+						f.Save(CameraProxyGlobals.PTZProfilesDirectoryBase + f.name + ".xml");
 					}
 				}
 				return result;
@@ -142,7 +142,7 @@ namespace MJpegCameraProxy.Configuration
 
 		private bool ProfileNameIsUsed(string profileName)
 		{
-			return File.Exists(Globals.PTZProfilesDirectoryBase + profileName + ".xml");
+			return File.Exists(CameraProxyGlobals.PTZProfilesDirectoryBase + profileName + ".xml");
 		}
 
 		private bool CameraIdIsUsed(string cameraId)
@@ -208,7 +208,7 @@ namespace MJpegCameraProxy.Configuration
 						return remove;
 					});
 					MJpegServer.cm.CleanUpCameraOrder();
-					Save(Globals.ConfigFilePath);
+					Save(CameraProxyGlobals.ConfigFilePath);
 				}
 			}
 			else if (itemtype == "user")
@@ -219,7 +219,7 @@ namespace MJpegCameraProxy.Configuration
 					{
 						return hsParts.Contains(u.name);
 					});
-					Save(Globals.ConfigFilePath);
+					Save(CameraProxyGlobals.ConfigFilePath);
 				}
 			}
 			else if (itemtype == "ptzprofile")
@@ -228,7 +228,7 @@ namespace MJpegCameraProxy.Configuration
 				{
 					foreach(string s in parts)
 						if (ProfileNameIsUsed(s))
-							File.Delete(Globals.PTZProfilesDirectoryBase + s + ".xml");
+							File.Delete(CameraProxyGlobals.PTZProfilesDirectoryBase + s + ".xml");
 				}
 			}
 			else if (itemtype == "wwwfile")
@@ -237,9 +237,9 @@ namespace MJpegCameraProxy.Configuration
 				{
 					wwwFiles.RemoveAll(f =>
 					{
-						return hsParts.Contains(f.Key) && !File.Exists(Globals.WWWDirectoryBase + f.Key);
+						return hsParts.Contains(f.Key) && !File.Exists(CameraProxyGlobals.WWWDirectoryBase + f.Key);
 					});
-					Save(Globals.ConfigFilePath);
+					Save(CameraProxyGlobals.ConfigFilePath);
 				}
 			}
 			return "1";
@@ -279,7 +279,7 @@ namespace MJpegCameraProxy.Configuration
 
 				MJpegServer.cm.CleanUpCameraOrder();
 
-				Save(Globals.ConfigFilePath);
+				Save(CameraProxyGlobals.ConfigFilePath);
 				return "1";
 			}
 		}

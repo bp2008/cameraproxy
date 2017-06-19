@@ -20,8 +20,8 @@ namespace MJpegCameraProxy.Pages.Admin
 <head>
 	<title>CameraProxy Administration</title>
 	"
-		+ GetScriptCallouts(Globals.jQueryPath, "../Scripts/sha1.js", "../Scripts/TableSorter.js", Globals.jQueryUIJsPath)
-		+ GetStyleCallouts("../Styles/TableSorter_Green.css", Globals.jQueryUICssPath, "../Styles/Site.css")
+		+ GetScriptCallouts(CameraProxyGlobals.jQueryPath, "../Scripts/sha1.js", "../Scripts/TableSorter.js", CameraProxyGlobals.jQueryUIJsPath)
+		+ GetStyleCallouts("../Styles/TableSorter_Green.css", CameraProxyGlobals.jQueryUICssPath, "../Styles/Site.css")
 		+ GetAdminScript(p, s, pageKey)
 	+ @"
 </head>
@@ -31,7 +31,7 @@ namespace MJpegCameraProxy.Pages.Admin
 		<tr>
 			<td colspan=""2"" id=""header"">
 				<div class=""title"">CameraProxy</div>
-				<div class=""version"">Version " + Globals.Version + @"</div>
+				<div class=""version"">Version " + CameraProxyGlobals.Version + @"</div>
 			</td>
 		</tr>
 		<tr id=""bodycell"">
@@ -48,7 +48,7 @@ namespace MJpegCameraProxy.Pages.Admin
 		</tr>
 		<tr>
 			<td colspan=""2"" id=""footer"">
-				MJpegCameraProxy " + Globals.Version + @"
+				MJpegCameraProxy " + CameraProxyGlobals.Version + @"
 			</td>
 		</tr>
 	</tbody>

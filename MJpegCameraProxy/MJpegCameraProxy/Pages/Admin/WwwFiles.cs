@@ -22,8 +22,8 @@ namespace MJpegCameraProxy.Pages.Admin
 			}
 			// Add filesystem files to list
 			HashSet<string> existingFiles = new HashSet<string>();
-			DirectoryInfo diWWW = new DirectoryInfo(Globals.WWWDirectoryBase);
-			string directoryBase = Globals.WWWDirectoryBase.ToLower().Replace('\\', '/');
+			DirectoryInfo diWWW = new DirectoryInfo(CameraProxyGlobals.WWWDirectoryBase);
+			string directoryBase = CameraProxyGlobals.WWWDirectoryBase.ToLower().Replace('\\', '/');
 			foreach (FileInfo fi in diWWW.GetFiles("*", SearchOption.AllDirectories))
 			{
 				string fileName = fi.FullName.ToLower().Replace('\\', '/');
@@ -45,7 +45,7 @@ namespace MJpegCameraProxy.Pages.Admin
 
 			// Save the current files list
 			MJpegWrapper.cfg.SetWwwFilesList(simpleWwwFileList);
-			MJpegWrapper.cfg.Save(Globals.ConfigFilePath);
+			MJpegWrapper.cfg.Save(CameraProxyGlobals.ConfigFilePath);
 
 			ItemTable<WwwFile> tbl = new ItemTable<WwwFile>("Web Server Files", "wwwfile", "fileName", wwwFileList, wwwFileList, ItemTableMode.Save, new ItemTableColumnDefinition<WwwFile>[]
 			{
@@ -69,7 +69,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			lock (MJpegWrapper.cfg)
 			{
 				MJpegWrapper.cfg.SetWwwFilesList(wwwFileList);
-				MJpegWrapper.cfg.Save(Globals.ConfigFilePath);
+				MJpegWrapper.cfg.Save(CameraProxyGlobals.ConfigFilePath);
 			}
 		}
 	}

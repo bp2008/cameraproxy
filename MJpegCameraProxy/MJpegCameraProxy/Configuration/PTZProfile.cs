@@ -31,7 +31,7 @@ namespace MJpegCameraProxy.Configuration
 		public static List<PTZProfile> GetPtzProfiles()
 		{
 			List<PTZProfile> profiles = new List<PTZProfile>();
-			DirectoryInfo di = new DirectoryInfo(Globals.PTZProfilesDirectoryBase);
+			DirectoryInfo di = new DirectoryInfo(CameraProxyGlobals.PTZProfilesDirectoryBase);
 			if (di.Exists)
 			{
 				FileInfo[] files = di.GetFiles("*.xml");

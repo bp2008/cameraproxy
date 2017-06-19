@@ -1,2 +1,0 @@
-NET START MJpegCameraProxy
-pause

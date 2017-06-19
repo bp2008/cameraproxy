@@ -143,7 +143,7 @@ namespace MJpegCameraProxy
 					req.Credentials = credentials;
 				req.ContentType = ContentType;
 				req.Method = "POST";
-				req.UserAgent = "CameraProxy " + Globals.Version;
+				req.UserAgent = "CameraProxy " + CameraProxyGlobals.Version;
 				if (cookieContainer == null)
 					cookieContainer = new CookieContainer();
 				req.CookieContainer = cookieContainer;

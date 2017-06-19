@@ -36,6 +36,8 @@ namespace MJpegCameraProxy
 			return ws1.ConnectionInfo.Id.CompareTo(ws2.ConnectionInfo.Id);
 		});
 
+		public event EventHandler<string> SocketBound = delegate { };
+
 		public CameraProxyWebSocketServer(int port, int secure_port = -1, X509Certificate2 cert = null)
 		{
 			allSockets = new SortedList<IWebSocketConnection, int>(wsComparer);
@@ -52,16 +54,24 @@ namespace MJpegCameraProxy
 			if (port > -1)
 			{
 				ws_insecure = new WebSocketServer("ws://localhost:" + port);
+				ws_insecure.SocketBound += Ws_SocketBound;
 			}
 
 			if (secure_port > -1)
 			{
 				wss_secure = new WebSocketServer("wss://localhost:" + secure_port);
+				wss_secure.SocketBound += Ws_SocketBound;
 				wss_secure.Certificate = cert != null ? cert : HttpServer.GetSelfSignedCertificate();
 			}
 
 			socketHandler = new Action<IWebSocketConnection>(handler);
 		}
+
+		private void Ws_SocketBound(object sender, string e)
+		{
+			SocketBound(sender, e);
+		}
+
 		/// <summary>
 		/// Starts listening for connections.
 		/// </summary>

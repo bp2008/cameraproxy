@@ -65,9 +65,10 @@ namespace Fleck
             _socket.Listen(backlog);
         }
 
-        public void Bind(EndPoint endPoint)
+        public int Bind(EndPoint endPoint)
         {
             _socket.Bind(endPoint);
+			return ((IPEndPoint)_socket.LocalEndPoint).Port;
         }
 
         public bool Connected

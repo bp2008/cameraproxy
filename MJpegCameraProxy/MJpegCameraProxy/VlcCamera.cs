@@ -188,7 +188,7 @@ namespace MJpegCameraProxy
 									{
 										w = this.cameraSpec.h264_video_width = (ushort)s.Width;
 										h = this.cameraSpec.h264_video_height = (ushort)s.Height;
-										MJpegWrapper.cfg.Save(Globals.ConfigFilePath);
+										MJpegWrapper.cfg.Save(CameraProxyGlobals.ConfigFilePath);
 									}
 									throw new Exception("Restart");
 								}

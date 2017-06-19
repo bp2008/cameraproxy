@@ -36,7 +36,7 @@ namespace MJpegCameraProxy
 		{
 			if (pageName.Contains('\\') || pageName.Contains('/') || pageName.Contains("..") || pageName.Contains(':'))
 				return new HtmlResponse(Html.ErrorType.NoExist); // Invalid character in page name.
-			string fileName = Globals.HtmlDirectoryBase + pageName;
+			string fileName = CameraProxyGlobals.HtmlDirectoryBase + pageName;
 			if (!File.Exists(fileName))
 				return new HtmlResponse(Html.ErrorType.NoExist);
 			string file = File.ReadAllText(fileName);

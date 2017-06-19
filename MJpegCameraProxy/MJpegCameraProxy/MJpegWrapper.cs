@@ -21,6 +21,8 @@ namespace MJpegCameraProxy
 		public static DateTime startTime = DateTime.MinValue;
 		public static ProxyConfig cfg;
 
+		public event EventHandler<string> SocketBound = delegate { };
+
 		public MJpegWrapper()
 		{
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
@@ -29,13 +31,13 @@ namespace MJpegCameraProxy
 			System.Net.ServicePointManager.DefaultConnectionLimit = 640;
 
 			cfg = new ProxyConfig();
-			if (File.Exists(Globals.ConfigFilePath))
-				cfg.Load(Globals.ConfigFilePath);
+			if (File.Exists(CameraProxyGlobals.ConfigFilePath))
+				cfg.Load(CameraProxyGlobals.ConfigFilePath);
 			else
 			{
 				if (cfg.users.Count == 0)
 					cfg.users.Add(new User("admin", "admin", 100));
-				cfg.Save(Globals.ConfigFilePath);
+				cfg.Save(CameraProxyGlobals.ConfigFilePath);
 			}
 			SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
 			bool killed = false;
@@ -77,11 +79,19 @@ namespace MJpegCameraProxy
 					cert = new X509Certificate2(cfg.certificate_pfx_path);
 			}
 			httpServer = new MJpegServer(cfg.webport, cfg.webport_https, cert);
+			httpServer.SocketBound += Server_SocketBound;
 			httpServer.Start();
 
-			webSocketServer = new CameraProxyWebSocketServer(cfg.webSocketPort, cfg.webSocketPort_secure);
+			webSocketServer = new CameraProxyWebSocketServer(cfg.webSocketPort, cfg.webSocketPort_secure, cert);
+			webSocketServer.SocketBound += Server_SocketBound;
 			webSocketServer.Start();
 		}
+
+		private void Server_SocketBound(object sender, string e)
+		{
+			SocketBound(sender, e);
+		}
+
 		public void Stop()
 		{
 			if (httpServer != null)

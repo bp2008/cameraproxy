@@ -207,7 +207,7 @@ namespace MJpegCameraProxy.Dahua
 						{
 							if (!fullSizeImages)
 								input = ImageConverter.ConvertImage(input, maxWidth: 240, maxHeight: 160);
-							FileInfo file = new FileInfo(Globals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * numImagesWide)) + ".jpg");
+							FileInfo file = new FileInfo(CameraProxyGlobals.ThumbsDirectoryBase + cam.cameraSpec.id.ToLower() + (i + (j * numImagesWide)) + ".jpg");
 							Util.EnsureDirectoryExists(file.Directory.FullName);
 							File.WriteAllBytes(file.FullName, input);
 						}

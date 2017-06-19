@@ -22,7 +22,7 @@ namespace Fleck
         void Dispose();
         void Close();
 
-        void Bind(EndPoint ipLocal);
+        int Bind(EndPoint ipLocal);
         void Listen(int backlog);
     }
 }

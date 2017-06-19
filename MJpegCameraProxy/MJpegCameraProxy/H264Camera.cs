@@ -26,7 +26,7 @@ namespace MJpegCameraProxy
 				{
 					try
 					{
-						string path = Globals.ApplicationDirectoryBase + "live555\\live555ProxyServer.exe";
+						string path = CameraProxyGlobals.ApplicationDirectoryBase + "live555\\live555ProxyServer.exe";
 						string args = "-u " + access_username + " " + access_password + " -p " + this.cameraSpec.h264_port + " \"" + this.cameraSpec.imageryUrl + "\"";
 						//Logger.Info("Path: " + path);
 						//Logger.Info("Args: " + args);

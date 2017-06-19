@@ -298,7 +298,7 @@ namespace MJpegCameraProxy
 								}
 								else
 								{
-									string fileName = Globals.ThumbsDirectoryBase + cameraId + index + ".jpg";
+									string fileName = CameraProxyGlobals.ThumbsDirectoryBase + cameraId + index + ".jpg";
 									int minPermission = cm.GetCameraMinPermission(cameraId);
 									if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission) || minPermission == 101)
 									{
@@ -318,7 +318,7 @@ namespace MJpegCameraProxy
 							}
 						}
 						{ // Failed to get image thumbnail
-							byte[] bytes = File.ReadAllBytes(Globals.WWWPublicDirectoryBase + "Images/qmark.png");
+							byte[] bytes = File.ReadAllBytes(CameraProxyGlobals.WWWPublicDirectoryBase + "Images/qmark.png");
 							p.writeSuccess("image/png", bytes.Length);
 							p.outputStream.Flush();
 							p.rawOutputStream.Write(bytes, 0, bytes.Length);
@@ -422,7 +422,7 @@ namespace MJpegCameraProxy
 						permissionRequired = -1;
 
 
-					string wwwDirectory = permissionRequired == -1 ? Globals.WWWPublicDirectoryBase : Globals.WWWDirectoryBase;
+					string wwwDirectory = permissionRequired == -1 ? CameraProxyGlobals.WWWPublicDirectoryBase : CameraProxyGlobals.WWWDirectoryBase;
 
 					if (permissionRequired < 0) permissionRequired = 0;
 					else if (permissionRequired > 100) permissionRequired = 100;
