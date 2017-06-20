@@ -9,6 +9,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using BPUtil;
 using BPUtil.SimpleHttp;
+using System.Threading.Tasks;
 
 namespace MJpegCameraProxy
 {
@@ -22,6 +23,10 @@ namespace MJpegCameraProxy
 		public static ProxyConfig cfg;
 
 		public event EventHandler<string> SocketBound = delegate { };
+
+		Thread thrCertificateMaintainer;
+		public static string letsEncrypt_certificateGenerationStatus = "";
+		public static volatile bool letsEncrypt_forceRenewCertificate = false;
 
 		public MJpegWrapper()
 		{
@@ -71,7 +76,7 @@ namespace MJpegCameraProxy
 			startTime = DateTime.Now;
 
 			X509Certificate2 cert = null;
-			if (!string.IsNullOrWhiteSpace(cfg.certificate_pfx_path))
+			if (!string.IsNullOrWhiteSpace(cfg.certificate_pfx_path) && File.Exists(cfg.certificate_pfx_path))
 			{
 				if (!string.IsNullOrEmpty(cfg.certificate_pfx_password))
 					cert = new X509Certificate2(cfg.certificate_pfx_path, cfg.certificate_pfx_password);
@@ -80,11 +85,124 @@ namespace MJpegCameraProxy
 			}
 			httpServer = new MJpegServer(cfg.webport, cfg.webport_https, cert);
 			httpServer.SocketBound += Server_SocketBound;
+			httpServer.CertificateExpirationWarning += HttpServer_CertificateExpirationWarning;
 			httpServer.Start();
 
 			webSocketServer = new CameraProxyWebSocketServer(cfg.webSocketPort, cfg.webSocketPort_secure, cert);
 			webSocketServer.SocketBound += Server_SocketBound;
 			webSocketServer.Start();
+
+			thrCertificateMaintainer = new Thread(maintainLetsEncryptCertificate);
+			thrCertificateMaintainer.Name = "Maintain LetsEncrypt Certificate";
+			thrCertificateMaintainer.IsBackground = true;
+			thrCertificateMaintainer.Start();
+		}
+
+		private void HttpServer_CertificateExpirationWarning(object sender, TimeSpan e)
+		{
+			if (cfg.certificateMode == CertificateMode.LetsEncrypt)
+			{
+				if (e > TimeSpan.Zero)
+					Logger.Info("WARNING: LetsEncrypt SSL certificate is going to expire in " + e);
+				else
+					Logger.Info("WARNING: LetsEncrypt SSL certificate has expired");
+			}
+		}
+
+		private void maintainLetsEncryptCertificate()
+		{
+			try
+			{
+				Stopwatch sw = new Stopwatch();
+				sw.Start();
+				long nextCertificateCheck = 0;
+				while (true)
+				{
+					try
+					{
+						// Sleep while configuration is not set to use LetsEncrypt.
+						while (cfg.certificateMode != CertificateMode.LetsEncrypt
+							|| string.IsNullOrEmpty(cfg.certificate_pfx_path)
+							|| string.IsNullOrEmpty(cfg.certificate_pfx_password)
+							|| string.IsNullOrEmpty(cfg.letsEncrypt_email)
+							|| cfg.letsEncrypt_domains?.Length == 0)
+							Thread.Sleep(2000);
+
+						// Sleep while httpServer is null
+						if (httpServer == null)
+						{
+							Thread.Sleep(2000);
+							continue;
+						}
+
+						if (nextCertificateCheck > sw.ElapsedMilliseconds)
+						{
+							// Not near expiration
+							Thread.Sleep(60000);
+						}
+						else if (httpServer.GetCertificateFriendlyName() != "LetsEncryptAuto"
+							|| httpServer.GetCertificateExpiration() < DateTime.Now.AddDays(14))
+						{
+							try
+							{
+								// Current certificate is not from LetsEncrypt or expiration is near.
+								// Either way, we should renew.
+								nextCertificateCheck = sw.ElapsedMilliseconds + 360000; // 1 hour later
+
+								string wwwRoot = cfg.letsEncrypt_www_root;
+								Task<byte[]> certTask = LetsEncrypt.GetCertificate(cfg.letsEncrypt_email, cfg.letsEncrypt_domains, cfg.certificate_pfx_password, (c) =>
+								{
+									if (string.IsNullOrWhiteSpace(wwwRoot))
+										httpServer.PrepareCertificationChallenge(c);
+									else
+									{
+										string baseDir = wwwRoot.Replace('\\', '/') + "/.well-known/acme-challenge/";
+										Directory.CreateDirectory(baseDir);
+										File.WriteAllText(baseDir + c.challengeToken, c.expectedResponse, Encoding.ASCII);
+									}
+								}
+								, (status) =>
+								{
+									letsEncrypt_certificateGenerationStatus = status;
+								});
+								certTask.Wait();
+								byte[] certificate = certTask.Result;
+								letsEncrypt_certificateGenerationStatus = "";
+								if (string.IsNullOrWhiteSpace(wwwRoot))
+									httpServer.ClearChallenges();
+								if (certificate != null && certificate.Length > 0)
+								{
+									File.WriteAllBytes(Globals.WritableDirectoryBase + cfg.certificate_pfx_path, certificate);
+									X509Certificate2 cert = new X509Certificate2(certificate, cfg.certificate_pfx_password);
+									httpServer.SetCertificate(cert);
+									Logger.Info("LetsEncrypt certificate renewed successfully");
+								}
+							}
+							catch (Exception)
+							{
+								letsEncrypt_certificateGenerationStatus = "Error in last certificate renewal";
+								throw;
+							}
+						}
+						else
+						{
+							// Not near expiration
+							Thread.Sleep(60000);
+						}
+					}
+					catch (ThreadAbortException) { throw; }
+					catch (Exception ex)
+					{
+						Logger.Debug(ex);
+						Thread.Sleep(60000);
+					}
+				}
+			}
+			catch (ThreadAbortException) { }
+			catch (Exception ex)
+			{
+				Logger.Debug(ex);
+			}
 		}
 
 		private void Server_SocketBound(object sender, string e)
@@ -94,6 +212,8 @@ namespace MJpegCameraProxy
 
 		public void Stop()
 		{
+			Try.Catch(() => { thrCertificateMaintainer?.Abort(); });
+
 			if (httpServer != null)
 			{
 				httpServer.Stop();

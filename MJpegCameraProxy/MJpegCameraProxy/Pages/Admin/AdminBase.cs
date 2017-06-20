@@ -195,6 +195,8 @@ namespace MJpegCameraProxy.Pages.Admin
 
 		protected virtual string GetMenuHtml(HttpProcessor p, Session s, string pageKey)
 		{
+			if (s?.permission != 100)
+				return "";
 			StringBuilder sb = new StringBuilder();
 			foreach (string key in AdminPage.pageKeys)
 				AddLink(sb, pageKey, 1, AdminPage.pageKeyToName[key], key);
@@ -463,6 +465,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			RegisterPage("Users", typeof(Users));
 			RegisterPage("WebServerFiles", typeof(WwwFiles));
 			RegisterPage("edititem", typeof(EditItem), false);
+			RegisterPage("Certificate", typeof(CertificateAdmin));
 			RegisterPage("Logout", typeof(Login));
 			RegisterPage("Login", typeof(Login), false);
 		}

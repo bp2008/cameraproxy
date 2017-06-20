@@ -91,6 +91,9 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Antlr3.Runtime, Version=3.3.1.7705, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL" />
     <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
@@ -122,7 +125,10 @@
   <ItemGroup>
     <Compile Include="CameraManager.cs" />
     <Compile Include="CameraProxyWebSocketServer.cs" />
+    <Compile Include="Configuration\CertificateMode.cs" />
     <Compile Include="Html5Camera.cs" />
+    <Compile Include="LetsEncrypt.cs" />
+    <Compile Include="Pages\Admin\CertificateAdmin.cs" />
     <Compile Include="Pages\CamPage2.cs" />
     <Compile Include="ComparisonComparer.cs" />
     <Compile Include="Configuration\CameraSpec.cs" />
@@ -205,6 +211,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="app.manifest" />
     <None Include="live555\COPYING">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

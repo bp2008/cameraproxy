@@ -14,9 +14,29 @@ namespace MJpegCameraProxy.Configuration
 		public int webSocketPort_secure = -1;
 		public int webport = 44456;
 		public int webport_https = -1;
-		
+
+		public CertificateMode certificateMode;
+		/// <summary>
+		/// Ignored if certificateSource == CertificateMode.SelfSigned
+		/// </summary>
 		public string certificate_pfx_path = "";
+		/// <summary>
+		/// Ignored if certificateSource == CertificateMode.SelfSigned
+		/// </summary>
 		public string certificate_pfx_password = "";
+
+		/// <summary>
+		/// The email address to provide to LetsEncrypt.  They may send renewal notices here, but CameraProxy is designed to automatically renew the certificate.
+		/// </summary>
+		public string letsEncrypt_email = "";
+		/// <summary>
+		/// One or more domains to authorize and include in the certificate.
+		/// </summary>
+		public string[] letsEncrypt_domains = new string[] { "" };
+		/// <summary>
+		/// If set, the challenge files will be written to this directory.  If unset, the challenge responses will be hosted directly by the embedded web server.
+		/// </summary>
+		public string letsEncrypt_www_root = "";
 
 		public List<User> users = new List<User>();
 		public List<CameraSpec> cameras = new List<CameraSpec>();
@@ -226,7 +246,7 @@ namespace MJpegCameraProxy.Configuration
 			{
 				lock (this)
 				{
-					foreach(string s in parts)
+					foreach (string s in parts)
 						if (ProfileNameIsUsed(s))
 							File.Delete(CameraProxyGlobals.PTZProfilesDirectoryBase + s + ".xml");
 				}

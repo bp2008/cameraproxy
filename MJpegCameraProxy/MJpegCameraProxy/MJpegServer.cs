@@ -414,6 +414,22 @@ namespace MJpegCameraProxy
 					}
 					#endregion
 				}
+				else if (requestedPage.StartsWith(".well-known/acme-challenge/"))
+				{
+					string token = requestedPage.Substring(".well-known/acme-challenge/".Length);
+					string response;
+					if (letsEncryptChallenges.TryGetValue(token, out response))
+					{
+						p.writeSuccess("text/plain");
+						p.outputStream.Flush();
+						byte[] buf = Encoding.ASCII.GetBytes(response);
+						p.rawOutputStream.Write(buf, 0, buf.Length);
+					}
+					else
+					{
+						p.writeFailure();
+					}
+				}
 				else
 				{
 					#region www
@@ -505,6 +521,17 @@ namespace MJpegCameraProxy
 				if (!p.isOrdinaryDisconnectException(ex))
 					Logger.Debug(ex);
 			}
+		}
+
+		ConcurrentDictionary<string, string> letsEncryptChallenges = new ConcurrentDictionary<string, string>();
+		internal void PrepareCertificationChallenge(LetsEncrypt.CertificateChallenge challenge)
+		{
+			Logger.Info("Challenge setup: \"" + challenge.challengeToken + "\" : \"" + challenge.expectedResponse + "\"");
+			letsEncryptChallenges[challenge.challengeToken] = challenge.expectedResponse;
+		}
+		internal void ClearChallenges()
+		{
+			letsEncryptChallenges.Clear();
 		}
 
 		private void LogOutUser(HttpProcessor p, Session s)
