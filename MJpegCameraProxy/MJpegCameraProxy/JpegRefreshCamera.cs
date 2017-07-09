@@ -18,7 +18,7 @@ namespace MJpegCameraProxy
 
 		protected override void DoBackgroundWork()
 		{
-			WebClient wc = new WebClient();
+			CookieAwareWebClient wc = new CookieAwareWebClient();
 			wc.Proxy = null;
 			if (!string.IsNullOrEmpty(cameraSpec.username) || !string.IsNullOrEmpty(cameraSpec.password))
 			{
