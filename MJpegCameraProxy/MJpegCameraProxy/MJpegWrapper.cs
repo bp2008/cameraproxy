@@ -30,6 +30,12 @@ namespace MJpegCameraProxy
 
 		public MJpegWrapper()
 		{
+			if (Environment.UserInteractive)
+				Logger.logType = LoggingMode.Console | LoggingMode.File;
+			string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+			Globals.Initialize(exePath);
+			PrivateAccessor.SetStaticFieldValue(typeof(Globals), "errorFilePath", Globals.WritableDirectoryBase + "MJpegCameraErrors.txt");
+
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
 			System.Net.ServicePointManager.Expect100Continue = false;

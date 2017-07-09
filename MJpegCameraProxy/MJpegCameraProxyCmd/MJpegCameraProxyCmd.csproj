@@ -18,6 +18,8 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -89,10 +91,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BPUtil\BPUtil\BPUtil.csproj">
-      <Project>{A4981D8D-DEBF-4B34-B9CE-FF25520A02B7}</Project>
-      <Name>BPUtil</Name>
-    </ProjectReference>
     <ProjectReference Include="..\MJpegCameraProxy\MJpegCameraProxy.csproj">
       <Project>{064F25BC-DFC7-463F-931B-8A89AB6A95C2}</Project>
       <Name>MJpegCameraProxy</Name>
@@ -102,6 +100,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FodyWeavers.xml" />
     <Content Include="gpl-3.0-standalone.html" />
     <Content Include="libwebp_a.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
