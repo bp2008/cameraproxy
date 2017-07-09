@@ -44,3 +44,7 @@ Most software NVRs can do everything this does and a lot more.  The difference i
 ## How to Use
 
 Please see the [Setup Guide](https://github.com/bp2008/cameraproxy/wiki/Setup-Guide)
+
+## How to Build
+
+If you want to build from source, use Visual Studio 2017.  You'll also need my [BPUtil library](https://github.com/bp2008/BPUtil) on your PC.
