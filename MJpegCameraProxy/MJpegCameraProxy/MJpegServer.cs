@@ -271,8 +271,10 @@ namespace MJpegCameraProxy
 							p.writeFailure();
 							return;
 						}
-						p.writeSuccess("text/html");
-						p.outputStream.Write(html);
+						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html");
+						p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
+						p.outputStream.Flush();
+						p.rawOutputStream.Write(response.body, 0, response.body.Length);
 					}
 					else if (requestedPage == "PTZPRESETIMG")
 					{
@@ -467,7 +469,6 @@ namespace MJpegCameraProxy
 					// && (fi.Extension == ".html" || fi.Extension == ".htm")
 					if (fi.Name.ToLower() == "camera.html" && fi.Length < 256000)
 					{
-						p.writeSuccess(Mime.GetMimeType(fi.Extension));
 						string html = File.ReadAllText(fi.FullName);
 						CamPage2 cp = new CamPage2(html, p);
 						html = cp.Html;
@@ -481,12 +482,13 @@ namespace MJpegCameraProxy
 						{
 							Logger.Debug(ex);
 						}
-						p.outputStream.Write(html);
+						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html");
+						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
+						p.rawOutputStream.Write(response.body, 0, response.body.Length);
 					}
 					else if ((fi.Extension == ".html" || fi.Extension == ".htm") && fi.Length < 256000)
 					{
-						p.writeSuccess(Mime.GetMimeType(fi.Extension));
 						string html = File.ReadAllText(fi.FullName);
 						html = html.Replace("%ALLCAMS%", string.Join(",", MJpegServer.cm.GenerateAllCameraIdList()));
 						html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
@@ -498,20 +500,34 @@ namespace MJpegCameraProxy
 						{
 							Logger.Debug(ex);
 						}
-						p.outputStream.Write(html);
+						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html");
+						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
+						p.rawOutputStream.Write(response.body, 0, response.body.Length);
 					}
 					else
 					{
-						List<KeyValuePair<string, string>> additionalHeaders = new List<KeyValuePair<string, string>>();
-						additionalHeaders.Add(new KeyValuePair<string, string>("Cache-Control", "max-age=3600, public"));
-						p.writeSuccess(Mime.GetMimeType(fi.Extension), additionalHeaders: additionalHeaders);
-						p.outputStream.Flush();
-						using (FileStream fs = fi.OpenRead())
+						if (fi.Length < 1000000)
 						{
-							fs.CopyTo(p.rawOutputStream);
+							HttpCompressionBody response = new HttpCompressionBody(File.ReadAllBytes(fi.FullName), fi.Extension);
+							p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
+							p.outputStream.Flush();
+							p.rawOutputStream.Write(response.body, 0, response.body.Length);
 						}
-						p.rawOutputStream.Flush();
+						else
+						{
+							if (HttpCompressionHelper.FileTypeShouldBeCompressed(fi.Extension))
+								p.CompressResponseIfCompatible();
+							List<KeyValuePair<string, string>> additionalHeaders = new List<KeyValuePair<string, string>>();
+							additionalHeaders.Add(new KeyValuePair<string, string>("Cache-Control", "max-age=3600, public"));
+							p.writeSuccess(Mime.GetMimeType(fi.Extension), additionalHeaders: additionalHeaders);
+							p.outputStream.Flush();
+							using (FileStream fs = fi.OpenRead())
+							{
+								fs.CopyTo(p.rawOutputStream);
+							}
+							p.rawOutputStream.Flush();
+						}
 					}
 					#endregion
 				}

@@ -20,8 +20,8 @@ namespace MJpegCameraProxy.Pages.Admin
 <head>
 	<title>CameraProxy Administration</title>
 	"
-		+ GetScriptCallouts(CameraProxyGlobals.jQueryPath, "../Scripts/sha1.js", "../Scripts/TableSorter.js", CameraProxyGlobals.jQueryUIJsPath)
-		+ GetStyleCallouts("../Styles/TableSorter_Green.css", CameraProxyGlobals.jQueryUICssPath, "../Styles/Site.css")
+		+ GetScriptCallouts("../" + CameraProxyGlobals.jQueryPath, "../Scripts/sha1.js", "../Scripts/TableSorter.js", "../" + CameraProxyGlobals.jQueryUIJsPath)
+		+ GetStyleCallouts("../Styles/TableSorter_Green.css", "../" + CameraProxyGlobals.jQueryUICssPath, "../Styles/Site.css")
 		+ GetAdminScript(p, s, pageKey)
 	+ @"
 </head>
@@ -306,7 +306,7 @@ namespace MJpegCameraProxy.Pages.Admin
 		internal static void AddAndDeleteButtons(StringBuilder sb, string itemType, ItemTableMode mode)
 		{
 			sb.Append("<div class=\"section\">");
-			if(mode == ItemTableMode.Add)
+			if (mode == ItemTableMode.Add)
 				sb.Append("<input type=\"button\" value=\"Add " + itemType + "\" onClick=\"AddItem(); return false;\" />");
 			else if (mode == ItemTableMode.Save)
 				sb.Append("<input type=\"button\" value=\"Save List\" onClick=\"SaveList(); return false;\" />");
@@ -500,8 +500,10 @@ namespace MJpegCameraProxy.Pages.Admin
 				p.writeFailure("500 Internal Server Error");
 				return;
 			}
-			p.writeSuccess();
-			p.outputStream.Write(str);
+			HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(str), ".html");
+			p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
+			p.outputStream.Flush();
+			p.rawOutputStream.Write(response.body, 0, response.body.Length);
 		}
 
 		public static string HandleSaveList(HttpProcessor p, Session s)
@@ -525,7 +527,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			string[] itemStrings = rawFullItemString.Split('|');
 			foreach (string itemString in itemStrings)
 			{
-				SortedList<string, string> valuesList = new SortedList<string,string>();
+				SortedList<string, string> valuesList = new SortedList<string, string>();
 				string[] keyValuePairs = itemString.Split('*');
 				for (int i = 1; i < keyValuePairs.Length; i++)
 				{

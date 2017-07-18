@@ -134,6 +134,7 @@
     <Compile Include="Configuration\CertificateMode.cs" />
     <Compile Include="Html5Camera.cs" />
     <Compile Include="LetsEncrypt.cs" />
+    <Compile Include="Main.cs" />
     <Compile Include="Pages\Admin\CertificateAdmin.cs" />
     <Compile Include="Pages\CamPage2.cs" />
     <Compile Include="ComparisonComparer.cs" />
@@ -198,11 +199,11 @@
     </Compile>
     <Compile Include="PanTiltZoom\IPTZSimple.cs" />
     <Compile Include="PanTiltZoom\PTZDirection.cs" />
-    <Compile Include="Service1.cs">
+    <Compile Include="CameraProxyService.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Service1.Designer.cs">
-      <DependentUpon>Service1.cs</DependentUpon>
+    <Compile Include="CameraProxyService.Designer.cs">
+      <DependentUpon>CameraProxyService.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -175,7 +175,7 @@
 //<html>
 //<head>
 //	<title>BetterPtz (TV-IP672 Series)</title>
-//	<script src=""//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"" type=""text/javascript""></script>
+//	<script src=""Scripts/jquery.js"" type=""text/javascript""></script>
 //<script type=""text/javascript"">
 //var disableRefreshAfter = " + disableRefreshAfter + @";
 //var refreshDisabled = false;
