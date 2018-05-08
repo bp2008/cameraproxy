@@ -117,7 +117,7 @@ namespace MJpegCameraProxy
 						p.tcpClient.SendBufferSize = latestImage.Length + 256;
 						p.writeSuccess(Util.GetMime(imgFormat), latestImage.Length);
 						p.outputStream.Flush();
-						p.rawOutputStream.Write(latestImage, 0, latestImage.Length);
+						p.tcpStream.Write(latestImage, 0, latestImage.Length);
 					}
 					else if (requestedPage.EndsWith(".mjpg"))
 					{
@@ -162,8 +162,8 @@ namespace MJpegCameraProxy
 								p.outputStream.WriteLine("Content-Length: " + sendImage.Length);
 								p.outputStream.WriteLine();
 								p.outputStream.Flush();
-								p.rawOutputStream.Write(sendImage, 0, sendImage.Length);
-								p.rawOutputStream.Flush();
+								p.tcpStream.Write(sendImage, 0, sendImage.Length);
+								p.tcpStream.Flush();
 								p.outputStream.WriteLine();
 							}
 							catch (Exception ex)
@@ -213,8 +213,8 @@ namespace MJpegCameraProxy
 											Console.Write(chunkCount + " ");
 											if (myDataListener.TryDequeue(out outputBuffer))
 											{
-												p.rawOutputStream.Write(outputBuffer, 0, outputBuffer.Length);
-												p.rawOutputStream.Flush();
+												p.tcpStream.Write(outputBuffer, 0, outputBuffer.Length);
+												p.tcpStream.Flush();
 											}
 										}
 										else
@@ -274,7 +274,7 @@ namespace MJpegCameraProxy
 						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
 						p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
-						p.rawOutputStream.Write(response.body, 0, response.body.Length);
+						p.tcpStream.Write(response.body, 0, response.body.Length);
 					}
 					else if (requestedPage == "PTZPRESETIMG")
 					{
@@ -294,7 +294,7 @@ namespace MJpegCameraProxy
 									{
 										p.writeSuccess("image/jpg", data.Length);
 										p.outputStream.Flush();
-										p.rawOutputStream.Write(data, 0, data.Length);
+										p.tcpStream.Write(data, 0, data.Length);
 										return;
 									}
 								}
@@ -312,7 +312,7 @@ namespace MJpegCameraProxy
 											byte[] bytes = File.ReadAllBytes(fileName);
 											p.writeSuccess("image/jpg", bytes.Length);
 											p.outputStream.Flush();
-											p.rawOutputStream.Write(bytes, 0, bytes.Length);
+											p.tcpStream.Write(bytes, 0, bytes.Length);
 											return;
 										}
 									}
@@ -323,7 +323,7 @@ namespace MJpegCameraProxy
 							byte[] bytes = File.ReadAllBytes(CameraProxyGlobals.WWWPublicDirectoryBase + "Images/qmark.png");
 							p.writeSuccess("image/png", bytes.Length);
 							p.outputStream.Flush();
-							p.rawOutputStream.Write(bytes, 0, bytes.Length);
+							p.tcpStream.Write(bytes, 0, bytes.Length);
 							return;
 						}
 					}
@@ -335,7 +335,7 @@ namespace MJpegCameraProxy
 							return;
 						if (!cam.cameraSpec.wanscamCompatibilityMode)
 							return;
-						if (p.RemoteIPAddress != "127.0.0.1")
+						if (p.RemoteIPAddressStr != "127.0.0.1")
 							return;
 						Uri url = new Uri(cam.cameraSpec.imageryUrl);
 						string host = url.Host;
@@ -357,7 +357,7 @@ namespace MJpegCameraProxy
 							p.outputStream.Flush();
 							while (read > 0 && socket.Connected && p.tcpClient.Connected)
 							{
-								p.rawOutputStream.Write(buffer, 0, read);
+								p.tcpStream.Write(buffer, 0, read);
 								total += read;
 								//Console.WriteLine(read);
 								read = socket.Receive(buffer);
@@ -425,7 +425,7 @@ namespace MJpegCameraProxy
 						p.writeSuccess("text/plain");
 						p.outputStream.Flush();
 						byte[] buf = Encoding.ASCII.GetBytes(response);
-						p.rawOutputStream.Write(buf, 0, buf.Length);
+						p.tcpStream.Write(buf, 0, buf.Length);
 					}
 					else
 					{
@@ -476,7 +476,7 @@ namespace MJpegCameraProxy
 						html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
 						try
 						{
-							html = html.Replace("%REMOTEIP%", p.RemoteIPAddress);
+							html = html.Replace("%REMOTEIP%", p.RemoteIPAddressStr);
 						}
 						catch (Exception ex)
 						{
@@ -485,7 +485,7 @@ namespace MJpegCameraProxy
 						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
 						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
-						p.rawOutputStream.Write(response.body, 0, response.body.Length);
+						p.tcpStream.Write(response.body, 0, response.body.Length);
 					}
 					else if ((fi.Extension == ".html" || fi.Extension == ".htm") && fi.Length < 256000)
 					{
@@ -494,7 +494,7 @@ namespace MJpegCameraProxy
 						html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
 						try
 						{
-							html = html.Replace("%REMOTEIP%", p.RemoteIPAddress);
+							html = html.Replace("%REMOTEIP%", p.RemoteIPAddressStr);
 						}
 						catch (Exception ex)
 						{
@@ -503,7 +503,7 @@ namespace MJpegCameraProxy
 						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
 						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
-						p.rawOutputStream.Write(response.body, 0, response.body.Length);
+						p.tcpStream.Write(response.body, 0, response.body.Length);
 					}
 					else
 					{
@@ -512,7 +512,7 @@ namespace MJpegCameraProxy
 							HttpCompressionBody response = new HttpCompressionBody(File.ReadAllBytes(fi.FullName), fi.Extension, p.GetHeaderValue("accept-encoding"));
 							p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 							p.outputStream.Flush();
-							p.rawOutputStream.Write(response.body, 0, response.body.Length);
+							p.tcpStream.Write(response.body, 0, response.body.Length);
 						}
 						else
 						{
@@ -524,9 +524,9 @@ namespace MJpegCameraProxy
 							p.outputStream.Flush();
 							using (FileStream fs = fi.OpenRead())
 							{
-								fs.CopyTo(p.rawOutputStream);
+								fs.CopyTo(p.tcpStream);
 							}
-							p.rawOutputStream.Flush();
+							p.tcpStream.Flush();
 						}
 					}
 					#endregion

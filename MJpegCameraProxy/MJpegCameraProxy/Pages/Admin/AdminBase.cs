@@ -503,7 +503,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(str), ".html", p.GetHeaderValue("accept-encoding"));
 			p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
 			p.outputStream.Flush();
-			p.rawOutputStream.Write(response.body, 0, response.body.Length);
+			p.tcpStream.Write(response.body, 0, response.body.Length);
 		}
 
 		public static string HandleSaveList(HttpProcessor p, Session s)

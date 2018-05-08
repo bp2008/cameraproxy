@@ -60,7 +60,7 @@ namespace MJpegCameraProxy
 			html = html.Replace("%ALLCAMS_IDS_NAMES_JS_ARRAY%", MJpegServer.cm.GenerateAllCameraIdNameList(s == null ? 0 : s.permission));
 			try
 			{
-				html = html.Replace("%REMOTEIP%", p.RemoteIPAddress);
+				html = html.Replace("%REMOTEIP%", p.RemoteIPAddressStr);
 			}
 			catch (Exception ex)
 			{
