@@ -271,7 +271,7 @@ namespace MJpegCameraProxy
 							p.writeFailure();
 							return;
 						}
-						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html");
+						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
 						p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
 						p.rawOutputStream.Write(response.body, 0, response.body.Length);
@@ -482,7 +482,7 @@ namespace MJpegCameraProxy
 						{
 							Logger.Debug(ex);
 						}
-						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html");
+						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
 						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
 						p.rawOutputStream.Write(response.body, 0, response.body.Length);
@@ -500,7 +500,7 @@ namespace MJpegCameraProxy
 						{
 							Logger.Debug(ex);
 						}
-						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html");
+						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
 						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 						p.outputStream.Flush();
 						p.rawOutputStream.Write(response.body, 0, response.body.Length);
@@ -509,7 +509,7 @@ namespace MJpegCameraProxy
 					{
 						if (fi.Length < 1000000)
 						{
-							HttpCompressionBody response = new HttpCompressionBody(File.ReadAllBytes(fi.FullName), fi.Extension);
+							HttpCompressionBody response = new HttpCompressionBody(File.ReadAllBytes(fi.FullName), fi.Extension, p.GetHeaderValue("accept-encoding"));
 							p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
 							p.outputStream.Flush();
 							p.rawOutputStream.Write(response.body, 0, response.body.Length);

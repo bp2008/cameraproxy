@@ -500,7 +500,7 @@ namespace MJpegCameraProxy.Pages.Admin
 				p.writeFailure("500 Internal Server Error");
 				return;
 			}
-			HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(str), ".html");
+			HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(str), ".html", p.GetHeaderValue("accept-encoding"));
 			p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
 			p.outputStream.Flush();
 			p.rawOutputStream.Write(response.body, 0, response.body.Length);
