@@ -24,6 +24,7 @@ namespace MJpegCameraProxy.Hikvision
 		double thumbnailBoxWidth, thumbnailBoxHeight;
 		int absoluteXOffset, panoramaVerticalDegrees;
 		bool simplePanorama;
+		bool ISAPI;
 		private CameraSpec cs;
 		object workerThreadLock = new object();
 		Thread ptzWorkerThread;
@@ -58,10 +59,11 @@ namespace MJpegCameraProxy.Hikvision
 			this.thumbnailBoxHeight = cs.ptz_panorama_selection_rectangle_height_percent;
 			this.simplePanorama = cs.ptz_panorama_simple;
 			this.panoramaVerticalDegrees = cs.ptz_panorama_degrees_vertical;
+			this.ISAPI = cs.ptz_isapi;
 
 			SetNewIdleTime();
 
-			baseCGIURL = "http://" + host + "/PTZCtrl/channels/1/";
+			baseCGIURL = "http://" + host + (ISAPI ? "/ISAPI" : "") + "/PTZCtrl/channels/1/";
 			PrepareWorkerThreadIfNecessary();
 		}
 
@@ -100,8 +102,8 @@ namespace MJpegCameraProxy.Hikvision
 
 			if (!isAboutToStart)
 			{
-			if (ptzWorkerThread != null && ptzWorkerThread.IsAlive)
-				ptzWorkerThread.Abort();
+				if (ptzWorkerThread != null && ptzWorkerThread.IsAlive)
+					ptzWorkerThread.Abort();
 			}
 		}
 		public void GeneratePseudoPanorama(bool overlap, bool fullSizeImages = false)
@@ -172,7 +174,7 @@ namespace MJpegCameraProxy.Hikvision
 
 							desiredAbsPos.Y = Util.Clamp(desiredAbsPos.Y, 0, 1);
 							double maxTilt = cs.ptz_tiltlimit_low - cs.ptz_tiltlimit_high;
-							if(maxTilt > 0)
+							if (maxTilt > 0)
 								desiredAbsPos.Y = desiredAbsPos.Y * (float)((panoramaVerticalDegrees * 10) / maxTilt);
 							desiredAbsPos.Z = Util.Clamp(desiredAbsPos.Z, 0, 1);
 

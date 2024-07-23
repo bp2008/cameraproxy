@@ -16,15 +16,15 @@ namespace MJpegCameraProxy
 			if (imgFormat == ImageFormat.Webp)
 				return input; // Cannot currently read WebP images.
 
-			int size = p.GetIntParam("size", 100);
-			int quality = p.GetIntParam("quality", -2);
-			string format = p.GetParam("format").ToLower();
+			int size = p.Request.GetIntParam("size", 100);
+			int quality = p.Request.GetIntParam("quality", -2);
+			string format = p.Request.GetParam("format").ToLower();
 			if (string.IsNullOrWhiteSpace(format))
 				format = desiredFormatString == null ? "" : desiredFormatString.ToLower();
-			int rotateDegrees = p.GetIntParam("rotate", 0);
-			int maxWidth = p.GetIntParam("maxwidth", 0);
-			int maxHeight = p.GetIntParam("maxheight", 0);
-			string special = p.GetParam("special");
+			int rotateDegrees = p.Request.GetIntParam("rotate", 0);
+			int maxWidth = p.Request.GetIntParam("maxwidth", 0);
+			int maxHeight = p.Request.GetIntParam("maxheight", 0);
+			string special = p.Request.GetParam("special");
 
 			RotateFlipType rotateFlipType;
 			if (rotateDegrees == -270 || rotateDegrees == 90)
@@ -41,7 +41,7 @@ namespace MJpegCameraProxy
 			{
 				if (quality == -2)
 					quality = 80;
-				byte[] output = ConvertImage(input, size, quality, desiredFormat, rotateFlipType, maxWidth, maxHeight, imgFormat, special, p.request_url.OriginalString);
+				byte[] output = ConvertImage(input, size, quality, desiredFormat, rotateFlipType, maxWidth, maxHeight, imgFormat, special, p.Request.Url.OriginalString);
 				if (input != output)
 					imgFormat = desiredFormat;
 				return output;

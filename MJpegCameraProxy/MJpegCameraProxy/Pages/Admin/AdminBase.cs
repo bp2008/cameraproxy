@@ -488,7 +488,7 @@ namespace MJpegCameraProxy.Pages.Admin
 			Type type;
 			if (!pageKeyToType.TryGetValue(pageKey, out type))
 			{
-				p.writeFailure();
+				p.Response.Simple("404 Not Found");
 				return;
 			}
 			ConstructorInfo ctor = type.GetConstructor(new Type[0]);
@@ -497,18 +497,16 @@ namespace MJpegCameraProxy.Pages.Admin
 			string str = page.GetHtml(p, s, pageKey);
 			if (str == null)
 			{
-				p.writeFailure("500 Internal Server Error");
+				p.Response.Simple("500 Internal Server Error");
 				return;
 			}
-			HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(str), ".html", p.GetHeaderValue("accept-encoding"));
-			p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
-			p.outputStream.Flush();
-			p.tcpStream.Write(response.body, 0, response.body.Length);
+			p.Response.FullResponseUTF8(str, "text/html; charset=utf-8");
+			p.Response.CompressResponseIfCompatible();
 		}
 
 		public static string HandleSaveList(HttpProcessor p, Session s)
 		{
-			string pageKey = p.GetPostParam("pagename").ToLower();
+			string pageKey = p.Request.GetPostParam("pagename").ToLower();
 
 			if (s.permission < 100)
 				return "0Insufficient Permission";
@@ -523,7 +521,7 @@ namespace MJpegCameraProxy.Pages.Admin
 
 			SortedList<string, SortedList<string, string>> items = new SortedList<string, SortedList<string, string>>();
 
-			string rawFullItemString = p.GetPostParam("items");
+			string rawFullItemString = p.Request.GetPostParam("items");
 			string[] itemStrings = rawFullItemString.Split('|');
 			foreach (string itemString in itemStrings)
 			{

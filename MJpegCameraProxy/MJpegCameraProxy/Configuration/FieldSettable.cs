@@ -73,7 +73,7 @@ namespace MJpegCameraProxy.Configuration
 			}
 			return "1";
 		}
-		public string setFieldValues(SortedList<string, string> args)
+		public string setFieldValues(IDictionary<string, string> args)
 		{
 			string result;
 			foreach (KeyValuePair<string, string> kvp in args)

@@ -10,8 +10,8 @@ namespace MJpegCameraProxy.Pages.Admin
 	{
 		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
-			p.responseCookies.Add("cps", "", TimeSpan.Zero);
-			p.responseCookies.Add("auth", "", TimeSpan.Zero);
+			p.Response.Cookies.Add("cps", "", TimeSpan.Zero);
+			p.Response.Cookies.Add("auth", "", TimeSpan.Zero);
 			return MJpegCameraProxy.Login.GetLoginScripts("main") + "<div style=\"margin-bottom: 10px;\">Please log in to continue:</div>" + MJpegCameraProxy.Login.GetLoginBody();
 		}
 	}

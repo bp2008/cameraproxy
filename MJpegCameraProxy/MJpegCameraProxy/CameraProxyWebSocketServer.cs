@@ -7,6 +7,7 @@ using Fleck;
 using BPUtil.SimpleHttp;
 using MJpegCameraProxy.PanTiltZoom;
 using BPUtil;
+using Newtonsoft.Json;
 
 namespace MJpegCameraProxy
 {
@@ -193,6 +194,7 @@ namespace MJpegCameraProxy
 								{
 									socket.Send("registrationaccepted");
 									AdvPtz obj = AdvPtz.GetPtzObj(cameraId);
+									socket.Send("camdata:" + BuildCamDataJson(cam));
 
 									if (obj != null)
 										socket.Send("sup " + cameraId + " " + obj.ptzController.GetStatusUpdate());
@@ -341,6 +343,19 @@ namespace MJpegCameraProxy
 				}
 			};
 		}
+
+		private string BuildCamDataJson(IPCameraBase cam)
+		{
+			return JsonConvert.SerializeObject(new
+			{
+				cameraId = cam.cameraSpec.id,
+				cameraName = cam.cameraSpec.name,
+				thumbnailBoxPercentWidth = cam.cameraSpec.ptz_panorama_selection_rectangle_width_percent,
+				thumbnailBoxPercentHeight = cam.cameraSpec.ptz_panorama_selection_rectangle_height_percent,
+				zoomMagnification = cam.cameraSpec.ptz_magnification
+			});
+		}
+
 		public void BroadcastCameraStatusUpdate(string cameraId, string message)
 		{
 			HashSet<IWebSocketConnection> registeredList;

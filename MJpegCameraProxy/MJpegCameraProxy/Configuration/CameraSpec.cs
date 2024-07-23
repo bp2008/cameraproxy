@@ -114,6 +114,9 @@ namespace MJpegCameraProxy.Configuration
 		[EditorName("Low tilt limit")]
 		[EditorHint("The low point of the tilt range (e.g. 710 or 900).  Note, camera elevation typically works where 0 is horizon level and 900 is straight down, though the range of accepted values can vary.")]
 		public int ptz_tiltlimit_low = 710;
+		[EditorName("Use ISAPI API")]
+		[EditorHint("If checked, the `/ISAPI/PTZCtrl/1/` API will be used.  If unchecked, the older `/PTZCtrl/1/` API will be used.")]
+		public bool ptz_isapi = false;
 
 		//IO_00000000_PT_157_066
 

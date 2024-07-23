@@ -19,19 +19,19 @@ namespace MJpegCameraProxy
 	{
 		public static CameraManager cm = new CameraManager();
 		public static SessionManager sm = new SessionManager();
-		public MJpegServer(int port, int port_https, X509Certificate2 cert)
-			: base(port, port_https, cert)
+		public MJpegServer(X509Certificate2 cert)
+			: base(SimpleCertificateSelector.FromCertificate(cert))
 		{
 		}
 		public override void handleGETRequest(HttpProcessor p)
 		{
 			try
 			{
-				string requestedPage = Uri.UnescapeDataString(p.request_url.AbsolutePath.TrimStart('/'));
+				string requestedPage = Uri.UnescapeDataString(p.Request.Url.AbsolutePath.TrimStart('/'));
 
 				if (requestedPage == "admin")
 				{
-					p.writeRedirect("admin/main");
+					p.Response.Redirect("admin/main");
 					return;
 				}
 
@@ -41,9 +41,9 @@ namespace MJpegCameraProxy
 					return;
 				}
 
-				Session s = sm.GetSession(p.requestCookies.GetValue("cps"), p.requestCookies.GetValue("auth"), p.GetParam("rawauth"));
+				Session s = sm.GetSession(p.Request.Cookies.GetValue("cps"), p.Request.Cookies.GetValue("auth"), p.Request.GetParam("rawauth"));
 				if (s.sid != null && s.sid.Length == 16)
-					p.responseCookies.Add("cps", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
+					p.Response.Cookies.Add("cps", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
 
 				if (requestedPage == "logout")
 				{
@@ -78,7 +78,7 @@ namespace MJpegCameraProxy
 						int minPermission = cm.GetCameraMinPermission(cameraId);
 						if (minPermission == 101)
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
@@ -86,10 +86,10 @@ namespace MJpegCameraProxy
 							LogOutUser(p, s);
 							return;
 						}
-						int wait = p.GetIntParam("wait", 5000);
+						int wait = p.Request.GetIntParam("wait", 5000);
 						IPCameraBase cam = cm.GetCamera(cameraId);
 						byte[] latestImage = cm.GetLatestImage(cameraId, wait);
-						int patience = p.GetIntParam("patience");
+						int patience = p.Request.GetIntParam("patience");
 						if (patience > 0)
 						{
 							if (patience > 5000)
@@ -109,15 +109,14 @@ namespace MJpegCameraProxy
 						}
 						if (latestImage.Length == 0)
 						{
-							p.writeFailure("502 Bad Gateway");
+							p.Response.Simple("502 Bad Gateway");
 							return;
 						}
 						ImageFormat imgFormat = ImageFormat.Jpeg;
 						latestImage = ImageConverter.HandleRequestedConversionIfAny(latestImage, p, ref imgFormat, format);
-						p.tcpClient.SendBufferSize = latestImage.Length + 256;
-						p.writeSuccess(Util.GetMime(imgFormat), latestImage.Length);
-						p.outputStream.Flush();
-						p.tcpStream.Write(latestImage, 0, latestImage.Length);
+						p.GetTcpClient().SendBufferSize = latestImage.Length + 256;
+						p.Response.FullResponseBytes(latestImage, Util.GetMime(imgFormat));
+						return;
 					}
 					else if (requestedPage.EndsWith(".mjpg"))
 					{
@@ -126,7 +125,7 @@ namespace MJpegCameraProxy
 						int minPermission = cm.GetCameraMinPermission(cameraId);
 						if (minPermission == 101)
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
@@ -137,7 +136,12 @@ namespace MJpegCameraProxy
 						if (cm.GetLatestImage(cameraId).Length == 0)
 							return;
 						// Increasing the send buffer size here does not help streaming fluidity.
-						p.writeSuccess("multipart/x-mixed-replace;boundary=ipcamera");
+						p.Response.CloseWithoutResponse();
+						Stream responseStream = p.Response.GetResponseStreamSync();
+						WriteUtf8String(responseStream, "HTTP/1.1 200 OK" + "\r\n"
+							+ "Connection: close" + "\r\n"
+							+ "Content-Type: multipart/x-mixed-replace;boundary=ipcamera" + "\r\n"
+							+ "\r\n");
 						byte[] newImage;
 						byte[] lastImage = null;
 						while (!this.stopRequested)
@@ -157,22 +161,21 @@ namespace MJpegCameraProxy
 								ImageFormat imgFormat = ImageFormat.Jpeg;
 								byte[] sendImage = ImageConverter.HandleRequestedConversionIfAny(newImage, p, ref imgFormat);
 
-								p.outputStream.WriteLine("--ipcamera");
-								p.outputStream.WriteLine("Content-Type: " + Util.GetMime(imgFormat));
-								p.outputStream.WriteLine("Content-Length: " + sendImage.Length);
-								p.outputStream.WriteLine();
-								p.outputStream.Flush();
-								p.tcpStream.Write(sendImage, 0, sendImage.Length);
-								p.tcpStream.Flush();
-								p.outputStream.WriteLine();
+								WriteUtf8Line(responseStream, "--ipcamera");
+								WriteUtf8Line(responseStream, "Content-Type: " + Util.GetMime(imgFormat));
+								WriteUtf8Line(responseStream, "Content-Length: " + sendImage.Length);
+								WriteUtf8Line(responseStream, "");
+								WriteBytes(responseStream, sendImage);
+								WriteUtf8Line(responseStream, "");
 							}
 							catch (Exception ex)
 							{
-								if (!p.isOrdinaryDisconnectException(ex))
+								if (!HttpProcessor.IsOrdinaryDisconnectException(ex))
 									Logger.Debug(ex);
 								break;
 							}
 						}
+						return;
 					}
 					else if (requestedPage.EndsWith(".ogg"))
 					{
@@ -181,7 +184,7 @@ namespace MJpegCameraProxy
 						int minPermission = cm.GetCameraMinPermission(cameraId);
 						if (minPermission == 101)
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
@@ -197,8 +200,12 @@ namespace MJpegCameraProxy
 							try
 							{
 								cam.RegisterStreamListener(myDataListener);
-								p.writeSuccess("application/octet-stream");
-								p.outputStream.Flush();
+								p.Response.CloseWithoutResponse();
+								Stream responseStream = p.Response.GetResponseStreamSync();
+								WriteUtf8String(responseStream, "HTTP/1.1 200 OK" + "\r\n"
+									+ "Connection: close" + "\r\n"
+									+ "Content-Type: application/octet-stream" + "\r\n"
+									+ "\r\n");
 								byte[] outputBuffer;
 								int chunkCount = 0;
 								while (!this.stopRequested)
@@ -213,8 +220,7 @@ namespace MJpegCameraProxy
 											Console.Write(chunkCount + " ");
 											if (myDataListener.TryDequeue(out outputBuffer))
 											{
-												p.tcpStream.Write(outputBuffer, 0, outputBuffer.Length);
-												p.tcpStream.Flush();
+												WriteBytes(responseStream, outputBuffer);
 											}
 										}
 										else
@@ -222,11 +228,12 @@ namespace MJpegCameraProxy
 									}
 									catch (Exception ex)
 									{
-										if (!p.isOrdinaryDisconnectException(ex))
+										if (!HttpProcessor.IsOrdinaryDisconnectException(ex))
 											Logger.Debug(ex);
 										break;
 									}
 								}
+								return;
 							}
 							finally
 							{
@@ -235,7 +242,8 @@ namespace MJpegCameraProxy
 						}
 						else
 						{
-							p.writeFailure("501 Not Implemented");
+							p.Response.Simple("501 Not Implemented");
+							return;
 						}
 					}
 					else if (requestedPage.EndsWith(".cam"))
@@ -245,7 +253,7 @@ namespace MJpegCameraProxy
 						int minPermission = cm.GetCameraMinPermission(cameraId);
 						if (minPermission == 101)
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
@@ -256,34 +264,33 @@ namespace MJpegCameraProxy
 						IPCameraBase cam = cm.GetCamera(cameraId);
 						if (cam != null && cam.cameraSpec.ptzType == MJpegCameraProxy.Configuration.PtzType.Dahua || cam.cameraSpec.ptzType == MJpegCameraProxy.Configuration.PtzType.Hikvision)
 						{
-							p.writeRedirect("../Camera.html?cam=" + cameraId);
+							p.Response.Redirect("../Camera.html?cam=" + cameraId);
 							return;
 						}
 
-						string userAgent = p.GetHeaderValue("User-Agent", "");
+						string userAgent = p.Request.Headers.Get("User-Agent") ?? "";
 						bool isMobile = userAgent.Contains("iPad") || userAgent.Contains("iPhone") || userAgent.Contains("Android") || userAgent.Contains("BlackBerry");
 
 						bool isLanConnection = p == null ? false : p.IsLanConnection;
 						int defaultRefresh = isLanConnection && !isMobile ? -1 : 250;
-						string html = CamPage.GetHtml(cameraId, !isMobile, p.GetIntParam("refresh", defaultRefresh), p.GetBoolParam("override") ? -1 : 600000, p);
+						string html = CamPage.GetHtml(cameraId, !isMobile, p.Request.GetIntParam("refresh", defaultRefresh), p.Request.GetBoolParam("override") ? -1 : 600000, p);
 						if (string.IsNullOrEmpty(html) || html == "NO")
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
-						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
-						p.writeSuccess(contentLength: response.body.Length, additionalHeaders: response.additionalHeaders);
-						p.outputStream.Flush();
-						p.tcpStream.Write(response.body, 0, response.body.Length);
+						p.Response.FullResponseUTF8(html, "text/html; charset=utf-8");
+						p.Response.CompressResponseIfCompatible();
+						return;
 					}
 					else if (requestedPage == "PTZPRESETIMG")
 					{
-						string cameraId = p.GetParam("id");
+						string cameraId = p.Request.GetParam("id");
 						cameraId = cameraId.ToLower();
 						IPCameraBase cam = cm.GetCamera(cameraId);
 						if (cam != null)
 						{
-							int index = p.GetIntParam("index", -1);
+							int index = p.Request.GetIntParam("index", -1);
 							if (index > -1)
 							{
 								if (cam.cameraSpec.ptz_proxy)
@@ -292,9 +299,7 @@ namespace MJpegCameraProxy
 									byte[] data = SimpleProxy.GetData("http://" + cam.cameraSpec.ptz_hostName + "/PTZPRESETIMG?" + auth + "id=" + HttpUtility.UrlEncode(cam.cameraSpec.ptz_proxy_cameraId) + "&index=" + index);
 									if (data.Length > 0)
 									{
-										p.writeSuccess("image/jpg", data.Length);
-										p.outputStream.Flush();
-										p.tcpStream.Write(data, 0, data.Length);
+										p.Response.FullResponseBytes(data, "image/jpg");
 										return;
 									}
 								}
@@ -309,10 +314,7 @@ namespace MJpegCameraProxy
 									{
 										if (File.Exists(fileName))
 										{
-											byte[] bytes = File.ReadAllBytes(fileName);
-											p.writeSuccess("image/jpg", bytes.Length);
-											p.outputStream.Flush();
-											p.tcpStream.Write(bytes, 0, bytes.Length);
+											p.Response.StaticFile(fileName);
 											return;
 										}
 									}
@@ -320,10 +322,7 @@ namespace MJpegCameraProxy
 							}
 						}
 						{ // Failed to get image thumbnail
-							byte[] bytes = File.ReadAllBytes(CameraProxyGlobals.WWWPublicDirectoryBase + "Images/qmark.png");
-							p.writeSuccess("image/png", bytes.Length);
-							p.outputStream.Flush();
-							p.tcpStream.Write(bytes, 0, bytes.Length);
+							p.Response.StaticFile(CameraProxyGlobals.WWWPublicDirectoryBase + "Images/qmark.png");
 							return;
 						}
 					}
@@ -353,20 +352,25 @@ namespace MJpegCameraProxy
 							socket.Send(UTF8Encoding.UTF8.GetBytes("GET " + path + " HTTP/1.1\r\nHost: " + host + ":" + port + "\r\nConnection: close\r\n\r\n"));
 							//Console.WriteLine("open");
 							int read = socket.Receive(buffer);
-							p.writeSuccess("video/raw");
-							p.outputStream.Flush();
-							while (read > 0 && socket.Connected && p.tcpClient.Connected)
+							p.Response.CloseWithoutResponse();
+							Stream responseStream = p.Response.GetResponseStreamSync();
+							WriteUtf8String(responseStream, "HTTP/1.1 200 OK" + "\r\n"
+								+ "Connection: close" + "\r\n"
+								+ "Content-Type: video/raw" + "\r\n"
+								+ "\r\n");
+							while (read > 0 && socket.Connected && p.CheckIfStillConnected())
 							{
-								p.tcpStream.Write(buffer, 0, read);
+								responseStream.Write(buffer, 0, read);
 								total += read;
 								//Console.WriteLine(read);
 								read = socket.Receive(buffer);
 							}
+							return;
 							//Console.WriteLine("close");
 						}
 						catch (Exception ex)
 						{
-							if (!p.isOrdinaryDisconnectException(ex))
+							if (!HttpProcessor.IsOrdinaryDisconnectException(ex))
 								Logger.Debug(ex);
 						}
 					}
@@ -378,32 +382,32 @@ namespace MJpegCameraProxy
 					#region control/
 					if (requestedPage == "keepalive")
 					{
-						string cameraId = p.GetParam("id");
+						string cameraId = p.Request.GetParam("id");
 						cameraId = cameraId.ToLower();
 						int minPermission = cm.GetCameraMinPermission(cameraId);
 						if (minPermission == 101)
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
 						{
-							p.writeFailure("403 Forbidden");
+							p.Response.Simple("403 Forbidden");
 							return;
 						}
 						cm.GetRTSPUrl(cameraId, p);
-						p.writeSuccess("text/plain");
-						p.outputStream.Write("1");
+						p.Response.FullResponseUTF8("1", "text/plain");
+						return;
 					}
 
 					else if (requestedPage == "PTZ")
 					{
-						string cameraId = p.GetParam("id");
+						string cameraId = p.Request.GetParam("id");
 						cameraId = cameraId.ToLower();
 						int minPermission = cm.GetCameraMinPermission(cameraId);
 						if (minPermission == 101)
 						{
-							p.writeFailure();
+							p.Response.Simple("404 Not Found");
 							return;
 						}
 						if ((s == null && minPermission > 0) || (s != null && s.permission < minPermission))
@@ -411,8 +415,9 @@ namespace MJpegCameraProxy
 							LogOutUser(p, s);
 							return;
 						}
-						PTZ.RunCommand(cameraId, p.GetParam("cmd"));
-						p.writeSuccess("text/plain");
+						PTZ.RunCommand(cameraId, p.Request.GetParam("cmd"));
+						p.Response.FullResponseUTF8("", "text/plain");
+						return;
 					}
 					#endregion
 				}
@@ -422,14 +427,13 @@ namespace MJpegCameraProxy
 					string response;
 					if (letsEncryptChallenges.TryGetValue(token, out response))
 					{
-						p.writeSuccess("text/plain");
-						p.outputStream.Flush();
-						byte[] buf = Encoding.ASCII.GetBytes(response);
-						p.tcpStream.Write(buf, 0, buf.Length);
+						p.Response.FullResponseUTF8(response, "text/plain");
+						return;
 					}
 					else
 					{
-						p.writeFailure();
+						p.Response.Simple("404 Not Found");
+						return;
 					}
 				}
 				else
@@ -457,12 +461,12 @@ namespace MJpegCameraProxy
 					string targetFilePath = fi.FullName.Replace('\\', '/');
 					if (!targetFilePath.StartsWith(wwwDirectoryBase) || targetFilePath.Contains("../"))
 					{
-						p.writeFailure("400 Bad Request");
+						p.Response.Simple("400 Bad Request");
 						return;
 					}
 					if (!fi.Exists)
 					{
-						p.writeFailure();
+						p.Response.Simple("404 Not Found");
 						return;
 					}
 
@@ -482,10 +486,9 @@ namespace MJpegCameraProxy
 						{
 							Logger.Debug(ex);
 						}
-						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
-						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
-						p.outputStream.Flush();
-						p.tcpStream.Write(response.body, 0, response.body.Length);
+						p.Response.FullResponseUTF8(html, "text/html; charset=utf-8");
+						p.Response.CompressResponseIfCompatible();
+						return;
 					}
 					else if ((fi.Extension == ".html" || fi.Extension == ".htm") && fi.Length < 256000)
 					{
@@ -500,45 +503,37 @@ namespace MJpegCameraProxy
 						{
 							Logger.Debug(ex);
 						}
-						HttpCompressionBody response = new HttpCompressionBody(Encoding.UTF8.GetBytes(html), ".html", p.GetHeaderValue("accept-encoding"));
-						p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
-						p.outputStream.Flush();
-						p.tcpStream.Write(response.body, 0, response.body.Length);
+						p.Response.FullResponseUTF8(html, "text/html; charset=utf-8");
+						p.Response.CompressResponseIfCompatible();
+						return;
 					}
 					else
 					{
-						if (fi.Length < 1000000)
-						{
-							HttpCompressionBody response = new HttpCompressionBody(File.ReadAllBytes(fi.FullName), fi.Extension, p.GetHeaderValue("accept-encoding"));
-							p.writeSuccess(Mime.GetMimeType(fi.Extension), response.body.Length, additionalHeaders: response.additionalHeaders);
-							p.outputStream.Flush();
-							p.tcpStream.Write(response.body, 0, response.body.Length);
-						}
-						else
-						{
-							if (HttpCompressionHelper.FileTypeShouldBeCompressed(fi.Extension))
-								p.CompressResponseIfCompatible();
-							List<KeyValuePair<string, string>> additionalHeaders = new List<KeyValuePair<string, string>>();
-							additionalHeaders.Add(new KeyValuePair<string, string>("Cache-Control", "max-age=3600, public"));
-							p.writeSuccess(Mime.GetMimeType(fi.Extension), additionalHeaders: additionalHeaders);
-							p.outputStream.Flush();
-							using (FileStream fs = fi.OpenRead())
-							{
-								fs.CopyTo(p.tcpStream);
-							}
-							p.tcpStream.Flush();
-						}
+						p.Response.StaticFile(fi);
+						return;
 					}
 					#endregion
 				}
 			}
 			catch (Exception ex)
 			{
-				if (!p.isOrdinaryDisconnectException(ex))
+				if (!HttpProcessor.IsOrdinaryDisconnectException(ex))
 					Logger.Debug(ex);
 			}
 		}
 
+		private void WriteBytes(Stream stream, byte[] bytes)
+		{
+			stream.Write(bytes, 0, bytes.Length);
+		}
+		private void WriteUtf8Line(Stream stream, string str)
+		{
+			WriteUtf8String(stream, str + "\r\n");
+		}
+		private void WriteUtf8String(Stream stream, string str)
+		{
+			WriteBytes(stream, ByteUtil.Utf8NoBOM.GetBytes(str));
+		}
 		ConcurrentDictionary<string, string> letsEncryptChallenges = new ConcurrentDictionary<string, string>();
 		internal void PrepareCertificationChallenge(LetsEncrypt.CertificateChallenge challenge)
 		{
@@ -554,48 +549,45 @@ namespace MJpegCameraProxy
 		{
 			if (s != null)
 				sm.RemoveSession(s.sid);
-			p.responseCookies.Add("cps", "", TimeSpan.Zero);
-			p.writeSuccess("text/html");
-			p.outputStream.Write(Login.GetString());
+			p.Response.Cookies.Add("cps", "", TimeSpan.Zero);
+			p.Response.FullResponseUTF8(Login.GetString(), "text/html; charset=utf-8");
+			p.Response.CompressResponseIfCompatible();
+			return;
 		}
 
-		public override void handlePOSTRequest(HttpProcessor p, StreamReader inputData)
+		public override void handlePOSTRequest(HttpProcessor p)
 		{
 			try
 			{
-				Session s = sm.GetSession(p.requestCookies.GetValue("cps"), p.requestCookies.GetValue("auth"));
+				Session s = sm.GetSession(p.Request.Cookies.GetValue("cps"), p.Request.Cookies.GetValue("auth"));
 				if (s.permission == 100)
-					p.responseCookies.Add("cps", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
+					p.Response.Cookies.Add("cps", s.sid, TimeSpan.FromMinutes(s.sessionLengthMinutes));
 				else
 				{
-					p.writeFailure("403 Forbidden");
+					p.Response.Simple("403 Forbidden");
 					return;
 				}
 
-				string requestedPage = p.request_url.AbsolutePath.TrimStart('/');
+				string requestedPage = p.Request.Url.AbsolutePath.TrimStart('/');
 				if (requestedPage == "admin/saveitem")
 				{
 					string result = MJpegWrapper.cfg.SaveItem(p);
-					p.writeSuccess("text/plain");
-					p.outputStream.Write(HttpUtility.HtmlEncode(result));
+					p.Response.FullResponseUTF8(HttpUtility.HtmlEncode(result), "text/plain; charset=utf-8");
 				}
 				else if (requestedPage == "admin/deleteitems")
 				{
 					string result = MJpegWrapper.cfg.DeleteItems(p);
-					p.writeSuccess("text/plain");
-					p.outputStream.Write(HttpUtility.HtmlEncode(result));
+					p.Response.FullResponseUTF8(HttpUtility.HtmlEncode(result), "text/plain; charset=utf-8");
 				}
 				else if (requestedPage == "admin/reordercam")
 				{
 					string result = MJpegWrapper.cfg.ReorderCam(p);
-					p.writeSuccess("text/plain");
-					p.outputStream.Write(HttpUtility.HtmlEncode(result));
+					p.Response.FullResponseUTF8(HttpUtility.HtmlEncode(result), "text/plain; charset=utf-8");
 				}
 				else if (requestedPage == "admin/savelist")
 				{
 					string result = Pages.Admin.AdminPage.HandleSaveList(p, s);
-					p.writeSuccess("text/plain");
-					p.outputStream.Write(HttpUtility.HtmlEncode(result));
+					p.Response.FullResponseUTF8(HttpUtility.HtmlEncode(result), "text/plain; charset=utf-8");
 				}
 			}
 			catch (Exception ex)

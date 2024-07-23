@@ -26,19 +26,19 @@ namespace MJpegCameraProxy
 		public CamPage2(string html, HttpProcessor p)
 		{
 			// Set the parameters so the eval statements later can access them.
-			cameraId = p.GetParam("cam");
+			cameraId = p.Request.GetParam("cam");
 			IPCameraBase cam = MJpegServer.cm.GetCameraAndGetItRunning(cameraId);
 			if (cam == null)
 			{
 				Html = "The specified camera is not available.";
 				return;
 			}
-			disableRefreshAfter = p.GetIntParam("override", 600000);
-			string userAgent = p.GetHeaderValue("User-Agent", "");
+			disableRefreshAfter = p.Request.GetIntParam("override", 600000);
+			string userAgent = p.Request.Headers.Get("User-Agent") ?? "";
 			bool isMobile = userAgent.Contains("iPad") || userAgent.Contains("iPhone") || userAgent.Contains("Android") || userAgent.Contains("BlackBerry");
 			bool isLanConnection = p == null ? false : p.IsLanConnection;
 			int defaultRefresh = isLanConnection && !isMobile ? 0 : 250;
-			refreshDelay = p.GetIntParam("refresh", defaultRefresh);
+			refreshDelay = p.Request.GetIntParam("refresh", defaultRefresh);
 			cameraName = cam.cameraSpec.name;
 			if (cam.cameraSpec.type == CameraType.h264_rtsp_proxy)
 			{

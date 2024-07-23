@@ -53,14 +53,14 @@ namespace MJpegCameraProxy.Configuration
 
 		public string SaveItem(HttpProcessor p)
 		{
-			bool isNew = p.GetBoolParam("new");
-			string originalIdNotLowerCase = p.GetPostParam("itemid");
+			bool isNew = p.Request.GetBoolParam("new");
+			string originalIdNotLowerCase = p.Request.GetPostParam("itemid");
 			string originalId = originalIdNotLowerCase.ToLower();
-			string itemtype = p.GetPostParam("itemtype");
+			string itemtype = p.Request.GetPostParam("itemtype");
 			if (itemtype == "camera")
 			{
 				CameraSpec cs = new CameraSpec();
-				string result = cs.setFieldValues(p.RawPostParams);
+				string result = cs.setFieldValues(p.Request.RawPostParams);
 				if (result.StartsWith("0"))
 					return result;
 				lock (this)
@@ -97,7 +97,7 @@ namespace MJpegCameraProxy.Configuration
 			else if (itemtype == "user")
 			{
 				Configuration.User u = new Configuration.User();
-				string result = u.setFieldValues(p.RawPostParams);
+				string result = u.setFieldValues(p.Request.RawPostParams);
 				if (result.StartsWith("0"))
 					return result;
 				lock (this)
@@ -131,10 +131,10 @@ namespace MJpegCameraProxy.Configuration
 			else if (itemtype == "ptzprofile")
 			{
 				PTZProfile f = new PTZProfile();
-				int version = p.GetPostIntParam("version", 1);
+				int version = p.Request.GetPostIntParam("version", 1);
 				if (version == 1)
 					f.spec = new PTZSpecV1();
-				string result = f.spec.setFieldValues(p.RawPostParams);
+				string result = f.spec.setFieldValues(p.Request.RawPostParams);
 
 				if (result.StartsWith("0"))
 					return result;
@@ -210,8 +210,8 @@ namespace MJpegCameraProxy.Configuration
 
 		public string DeleteItems(HttpProcessor p)
 		{
-			string itemtype = p.GetPostParam("itemtype");
-			string ids = p.GetPostParam("ids").ToLower();
+			string itemtype = p.Request.GetPostParam("itemtype");
+			string ids = p.Request.GetPostParam("ids").ToLower();
 			if (ids == null || ids.Length < 1)
 				return "0No items were specified for deletion";
 			string[] parts = ids.Split(',');
@@ -269,10 +269,10 @@ namespace MJpegCameraProxy.Configuration
 		{
 			lock (this)
 			{
-				string id = p.GetPostParam("id").ToLower();
+				string id = p.Request.GetPostParam("id").ToLower();
 				if (string.IsNullOrEmpty(id))
 					return "0Missing id parameter";
-				string dir = p.GetPostParam("dir");
+				string dir = p.Request.GetPostParam("dir");
 				if (string.IsNullOrEmpty(dir))
 					return "0Missing dir parameter";
 

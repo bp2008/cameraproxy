@@ -50,7 +50,6 @@ namespace MJpegCameraProxy
 					cfg.users.Add(new User("admin", "admin", 100));
 				cfg.Save(CameraProxyGlobals.ConfigFilePath);
 			}
-			SimpleHttpLogger.RegisterLogger(Logger.httpLogger);
 			bool killed = false;
 			try
 			{
@@ -89,10 +88,10 @@ namespace MJpegCameraProxy
 				else
 					cert = new X509Certificate2(cfg.certificate_pfx_path);
 			}
-			httpServer = new MJpegServer(cfg.webport, cfg.webport_https, cert);
+			httpServer = new MJpegServer(cert);
+			httpServer.EnableLogging(false);
 			httpServer.SocketBound += Server_SocketBound;
-			httpServer.CertificateExpirationWarning += HttpServer_CertificateExpirationWarning;
-			httpServer.Start();
+			httpServer.SetBindings(cfg.webport, cfg.webport_https);
 
 			webSocketServer = new CameraProxyWebSocketServer(cfg.webSocketPort, cfg.webSocketPort_secure, cert);
 			webSocketServer.SocketBound += Server_SocketBound;
@@ -104,16 +103,16 @@ namespace MJpegCameraProxy
 			thrCertificateMaintainer.Start();
 		}
 
-		private void HttpServer_CertificateExpirationWarning(object sender, TimeSpan e)
-		{
-			if (cfg.certificateMode == CertificateMode.LetsEncrypt)
-			{
-				if (e > TimeSpan.Zero)
-					Logger.Info("WARNING: LetsEncrypt SSL certificate is going to expire in " + e);
-				else
-					Logger.Info("WARNING: LetsEncrypt SSL certificate has expired");
-			}
-		}
+		//private void HttpServer_CertificateExpirationWarning(object sender, TimeSpan e)
+		//{
+		//	if (cfg.certificateMode == CertificateMode.LetsEncrypt)
+		//	{
+		//		if (e > TimeSpan.Zero)
+		//			Logger.Info("WARNING: LetsEncrypt SSL certificate is going to expire in " + e);
+		//		else
+		//			Logger.Info("WARNING: LetsEncrypt SSL certificate has expired");
+		//	}
+		//}
 
 		private void maintainLetsEncryptCertificate()
 		{
@@ -146,50 +145,50 @@ namespace MJpegCameraProxy
 							// Not near expiration
 							Thread.Sleep(60000);
 						}
-						else if (httpServer.GetCertificateFriendlyName() != "LetsEncryptAuto"
-							|| httpServer.GetCertificateExpiration() < DateTime.Now.AddDays(14))
-						{
-							try
-							{
-								// Current certificate is not from LetsEncrypt or expiration is near.
-								// Either way, we should renew.
-								nextCertificateCheck = sw.ElapsedMilliseconds + 360000; // 1 hour later
+						//else if (httpServer.GetCertificateFriendlyName() != "LetsEncryptAuto"
+						//	|| httpServer.GetCertificateExpiration() < DateTime.Now.AddDays(14))
+						//{
+						//	try
+						//	{
+						//		// Current certificate is not from LetsEncrypt or expiration is near.
+						//		// Either way, we should renew.
+						//		nextCertificateCheck = sw.ElapsedMilliseconds + 360000; // 1 hour later
 
-								string wwwRoot = cfg.letsEncrypt_www_root;
-								Task<byte[]> certTask = LetsEncrypt.GetCertificate(cfg.letsEncrypt_email, cfg.letsEncrypt_domains, cfg.certificate_pfx_password, (c) =>
-								{
-									if (string.IsNullOrWhiteSpace(wwwRoot))
-										httpServer.PrepareCertificationChallenge(c);
-									else
-									{
-										string baseDir = wwwRoot.Replace('\\', '/') + "/.well-known/acme-challenge/";
-										Directory.CreateDirectory(baseDir);
-										File.WriteAllText(baseDir + c.challengeToken, c.expectedResponse, Encoding.ASCII);
-									}
-								}
-								, (status) =>
-								{
-									letsEncrypt_certificateGenerationStatus = status;
-								});
-								certTask.Wait();
-								byte[] certificate = certTask.Result;
-								letsEncrypt_certificateGenerationStatus = "";
-								if (string.IsNullOrWhiteSpace(wwwRoot))
-									httpServer.ClearChallenges();
-								if (certificate != null && certificate.Length > 0)
-								{
-									File.WriteAllBytes(Globals.WritableDirectoryBase + cfg.certificate_pfx_path, certificate);
-									X509Certificate2 cert = new X509Certificate2(certificate, cfg.certificate_pfx_password);
-									httpServer.SetCertificate(cert);
-									Logger.Info("LetsEncrypt certificate renewed successfully");
-								}
-							}
-							catch (Exception)
-							{
-								letsEncrypt_certificateGenerationStatus = "Error in last certificate renewal";
-								throw;
-							}
-						}
+						//		string wwwRoot = cfg.letsEncrypt_www_root;
+						//		Task<byte[]> certTask = LetsEncrypt.GetCertificate(cfg.letsEncrypt_email, cfg.letsEncrypt_domains, cfg.certificate_pfx_password, (c) =>
+						//		{
+						//			if (string.IsNullOrWhiteSpace(wwwRoot))
+						//				httpServer.PrepareCertificationChallenge(c);
+						//			else
+						//			{
+						//				string baseDir = wwwRoot.Replace('\\', '/') + "/.well-known/acme-challenge/";
+						//				Directory.CreateDirectory(baseDir);
+						//				File.WriteAllText(baseDir + c.challengeToken, c.expectedResponse, Encoding.ASCII);
+						//			}
+						//		}
+						//		, (status) =>
+						//		{
+						//			letsEncrypt_certificateGenerationStatus = status;
+						//		});
+						//		certTask.Wait();
+						//		byte[] certificate = certTask.Result;
+						//		letsEncrypt_certificateGenerationStatus = "";
+						//		if (string.IsNullOrWhiteSpace(wwwRoot))
+						//			httpServer.ClearChallenges();
+						//		if (certificate != null && certificate.Length > 0)
+						//		{
+						//			File.WriteAllBytes(Globals.WritableDirectoryBase + cfg.certificate_pfx_path, certificate);
+						//			X509Certificate2 cert = new X509Certificate2(certificate, cfg.certificate_pfx_password);
+						//			httpServer.SetCertificate(cert);
+						//			Logger.Info("LetsEncrypt certificate renewed successfully");
+						//		}
+						//	}
+						//	catch (Exception)
+						//	{
+						//		letsEncrypt_certificateGenerationStatus = "Error in last certificate renewal";
+						//		throw;
+						//	}
+						//}
 						else
 						{
 							// Not near expiration
@@ -221,10 +220,7 @@ namespace MJpegCameraProxy
 			Try.Catch(() => { thrCertificateMaintainer?.Abort(); });
 
 			if (httpServer != null)
-			{
 				httpServer.Stop();
-				httpServer.Join(1000);
-			}
 			// webSocketServer does not support closing/stopping
 			webSocketServer = null;
 		}

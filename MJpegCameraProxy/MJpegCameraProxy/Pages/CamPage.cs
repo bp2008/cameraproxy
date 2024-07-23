@@ -162,7 +162,7 @@ namespace MJpegCameraProxy
 		}
 		function GetNewImage()
 		{
-			$(""#imgFrame"").attr('src', '" + camId + "." + (refreshTime < 0 ? "m" : "") + @"jpg?patience=" + patience + "&" + httpProcessor.GetParam("imgargs") + @"&nocache=' + new Date().getTime());
+			$(""#imgFrame"").attr('src', '" + camId + "." + (refreshTime < 0 ? "m" : "") + @"jpg?patience=" + patience + "&" + httpProcessor.Request.GetParam("imgargs") + @"&nocache=' + new Date().getTime());
 		}
 		function disableRefresh()
 		{

@@ -107,6 +107,6 @@ namespace MJpegCameraProxy
 		{
 			get { return wwwPublicDirectoryBase; }
 		}
-		public static string Version = "1.7";
+		public static string Version = "1.7.1";
 	}
 }

@@ -15,8 +15,8 @@ namespace MJpegCameraProxy.Pages.Admin
 		protected override string GetPageHtml(HttpProcessor p, Session s)
 		{
 			sb.Clear();
-			string itemtype = p.GetParam("itemtype");
-			string itemid = p.GetParam("itemid").ToLower();
+			string itemtype = p.Request.GetParam("itemtype");
+			string itemid = p.Request.GetParam("itemid").ToLower();
 			sb.Append("<div id=\"itemtype\" itemtype=\"").Append(itemtype).Append("\" style=\"display:none;\"></div>");
 			sb.Append("<div id=\"itemid\" itemid=\"").Append(itemid).Append("\" style=\"display:none;\"></div>");
 			sb.Append("<div id=\"itemfields\">");
